@@ -1,17 +1,15 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../NeuralNetwork/tensor.cpp"
+#include "../NeuralNetwork/Tensor.cpp"
+#include "../NeuralNetwork/ActivationLayer.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace NeuralNetworkUnitTests
-{
-	TEST_CLASS(TensorUnitTests)
-	{
+namespace NeuralNetworkUnitTests {
+	TEST_CLASS(TensorUnitTests) {
 	public:
 		
-		TEST_METHOD(WhenGetValueShouldReturnProperItem)
-		{
+		TEST_METHOD(WhenGetValueShouldReturnProperItem) {
 			Tensor* tensor;
 			
 			tensor = new Tensor(2, 3, 3);
@@ -21,8 +19,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(.5f, tensor->getValue(2, 1, 2));
 		}
 		
-		TEST_METHOD(SetValueShouldBeProperlyPlacedInData)
-		{
+		TEST_METHOD(SetValueShouldBeProperlyPlacedInData) {
 			Tensor* tensor;
 
 			tensor = new Tensor(3, 2, 2, 2);
@@ -46,8 +43,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(8.0f, tensor->getData()[7]);
 		}
 
-		TEST_METHOD(WhenMultipliedByTensorEachValuePairShouldBeMultiplied)
-		{
+		TEST_METHOD(WhenMultipliedByTensorEachValuePairShouldBeMultiplied) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -72,8 +68,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(.25f, tensor_a->getValue(2, 1, 1));
 		}
 
-		TEST_METHOD(WhenMultipliedByRowTensorEachValuePairShouldBeMultiplied)
-		{
+		TEST_METHOD(WhenMultipliedByRowTensorEachValuePairShouldBeMultiplied) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -96,8 +91,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(.25f, tensor_a->getValue(2, 1, 1));
 		}
 
-		TEST_METHOD(WhenMultipliedByNumberEachValueShouldBeMultiplied)
-		{
+		TEST_METHOD(WhenMultipliedByNumberEachValueShouldBeMultiplied) {
 			Tensor* tensor;
 
 			tensor = new Tensor(2, 2, 2);
@@ -115,8 +109,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(.25f, tensor->getValue(2, 1, 1));
 		}
 
-		TEST_METHOD(DotProductShouldReturnSumOfAllProducts)
-		{
+		TEST_METHOD(DotProductShouldReturnSumOfAllProducts) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -138,8 +131,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(21.25f, dot_prod);
 		}
 
-		TEST_METHOD(TensorProductResultDimShouldBeSumOfArgumentsDims)
-		{
+		TEST_METHOD(TensorProductResultDimShouldBeSumOfArgumentsDims) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -151,8 +143,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(5, (int)result->getDim());
 		}
 
-		TEST_METHOD(TensorProductResultShapeShouldBeConcatOfArgumentsShapes)
-		{
+		TEST_METHOD(TensorProductResultShapeShouldBeConcatOfArgumentsShapes) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -168,8 +159,7 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(6, (int)result->getShape()[4]);
 		}
 
-		TEST_METHOD(TensorProductResultShouldBeCorrect)
-		{
+		TEST_METHOD(TensorProductResultShouldBeCorrect) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 
@@ -198,6 +188,70 @@ namespace NeuralNetworkUnitTests
 			Assert::AreEqual(8.0f, result->getValue(5, 1, 1, 1, 2, 3));
 			Assert::AreEqual(1.0f, result->getValue(5, 0, 2, 1, 2, 0));
 			Assert::AreEqual(2.0f, result->getValue(5, 1, 0, 1, 2, 0));
+		}
+
+		TEST_METHOD(ApplyFunctionShouldApplyGivenFunctionToTensor) {
+			Tensor* tensor;
+
+			tensor = new Tensor(2, 2, 2);
+
+			tensor->setValue(1.0f, 2, 0, 0);
+			tensor->setValue(2.0f, 2, 0, 1);
+			tensor->setValue(3.0f, 2, 1, 0);
+			tensor->setValue(4.0f, 2, 1, 1);
+
+			tensor->applyFunction([](float value) {return value * 2.0f; });
+
+			Assert::AreEqual(2.0f, tensor->getValue(2, 0, 0));
+			Assert::AreEqual(4.0f, tensor->getValue(2, 0, 1));
+			Assert::AreEqual(6.0f, tensor->getValue(2, 1, 0));
+			Assert::AreEqual(8.0f, tensor->getValue(2, 1, 1));
+		}
+	};
+
+	TEST_CLASS(ActivationLayerUnitTests) {
+	public:
+
+		TEST_METHOD(ActivationLayerShouldApplyGivenFunctionWhenPrograpateForward) {
+			Tensor* tensor;
+			Tensor* result;
+			ActivationLayer* layer;
+
+			tensor = new Tensor(2, 2, 2);
+			layer = new ActivationLayer([](float value) { return value * value; }, [](float value) { return value * 2.0f; });
+
+			tensor->setValue(1.0f, 2, 0, 0);
+			tensor->setValue(2.0f, 2, 0, 1);
+			tensor->setValue(3.0f, 2, 1, 0);
+			tensor->setValue(4.0f, 2, 1, 1);
+
+			result = layer->forwardPropagation(*tensor);
+
+			Assert::AreEqual(1.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(4.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(9.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(16.0f, result->getValue(2, 1, 1));
+		}
+
+		TEST_METHOD(ActivationLayerShouldApplyGivenFunctionDerivativeWhenPrograpateBackward) {
+			Tensor* tensor;
+			Tensor* result;
+			ActivationLayer* layer;
+
+			tensor = new Tensor(2, 2, 2);
+			layer = new ActivationLayer([](float value) { return value * value; }, [](float value) { return value * 2.0f; });
+
+			tensor->setValue(1.0f, 2, 0, 0);
+			tensor->setValue(2.0f, 2, 0, 1);
+			tensor->setValue(3.0f, 2, 1, 0);
+			tensor->setValue(4.0f, 2, 1, 1);
+
+			result = layer->backwardPropagation(*tensor);
+
+			Assert::AreEqual(2.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(4.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(6.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(8.0f, result->getValue(2, 1, 1));
 		}
 	};
 }

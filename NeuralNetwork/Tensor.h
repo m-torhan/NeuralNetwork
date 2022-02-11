@@ -32,6 +32,7 @@ public:
 	Tensor* operator/=(const float number);
 	float dotProduct(const Tensor& other);
 	Tensor* tensorProduct(const Tensor& other);
+	void applyFunction(float (*function)(float));
 
 private:
 	uint32_t _dim;

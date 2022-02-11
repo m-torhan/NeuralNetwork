@@ -1,6 +1,7 @@
 #include <iostream>
 
+#include "Tensor.h"
+
 int main()
 {
-    std::cout << "Hello World!\n";
 }

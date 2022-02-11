@@ -65,9 +65,9 @@ Tensor::Tensor(const Tensor& other) {
 
 Tensor::Tensor() {
 	_dim = 0;
-	_shape = nullptr;
+	_shape = 0;
 	_size = 0;
-	_data = nullptr;
+	_data = 0;
 }
 
 Tensor::~Tensor() {
@@ -106,6 +106,7 @@ float* Tensor::getData() {
 float Tensor::getValue(size_t n ...) {
 	va_list indices;
 	uint32_t idx = 0;
+	uint32_t subidx = 0;
 	uint32_t subsize = this->_size;
 	uint32_t i = 0;
 
@@ -116,7 +117,11 @@ float Tensor::getValue(size_t n ...) {
 	va_start(indices, n);
 	for (i = 0; i < this->_dim; ++i) {
 		subsize /= this->_shape[i];
-		idx += subsize * va_arg(indices, uint32_t);
+		subidx = va_arg(indices, uint32_t);
+		if (subidx >= this->_shape[i]) {
+			// exception
+		}
+		idx += subsize * subidx;
 	}
 	va_end(indices);
 
@@ -399,6 +404,14 @@ Tensor* Tensor::tensorProduct(const Tensor& other) {
 	free(resultShape);
 
 	return result;
+}
+
+void Tensor::applyFunction(float (*function)(float)) {
+	uint32_t i = 0;
+
+	for (i = 0; i < this->_size; ++i) {
+		this->_data[i] = function(this->_data[i]);
+	}
 }
 
 bool Tensor::validateDimGreater(const Tensor& other) {
