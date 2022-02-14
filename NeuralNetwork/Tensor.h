@@ -9,10 +9,10 @@ public:
 	Tensor();
 	~Tensor();
 
-	uint32_t* getShape();
-	uint32_t getDim();
-	float* getData();
-	float getValue(size_t i ...);
+	uint32_t* getShape() const;
+	uint32_t getDim() const;
+	float* getData() const;
+	float getValue(size_t i ...) const;
 	void setValue(float value, size_t i ...);
 	Tensor* operator+(const Tensor& other);
 	Tensor* operator-(const Tensor& other);
@@ -30,7 +30,7 @@ public:
 	Tensor* operator-=(const float number);
 	Tensor* operator*=(const float number);
 	Tensor* operator/=(const float number);
-	float dotProduct(const Tensor& other);
+	Tensor* dotProduct(const Tensor& other);
 	Tensor* tensorProduct(const Tensor& other);
 	void applyFunction(float (*function)(float));
 

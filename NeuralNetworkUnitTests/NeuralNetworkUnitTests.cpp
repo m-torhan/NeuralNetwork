@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "../NeuralNetwork/Tensor.cpp"
+#include "../NeuralNetwork/Layer.cpp"
 #include "../NeuralNetwork/ActivationLayer.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -17,6 +18,46 @@ namespace NeuralNetworkUnitTests {
 			tensor->setValue(.5f, 2, 1, 2);
 
 			Assert::AreEqual(.5f, tensor->getValue(2, 1, 2));
+		}
+
+		TEST_METHOD(WhenGetValueZeroDimensionalTensorShouldReturnNumber) {
+			Tensor* tensor;
+
+			tensor = new Tensor(0);
+
+			tensor->setValue(1.0f, 0);
+
+			Assert::AreEqual(1.0f, tensor->getValue(0));
+		}
+
+		TEST_METHOD(WhenAddZeroDimensionalTensorsShouldBehaveLikeNumbers) {
+			Tensor* tensor_a;
+			Tensor* tensor_b;
+
+			tensor_a = new Tensor(0);
+			tensor_b = new Tensor(0);
+
+			tensor_a->setValue(6.0f, 0);
+			tensor_b->setValue(2.0f, 0);
+
+			*tensor_a += *tensor_b;
+
+			Assert::AreEqual(8.0f, tensor_a->getValue(0));
+		}
+
+		TEST_METHOD(WhenMultiplyZeroDimensionalTensorsShouldBehaveLikeNumbers) {
+			Tensor* tensor_a;
+			Tensor* tensor_b;
+
+			tensor_a = new Tensor(0);
+			tensor_b = new Tensor(0);
+
+			tensor_a->setValue(0.5f, 0);
+			tensor_b->setValue(4.0f, 0);
+
+			*tensor_a *= *tensor_b;
+
+			Assert::AreEqual(2.0f, tensor_a->getValue(0));
 		}
 		
 		TEST_METHOD(SetValueShouldBeProperlyPlacedInData) {
@@ -112,6 +153,7 @@ namespace NeuralNetworkUnitTests {
 		TEST_METHOD(DotProductShouldReturnSumOfAllProducts) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
+			Tensor* dot_prod;
 
 			tensor_a = new Tensor(2, 2, 2);
 			tensor_b = new Tensor(2, 2, 2);
@@ -126,9 +168,9 @@ namespace NeuralNetworkUnitTests {
 			tensor_b->setValue(4.0f, 2, 1, 0);
 			tensor_b->setValue(2.0f, 2, 1, 1);
 
-			float dot_prod = tensor_a->dotProduct(*tensor_b);
+			dot_prod = tensor_a->dotProduct(*tensor_b);
 
-			Assert::AreEqual(21.25f, dot_prod);
+			Assert::AreEqual(21.25f, dot_prod->getValue(0));
 		}
 
 		TEST_METHOD(TensorProductResultDimShouldBeSumOfArgumentsDims) {
@@ -218,7 +260,7 @@ namespace NeuralNetworkUnitTests {
 			ActivationLayer* layer;
 
 			tensor = new Tensor(2, 2, 2);
-			layer = new ActivationLayer([](float value) { return value * value; }, [](float value) { return value * 2.0f; });
+			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](float x) { return x * x; }, [](float x, float dx) { return x * dx * 2.0f; });
 
 			tensor->setValue(1.0f, 2, 0, 0);
 			tensor->setValue(2.0f, 2, 0, 1);
@@ -239,7 +281,7 @@ namespace NeuralNetworkUnitTests {
 			ActivationLayer* layer;
 
 			tensor = new Tensor(2, 2, 2);
-			layer = new ActivationLayer([](float value) { return value * value; }, [](float value) { return value * 2.0f; });
+			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](float x) { return x * x; }, [](float x, float dx) { return x * dx * 2.0f; });
 
 			tensor->setValue(1.0f, 2, 0, 0);
 			tensor->setValue(2.0f, 2, 0, 1);
