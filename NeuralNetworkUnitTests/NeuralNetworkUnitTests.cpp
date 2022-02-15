@@ -150,7 +150,7 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(.25f, tensor->getValue(2, 1, 1));
 		}
 
-		TEST_METHOD(DotProductShouldReturnSumOfAllProducts) {
+		TEST_METHOD(WhenTensorsHaveSameSizeDotProductShouldReturnSumOfAllProducts) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
 			Tensor* dot_prod;
@@ -171,6 +171,28 @@ namespace NeuralNetworkUnitTests {
 			dot_prod = tensor_a->dotProduct(*tensor_b);
 
 			Assert::AreEqual(21.25f, dot_prod->getValue(0));
+		}
+
+		TEST_METHOD(WhenTensorsHaveDifferentSizeDotProductShouldReturnSumsOfProducts) {
+			Tensor* tensor_a;
+			Tensor* tensor_b;
+			Tensor* dot_prod;
+
+			tensor_a = new Tensor(2, 2, 2);
+			tensor_b = new Tensor(1, 2);
+
+			tensor_a->setValue(1.0f, 2, 0, 0);
+			tensor_a->setValue(.5f, 2, 0, 1);
+			tensor_a->setValue(.25f, 2, 1, 0);
+			tensor_a->setValue(.125f, 2, 1, 1);
+
+			tensor_b->setValue(16.0f, 1, 0);
+			tensor_b->setValue(8.0f, 1, 1);
+
+			dot_prod = tensor_a->dotProduct(*tensor_b);
+
+			Assert::AreEqual(20.0f, dot_prod->getValue(1, 0));
+			Assert::AreEqual(5.0f, dot_prod->getValue(1, 1));
 		}
 
 		TEST_METHOD(TensorProductResultDimShouldBeSumOfArgumentsDims) {

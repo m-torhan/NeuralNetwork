@@ -378,7 +378,7 @@ Tensor* Tensor::dotProduct(const Tensor& other) {
 	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
 
 	if (result_dim) {
-		memcpy(result_shape, &this->_shape[result_dim], result_dim);
+		memcpy(result_shape, &this->_shape[result_dim], sizeof(uint32_t) * result_dim);
 	}
 
 	result = new Tensor(result_dim, result_shape);
