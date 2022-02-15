@@ -8,20 +8,20 @@ enum ActivationFun {
 
 class ActivationLayer : Layer {
 public:
-	ActivationLayer(uint32_t input_dim, uint32_t* input_shape, float (*activation_fun)(float), float (*activation_fun_d)(float, float));
+	ActivationLayer(uint32_t input_dim, uint32_t* input_shape, Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));
 	ActivationLayer(uint32_t input_dim, uint32_t* input_shape, ActivationFun activation_fun);
-	ActivationLayer(const Layer& prev_layer, float (*activation_fun)(float), float (*activation_fun_d)(float, float));
+	ActivationLayer(const Layer& prev_layer, Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));
 	ActivationLayer(const Layer& prev_layer, ActivationFun activation_fun);
 
 	virtual Tensor* forwardPropagation(const Tensor& tensor);
 	virtual Tensor* backwardPropagation(const Tensor& tensor);
 
 private:
-	void InitActivationFun(float (*activation_fun)(float), float (*activation_fun_d)(float, float));
+	void InitActivationFun(Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));
 	void InitActivationFun(ActivationFun activation_fun);
-	float (*_activation_fun)(float);
-	float (*_activation_fun_d)(float, float);
+	Tensor* (*_activation_fun)(const Tensor&);
+	Tensor* (*_activation_fun_d)(const Tensor&, const Tensor&);
 
-	static float ReLU_fun(float x);
-	static float ReLU_fun_d(float x, float dx);
+	static Tensor* ReLU_fun(const Tensor& x);
+	static Tensor* ReLU_fun_d(const Tensor& x, const Tensor& dx);
 };

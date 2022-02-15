@@ -282,7 +282,7 @@ namespace NeuralNetworkUnitTests {
 			ActivationLayer* layer;
 
 			tensor = new Tensor(2, 2, 2);
-			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](float x) { return x * x; }, [](float x, float dx) { return x * dx * 2.0f; });
+			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](const Tensor& x) { return x*x; }, [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); });
 
 			tensor->setValue(1.0f, 2, 0, 0);
 			tensor->setValue(2.0f, 2, 0, 1);
@@ -303,19 +303,20 @@ namespace NeuralNetworkUnitTests {
 			ActivationLayer* layer;
 
 			tensor = new Tensor(2, 2, 2);
-			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](float x) { return x * x; }, [](float x, float dx) { return x * dx * 2.0f; });
+			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](const Tensor& x) { return x * x; }, [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); });
 
 			tensor->setValue(1.0f, 2, 0, 0);
 			tensor->setValue(2.0f, 2, 0, 1);
 			tensor->setValue(3.0f, 2, 1, 0);
 			tensor->setValue(4.0f, 2, 1, 1);
 
+			result = layer->forwardPropagation(*tensor);
 			result = layer->backwardPropagation(*tensor);
 
-			Assert::AreEqual(2.0f, result->getValue(2, 0, 0));
-			Assert::AreEqual(4.0f, result->getValue(2, 0, 1));
-			Assert::AreEqual(6.0f, result->getValue(2, 1, 0));
-			Assert::AreEqual(8.0f, result->getValue(2, 1, 1));
+			Assert::AreEqual(  2.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual( 16.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual( 54.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(128.0f, result->getValue(2, 1, 1));
 		}
 	};
 }

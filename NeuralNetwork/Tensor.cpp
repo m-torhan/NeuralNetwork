@@ -79,6 +79,10 @@ uint32_t Tensor::getDim() const {
 	return _dim;
 }
 
+uint32_t Tensor::getSize() const {
+	return _size;
+}
+
 uint32_t* Tensor::getShape() const {
 	uint32_t* shape;
 
@@ -148,23 +152,23 @@ void Tensor::setValue(float value, size_t n ...) {
 	this->_data[idx] = value;
 }
 
-Tensor* Tensor::operator+(const Tensor& other) {
+Tensor* Tensor::operator+(const Tensor& other) const {
 	uint32_t i = 0;
 
 	if (!this->validateShape(other)) {
 		// exception
 	}
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] + other._data[i % other._size];
+		result->_data[i] = this->_data[i] + other._data[i % other._size];
 	}
 
-	return &result;
+	return result;
 }
 
-Tensor* Tensor::operator-(const Tensor& other) {
+Tensor* Tensor::operator-(const Tensor& other) const {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -172,16 +176,16 @@ Tensor* Tensor::operator-(const Tensor& other) {
 		// exception
 	}
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] - other._data[i % other._size];
+		result->_data[i] = this->_data[i] - other._data[i % other._size];
 	}
 
-	return &result;
+	return result;
 }
 
-Tensor* Tensor::operator*(const Tensor& other) {
+Tensor* Tensor::operator*(const Tensor& other) const {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -189,16 +193,16 @@ Tensor* Tensor::operator*(const Tensor& other) {
 		// exception
 	}
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] * other._data[i % other._size];
+		result->_data[i] = this->_data[i] * other._data[i % other._size];
 	}
 
-	return &result;
+	return result;
 }
 
-Tensor* Tensor::operator/(const Tensor& other) {
+Tensor* Tensor::operator/(const Tensor& other) const {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -206,13 +210,13 @@ Tensor* Tensor::operator/(const Tensor& other) {
 		// exception
 	}
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] / other._data[i % other._size];
+		result->_data[i] = this->_data[i] / other._data[i % other._size];
 	}
 
-	return &result;
+	return result;
 }
 
 Tensor* Tensor::operator+=(const Tensor& other) {
@@ -275,52 +279,69 @@ Tensor* Tensor::operator/=(const Tensor& other) {
 	return this;
 }
 
-Tensor* Tensor::operator+(float number) {
+Tensor* Tensor::operator>(const Tensor& other) const {
 	uint32_t i = 0;
 
-	Tensor result = Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] + number;
+	if (!this->validateDimGreater(other) ||
+		!this->validateShape(other)) {
+		// exception
 	}
 
-	return &result;
+	Tensor* result = new Tensor(this->_dim, this->_shape);
+
+	for (i = 0; i < this->_size; ++i) {
+		result->_data[i] = this->_data[i] > other._data[i % other._size] ? 1.0f: 0.0f;
+	}
+
+	return result;
 }
 
-Tensor* Tensor::operator-(float number) {
+Tensor* Tensor::operator+(float number) const {
 	uint32_t i = 0;
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] - number;
+		result->_data[i] = this->_data[i] + number;
 	}
 
-	return &result;
+	return result;
 }
 
-Tensor* Tensor::operator*(float number) {
+Tensor* Tensor::operator-(float number) const {
 	uint32_t i = 0;
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] * number;
+		result->_data[i] = this->_data[i] - number;
 	}
 
-	return &result;
+	return result;
 }
 
-Tensor* Tensor::operator/(float number) {
+Tensor* Tensor::operator*(float number) const {
 	uint32_t i = 0;
 
-	Tensor result = Tensor(this->_dim, this->_shape);
+	Tensor* result = new Tensor(this->_dim, this->_shape);
 
 	for (i = 0; i < this->_size; ++i) {
-		result._data[i] = this->_data[i] / number;
+		result->_data[i] = this->_data[i] * number;
 	}
 
-	return &result;
+	return result;
+}
+
+Tensor* Tensor::operator/(float number) const {
+	uint32_t i = 0;
+
+	Tensor* result = new Tensor(this->_dim, this->_shape);
+
+	for (i = 0; i < this->_size; ++i) {
+		result->_data[i] = this->_data[i] / number;
+	}
+
+	return result;
 }
 
 Tensor* Tensor::operator+=(float number) {
@@ -361,6 +382,18 @@ Tensor* Tensor::operator/=(float number) {
 	}
 
 	return this;
+}
+
+Tensor* Tensor::operator>(float number) const {
+	uint32_t i = 0;
+
+	Tensor* result = new Tensor(this->_dim, this->_shape);
+
+	for (i = 0; i < this->_size; ++i) {
+		result->_data[i] = this->_data[i] > number ? 1.0f : 0.0f;
+	}
+
+	return result;
 }
 
 Tensor* Tensor::dotProduct(const Tensor& other) {
@@ -426,15 +459,15 @@ void Tensor::applyFunction(float (*function)(float)) {
 	}
 }
 
-bool Tensor::validateDimGreater(const Tensor& other) {
+bool Tensor::validateDimGreater(const Tensor& other) const {
 	return this->_dim >= other._dim;
 }
 
-bool Tensor::validateDimEqual(const Tensor& other) {
+bool Tensor::validateDimEqual(const Tensor& other) const {
 	return this->_dim == other._dim;
 }
 
-bool Tensor::validateShape(const Tensor& other) {
+bool Tensor::validateShape(const Tensor& other) const {
 	uint32_t i = 0;
 	uint32_t min_dim = 0;
 
