@@ -33,9 +33,12 @@ public:
 	Tensor* operator*=(float number);
 	Tensor* operator/=(float number);
 	Tensor* operator>(float other) const;
-	Tensor* dotProduct(const Tensor& other);
-	Tensor* tensorProduct(const Tensor& other);
+	Tensor* dotProduct(const Tensor& other) const;
+	Tensor* tensorProduct(const Tensor& other) const;
 	void applyFunction(float (*function)(float));
+	Tensor* flatten() const;
+	Tensor* sum(uint32_t axis) const;
+	Tensor* transpose() const;
 
 private:
 	uint32_t _dim;

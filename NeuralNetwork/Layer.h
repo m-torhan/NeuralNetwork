@@ -10,8 +10,8 @@ public:
 	uint32_t getOutputDim() const;
 	uint32_t* getOutputShape() const;
 
-	virtual Tensor* forwardPropagation(const Tensor& tensor) = 0;
-	virtual Tensor* backwardPropagation(const Tensor& tensor) = 0;
+	virtual Tensor* forwardPropagation(const Tensor& x) = 0;
+	virtual Tensor* backwardPropagation(const Tensor& dx) = 0;
 
 protected:
 	uint32_t _input_dim;

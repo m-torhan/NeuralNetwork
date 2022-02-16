@@ -271,6 +271,97 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(6.0f, tensor->getValue(2, 1, 0));
 			Assert::AreEqual(8.0f, tensor->getValue(2, 1, 1));
 		}
+
+		TEST_METHOD(SumAcrossFirstAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->sum(0);
+
+			Assert::AreEqual(2, (int)result->getDim());
+
+			Assert::AreEqual( 8.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(10.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(12.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(14.0f, result->getValue(2, 1, 1));
+			Assert::AreEqual(16.0f, result->getValue(2, 2, 0));
+			Assert::AreEqual(18.0f, result->getValue(2, 2, 1));
+		}
+
+		TEST_METHOD(SumAcrossSecondAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->sum(1);
+
+			Assert::AreEqual(2, (int)result->getDim());
+
+			Assert::AreEqual( 9.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(12.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(27.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(30.0f, result->getValue(2, 1, 1));
+		}
+
+		TEST_METHOD(SumAcrossThridAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->sum(2);
+
+			Assert::AreEqual(2, (int)result->getDim());
+
+			Assert::AreEqual( 3.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual( 7.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(11.0f, result->getValue(2, 0, 2));
+			Assert::AreEqual(15.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(19.0f, result->getValue(2, 1, 1));
+			Assert::AreEqual(23.0f, result->getValue(2, 1, 2));
+		}
 	};
 
 	TEST_CLASS(ActivationLayerUnitTests) {
@@ -282,7 +373,7 @@ namespace NeuralNetworkUnitTests {
 			ActivationLayer* layer;
 
 			tensor = new Tensor(2, 2, 2);
-			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](const Tensor& x) { return x*x; }, [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); });
+			layer = new ActivationLayer(tensor->getDim(), tensor->getShape(), [](const Tensor& x) { return x * x; }, [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); });
 
 			tensor->setValue(1.0f, 2, 0, 0);
 			tensor->setValue(2.0f, 2, 0, 1);
@@ -291,9 +382,9 @@ namespace NeuralNetworkUnitTests {
 
 			result = layer->forwardPropagation(*tensor);
 
-			Assert::AreEqual(1.0f, result->getValue(2, 0, 0));
-			Assert::AreEqual(4.0f, result->getValue(2, 0, 1));
-			Assert::AreEqual(9.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual( 1.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual( 4.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual( 9.0f, result->getValue(2, 1, 0));
 			Assert::AreEqual(16.0f, result->getValue(2, 1, 1));
 		}
 

@@ -48,16 +48,16 @@ void ActivationLayer::InitActivationFun(ActivationFun activation_fun) {
 	}
 }
 
-Tensor* ActivationLayer::forwardPropagation(const Tensor& tensor) {
+Tensor* ActivationLayer::forwardPropagation(const Tensor& x) {
 	Tensor* result;
-	result = _activation_fun(tensor);
+	result = _activation_fun(x);
 	_cached_output = new Tensor(*result);
 	return result;
 }
 
-Tensor* ActivationLayer::backwardPropagation(const Tensor& tensor) {
+Tensor* ActivationLayer::backwardPropagation(const Tensor& dx) {
 	Tensor* result;
-	result = _activation_fun_d(*_cached_output, tensor);
+	result = _activation_fun_d(*_cached_output, dx);
 	return result;
 }
 

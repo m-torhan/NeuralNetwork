@@ -13,8 +13,8 @@ public:
 	ActivationLayer(const Layer& prev_layer, Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));
 	ActivationLayer(const Layer& prev_layer, ActivationFun activation_fun);
 
-	virtual Tensor* forwardPropagation(const Tensor& tensor);
-	virtual Tensor* backwardPropagation(const Tensor& tensor);
+	virtual Tensor* forwardPropagation(const Tensor& x);
+	virtual Tensor* backwardPropagation(const Tensor& dx);
 
 private:
 	void InitActivationFun(Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));

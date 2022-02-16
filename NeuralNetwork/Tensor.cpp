@@ -396,7 +396,7 @@ Tensor* Tensor::operator>(float number) const {
 	return result;
 }
 
-Tensor* Tensor::dotProduct(const Tensor& other) {
+Tensor* Tensor::dotProduct(const Tensor& other) const {
 	uint32_t i = 0;
 	uint32_t result_dim;
 	uint32_t* result_shape;
@@ -424,7 +424,7 @@ Tensor* Tensor::dotProduct(const Tensor& other) {
 	return result;
 }
 
-Tensor* Tensor::tensorProduct(const Tensor& other) {
+Tensor* Tensor::tensorProduct(const Tensor& other) const {
 	uint32_t i = 0;
 	Tensor* result;
 	Tensor* subresult;
@@ -457,6 +457,102 @@ void Tensor::applyFunction(float (*function)(float)) {
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] = function(this->_data[i]);
 	}
+}
+
+Tensor* Tensor::flatten() const {
+	Tensor* result;
+
+	result = new Tensor(*this);
+
+	result->_dim = 1;
+	realloc(result->_shape, sizeof(uint32_t));
+	if (!result->_shape) {
+		// exception
+	}
+	result->_shape[0] = result->_dim;
+
+	return result;
+}
+
+Tensor* Tensor::sum(uint32_t axis) const {
+	Tensor* result;
+	uint32_t i = 0;
+	uint32_t j = 0;
+	uint32_t k = 0;
+	uint32_t d_i = 0;
+	uint32_t d_j = 0;
+	uint32_t d_k = 0;
+	uint32_t result_dim;
+	uint32_t* result_shape;
+
+	if (axis >= this->_dim) {
+		// exception
+	}
+
+	result_dim = this->_dim - 1;
+	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
+	if (!result_shape) {
+		// exception
+	}
+	for (i = 0; i < this->_size; ++i) {
+		if (i != axis) {
+			result_shape[i - (i > axis ? 1 : 0)] = this->_shape[i];
+		}
+	}
+
+	result = new Tensor(result_dim, result_shape);
+
+	d_j = axis == this->_dim - 1 ? this->_shape[this->_dim - 1] : 1;
+
+	d_i = 1;
+	for (i = axis + 1; i < this->_dim; ++i) {
+		d_i *= this->_shape[i];
+	}
+	d_k = d_i * this->_shape[axis];
+
+	*result *= 0.0f;
+
+	for (k = 0; k < this->_size / d_k; ++k) {
+		for (j = 0; j < d_i; ++j) {
+			for (i = 0; i < this->_shape[axis] ; ++i) {
+				result->_data[j + d_i * k] += this->_data[d_i * i + d_j * j + d_k * k];
+			}
+		}
+	}
+
+	free(result_shape);
+	return result;
+}
+
+Tensor* Tensor::transpose() const {
+	Tensor* result;
+	uint32_t i = 0;
+	uint32_t j = 0;
+	uint32_t* result_shape;
+
+	if (this->_dim != 2) {
+		// exception
+	}
+
+	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * this->_dim);
+	if (!result_shape) {
+		// exception
+	}
+
+	result_shape[0] = this->_shape[1];
+	result_shape[1] = this->_shape[0];
+
+	result = new Tensor(this->_dim, result_shape);
+
+	for (i = 0; i < result_shape[0]; ++i) {
+		for (j = 0; j < result_shape[1]; ++j) {
+			result->_data[i * result_shape[0] + j] = this->_data[j * result_shape[1] + i];
+		}
+	}
+
+	free(result_shape);
+
+	return result;
 }
 
 bool Tensor::validateDimGreater(const Tensor& other) const {
