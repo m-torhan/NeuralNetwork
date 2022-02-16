@@ -34,11 +34,11 @@ void ActivationLayer::InitActivationFun(Tensor* (*activation_fun)(const Tensor&)
 
 void ActivationLayer::InitActivationFun(ActivationFun activation_fun) {
 	switch (activation_fun) {
-	case Sigmoid:
+	case ActivationFun::Sigmoid:
 		_activation_fun = 0;
 		_activation_fun_d = 0;
 		break;
-	case ReLU:
+	case ActivationFun::ReLU:
 		_activation_fun = ReLU_fun;
 		_activation_fun_d = ReLU_fun_d;
 		break;
@@ -50,14 +50,14 @@ void ActivationLayer::InitActivationFun(ActivationFun activation_fun) {
 
 Tensor* ActivationLayer::forwardPropagation(const Tensor& x) {
 	Tensor* result;
+	_cached_input = new Tensor(x);
 	result = _activation_fun(x);
-	_cached_output = new Tensor(*result);
 	return result;
 }
 
 Tensor* ActivationLayer::backwardPropagation(const Tensor& dx) {
 	Tensor* result;
-	result = _activation_fun_d(*_cached_output, dx);
+	result = _activation_fun_d(*_cached_input, dx);
 	return result;
 }
 

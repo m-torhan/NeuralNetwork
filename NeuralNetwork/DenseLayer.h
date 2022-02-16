@@ -14,4 +14,6 @@ private:
 	uint32_t _neurons_count;
 	Tensor* _weights;
 	Tensor* _biases;
+
+	void InitWeights(uint32_t input_dim, uint32_t* input_shape, uint32_t neurons_count);
 };

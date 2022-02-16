@@ -3,6 +3,8 @@
 #include "../NeuralNetwork/Tensor.cpp"
 #include "../NeuralNetwork/Layer.cpp"
 #include "../NeuralNetwork/ActivationLayer.cpp"
+#include "../NeuralNetwork/DenseLayer.cpp"
+
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -362,6 +364,31 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(19.0f, result->getValue(2, 1, 1));
 			Assert::AreEqual(23.0f, result->getValue(2, 1, 2));
 		}
+
+		TEST_METHOD(WhenFlattenResultShouldHaveOnlyOneDimEqualToSize) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			result = tensor->flatten();
+
+			Assert::AreEqual(1, (int)result->getDim());
+			Assert::AreEqual(tensor->getSize(), result->getShape()[0]);
+		}
+
+		TEST_METHOD(WhenFlattenFromFirstAxisResultShouldBeTwoDimensionalAndFirstShapeShouldRemain) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			result = tensor->flatten(1);
+
+			Assert::AreEqual(2, (int)result->getDim());
+			Assert::AreEqual(tensor->getShape()[0], result->getShape()[0]);
+			Assert::AreEqual(tensor->getSize()/tensor->getShape()[0], result->getShape()[1]);
+		}
 	};
 
 	TEST_CLASS(ActivationLayerUnitTests) {
@@ -404,10 +431,47 @@ namespace NeuralNetworkUnitTests {
 			result = layer->forwardPropagation(*tensor);
 			result = layer->backwardPropagation(*tensor);
 
-			Assert::AreEqual(  2.0f, result->getValue(2, 0, 0));
-			Assert::AreEqual( 16.0f, result->getValue(2, 0, 1));
-			Assert::AreEqual( 54.0f, result->getValue(2, 1, 0));
-			Assert::AreEqual(128.0f, result->getValue(2, 1, 1));
+			Assert::AreEqual( 2.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual( 8.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(18.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(32.0f, result->getValue(2, 1, 1));
+		}
+	};
+	TEST_CLASS(DenseLayerUnitTests) {
+	public:
+		TEST_METHOD(DenseLayerForwardPropagationOutputShapeTest) {
+			Tensor* tensor;
+			Tensor* result;
+			DenseLayer* layer;
+			uint32_t input_shape[2] = { 3, 4 };
+
+			tensor = new Tensor(3, 2, 3, 4);
+			layer = new DenseLayer(2, input_shape, 4);
+
+			result = layer->forwardPropagation(*tensor);
+
+			Assert::AreEqual(2, (int)result->getDim());
+			Assert::AreEqual(2, (int)result->getShape()[0]);
+			Assert::AreEqual(4, (int)result->getShape()[1]);
+		}
+
+		TEST_METHOD(DenseLayerBackwardPropagationOutputShapeTest) {
+			Tensor* tensor;
+			Tensor* tensor_d;
+			Tensor* result;
+			DenseLayer* layer;
+			uint32_t input_shape[2] = { 3, 4 };
+
+			tensor = new Tensor(3, 2, 3, 4);
+			tensor_d = new Tensor(2, 2, 4);
+			layer = new DenseLayer(2, input_shape, 4);
+
+			layer->forwardPropagation(*tensor);
+			result = layer->backwardPropagation(*tensor_d);
+
+			Assert::AreEqual(2, (int)result->getDim());
+			Assert::AreEqual(2, (int)result->getShape()[0]);
+			Assert::AreEqual(12, (int)result->getShape()[1]);
 		}
 	};
 }

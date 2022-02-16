@@ -36,7 +36,7 @@ public:
 	Tensor* dotProduct(const Tensor& other) const;
 	Tensor* tensorProduct(const Tensor& other) const;
 	void applyFunction(float (*function)(float));
-	Tensor* flatten() const;
+	Tensor* flatten(uint32_t from_axis=0) const;
 	Tensor* sum(uint32_t axis) const;
 	Tensor* transpose() const;
 

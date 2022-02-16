@@ -19,7 +19,7 @@ protected:
 	uint32_t _output_dim;
 	uint32_t* _output_shape;
 
-	Tensor* _cached_output;
+	Tensor* _cached_input;
 
 	void InitInput(uint32_t input_dim, uint32_t* input_shape);
 	void InitOutput(uint32_t output_dim, uint32_t* output_shape);

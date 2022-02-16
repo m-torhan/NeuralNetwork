@@ -1,7 +1,7 @@
 #pragma once
 #include "Layer.h"
 
-enum ActivationFun {
+enum class ActivationFun {
 	Sigmoid,
 	ReLU
 };
