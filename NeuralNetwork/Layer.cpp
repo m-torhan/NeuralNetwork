@@ -29,7 +29,7 @@ uint32_t* Layer::getOutputShape() const {
 	return output_shape;
 }
 
-void Layer::InitInput(uint32_t input_dim, uint32_t* input_shape) {
+void Layer::initInput(uint32_t input_dim, uint32_t* input_shape) {
 	_input_dim = input_dim;
 	_input_shape = (uint32_t*)malloc(sizeof(uint32_t) * _input_dim);
 	if (!_input_shape) {
@@ -38,11 +38,26 @@ void Layer::InitInput(uint32_t input_dim, uint32_t* input_shape) {
 	memcpy(_input_shape, input_shape, sizeof(uint32_t) * _input_dim);
 }
 
-void Layer::InitOutput(uint32_t output_dim, uint32_t* output_shape) {
+void Layer::initOutput(uint32_t output_dim, uint32_t* output_shape) {
 	_output_dim = output_dim;
 	_output_shape = (uint32_t*)malloc(sizeof(uint32_t) * _output_dim);
 	if (!_output_shape) {
 		// exception
 	}
 	memcpy(_output_shape, output_shape, sizeof(uint32_t) * _output_dim);
+}
+
+void Layer::setNextLayer(Layer* layer) {
+	_next_layer = layer;
+}
+
+void Layer::setPrevLayer(Layer* layer) {
+	_prev_layer = layer;
+}
+
+Layer* Layer::getNextLayer() {
+	return _next_layer;
+}
+Layer* Layer::setNextLayer() {
+	return _prev_layer;
 }

@@ -4,6 +4,7 @@
 #include "../NeuralNetwork/Layer.cpp"
 #include "../NeuralNetwork/ActivationLayer.cpp"
 #include "../NeuralNetwork/DenseLayer.cpp"
+#include "../NeuralNetwork/NeuralNetwork.cpp"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -20,6 +21,8 @@ namespace NeuralNetworkUnitTests {
 			tensor->setValue(.5f, 2, 1, 2);
 
 			Assert::AreEqual(.5f, tensor->getValue(2, 1, 2));
+
+			delete tensor;
 		}
 
 		TEST_METHOD(WhenGetValueZeroDimensionalTensorShouldReturnNumber) {
@@ -30,6 +33,8 @@ namespace NeuralNetworkUnitTests {
 			tensor->setValue(1.0f, 0);
 
 			Assert::AreEqual(1.0f, tensor->getValue(0));
+
+			delete tensor;
 		}
 
 		TEST_METHOD(WhenAddZeroDimensionalTensorsShouldBehaveLikeNumbers) {
@@ -45,6 +50,9 @@ namespace NeuralNetworkUnitTests {
 			*tensor_a += *tensor_b;
 
 			Assert::AreEqual(8.0f, tensor_a->getValue(0));
+
+			delete tensor_a;
+			delete tensor_b;
 		}
 
 		TEST_METHOD(WhenMultiplyZeroDimensionalTensorsShouldBehaveLikeNumbers) {
@@ -60,6 +68,9 @@ namespace NeuralNetworkUnitTests {
 			*tensor_a *= *tensor_b;
 
 			Assert::AreEqual(2.0f, tensor_a->getValue(0));
+
+			delete tensor_a;
+			delete tensor_b;
 		}
 		
 		TEST_METHOD(SetValueShouldBeProperlyPlacedInData) {
@@ -84,6 +95,8 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(6.0f, tensor->getData()[5]);
 			Assert::AreEqual(7.0f, tensor->getData()[6]);
 			Assert::AreEqual(8.0f, tensor->getData()[7]);
+
+			delete tensor;
 		}
 
 		TEST_METHOD(WhenMultipliedByTensorEachValuePairShouldBeMultiplied) {
@@ -109,6 +122,9 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(4.0f, tensor_a->getValue(2, 0, 1));
 			Assert::AreEqual(1.0f, tensor_a->getValue(2, 1, 0));
 			Assert::AreEqual(.25f, tensor_a->getValue(2, 1, 1));
+
+			delete tensor_a;
+			delete tensor_b;
 		}
 
 		TEST_METHOD(WhenMultipliedByRowTensorEachValuePairShouldBeMultiplied) {
@@ -132,6 +148,9 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(1.0f, tensor_a->getValue(2, 0, 1));
 			Assert::AreEqual(1.0f, tensor_a->getValue(2, 1, 0));
 			Assert::AreEqual(.25f, tensor_a->getValue(2, 1, 1));
+
+			delete tensor_a;
+			delete tensor_b;
 		}
 
 		TEST_METHOD(WhenMultipliedByNumberEachValueShouldBeMultiplied) {
@@ -150,35 +169,14 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(1.0f, tensor->getValue(2, 0, 1));
 			Assert::AreEqual(.5f, tensor->getValue(2, 1, 0));
 			Assert::AreEqual(.25f, tensor->getValue(2, 1, 1));
+
+			delete tensor;
 		}
 
-		TEST_METHOD(WhenTensorsHaveSameSizeDotProductShouldReturnSumOfAllProducts) {
+		TEST_METHOD(WhenTensorsAreMatrixAndVectorDotProductShouldReturnSumsOfProductsOfRowsByVector) {
 			Tensor* tensor_a;
 			Tensor* tensor_b;
-			Tensor* dot_prod;
-
-			tensor_a = new Tensor(2, 2, 2);
-			tensor_b = new Tensor(2, 2, 2);
-
-			tensor_a->setValue(1.0f, 2, 0, 0);
-			tensor_a->setValue(.5f, 2, 0, 1);
-			tensor_a->setValue(.25f, 2, 1, 0);
-			tensor_a->setValue(.125f, 2, 1, 1);
-
-			tensor_b->setValue(16.0f, 2, 0, 0);
-			tensor_b->setValue(8.0f, 2, 0, 1);
-			tensor_b->setValue(4.0f, 2, 1, 0);
-			tensor_b->setValue(2.0f, 2, 1, 1);
-
-			dot_prod = tensor_a->dotProduct(*tensor_b);
-
-			Assert::AreEqual(21.25f, dot_prod->getValue(0));
-		}
-
-		TEST_METHOD(WhenTensorsHaveDifferentSizeDotProductShouldReturnSumsOfProducts) {
-			Tensor* tensor_a;
-			Tensor* tensor_b;
-			Tensor* dot_prod;
+			Tensor* result;
 
 			tensor_a = new Tensor(2, 2, 2);
 			tensor_b = new Tensor(1, 2);
@@ -191,10 +189,14 @@ namespace NeuralNetworkUnitTests {
 			tensor_b->setValue(16.0f, 1, 0);
 			tensor_b->setValue(8.0f, 1, 1);
 
-			dot_prod = tensor_a->dotProduct(*tensor_b);
+			result = tensor_a->dotProduct(*tensor_b);
 
-			Assert::AreEqual(20.0f, dot_prod->getValue(1, 0));
-			Assert::AreEqual(5.0f, dot_prod->getValue(1, 1));
+			Assert::AreEqual(18.0f, result->getValue(1, 0));
+			Assert::AreEqual( 9.0f, result->getValue(1, 1));
+
+			delete tensor_a;
+			delete tensor_b;
+			delete result;
 		}
 
 		TEST_METHOD(TensorProductResultDimShouldBeSumOfArgumentsDims) {
@@ -223,6 +225,10 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(4, (int)result->getShape()[2]);
 			Assert::AreEqual(5, (int)result->getShape()[3]);
 			Assert::AreEqual(6, (int)result->getShape()[4]);
+
+			delete tensor_a;
+			delete tensor_b;
+			delete result;
 		}
 
 		TEST_METHOD(TensorProductResultShouldBeCorrect) {
@@ -254,6 +260,10 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(8.0f, result->getValue(5, 1, 1, 1, 2, 3));
 			Assert::AreEqual(1.0f, result->getValue(5, 0, 2, 1, 2, 0));
 			Assert::AreEqual(2.0f, result->getValue(5, 1, 0, 1, 2, 0));
+
+			delete tensor_a;
+			delete tensor_b;
+			delete result;
 		}
 
 		TEST_METHOD(ApplyFunctionShouldApplyGivenFunctionToTensor) {
@@ -272,6 +282,8 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(4.0f, tensor->getValue(2, 0, 1));
 			Assert::AreEqual(6.0f, tensor->getValue(2, 1, 0));
 			Assert::AreEqual(8.0f, tensor->getValue(2, 1, 1));
+
+			delete tensor;
 		}
 
 		TEST_METHOD(SumAcrossFirstAxis) {
@@ -303,6 +315,9 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(14.0f, result->getValue(2, 1, 1));
 			Assert::AreEqual(16.0f, result->getValue(2, 2, 0));
 			Assert::AreEqual(18.0f, result->getValue(2, 2, 1));
+
+			delete tensor;
+			delete result;
 		}
 
 		TEST_METHOD(SumAcrossSecondAxis) {
@@ -332,6 +347,9 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(12.0f, result->getValue(2, 0, 1));
 			Assert::AreEqual(27.0f, result->getValue(2, 1, 0));
 			Assert::AreEqual(30.0f, result->getValue(2, 1, 1));
+
+			delete tensor;
+			delete result;
 		}
 
 		TEST_METHOD(SumAcrossThridAxis) {
@@ -363,6 +381,9 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(15.0f, result->getValue(2, 1, 0));
 			Assert::AreEqual(19.0f, result->getValue(2, 1, 1));
 			Assert::AreEqual(23.0f, result->getValue(2, 1, 2));
+
+			delete tensor;
+			delete result;
 		}
 
 		TEST_METHOD(WhenFlattenResultShouldHaveOnlyOneDimEqualToSize) {
@@ -375,6 +396,9 @@ namespace NeuralNetworkUnitTests {
 
 			Assert::AreEqual(1, (int)result->getDim());
 			Assert::AreEqual(tensor->getSize(), result->getShape()[0]);
+
+			delete tensor;
+			delete result;
 		}
 
 		TEST_METHOD(WhenFlattenFromFirstAxisResultShouldBeTwoDimensionalAndFirstShapeShouldRemain) {
@@ -388,6 +412,140 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(2, (int)result->getDim());
 			Assert::AreEqual(tensor->getShape()[0], result->getShape()[0]);
 			Assert::AreEqual(tensor->getSize()/tensor->getShape()[0], result->getShape()[1]);
+
+			delete tensor;
+			delete result;
+		}
+
+		TEST_METHOD(TensorSliceFirstAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->slice(0, 1, 2);
+
+			Assert::AreEqual(3, (int)result->getDim());
+
+			Assert::AreEqual(1, (int)result->getShape()[0]);
+			Assert::AreEqual(3, (int)result->getShape()[1]);
+			Assert::AreEqual(2, (int)result->getShape()[2]);
+
+			Assert::AreEqual( 7.0f, result->getValue(3, 0, 0, 0));
+			Assert::AreEqual( 8.0f, result->getValue(3, 0, 0, 1));
+			Assert::AreEqual( 9.0f, result->getValue(3, 0, 1, 0));
+			Assert::AreEqual(10.0f, result->getValue(3, 0, 1, 1));
+			Assert::AreEqual(11.0f, result->getValue(3, 0, 2, 0));
+			Assert::AreEqual(12.0f, result->getValue(3, 0, 2, 1));
+
+			delete tensor;
+			delete result;
+		}
+
+		TEST_METHOD(TensorSliceSecondAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->slice(1, 1, 2);
+
+			Assert::AreEqual(3, (int)result->getDim());
+
+			Assert::AreEqual(2, (int)result->getShape()[0]);
+			Assert::AreEqual(1, (int)result->getShape()[1]);
+			Assert::AreEqual(2, (int)result->getShape()[2]);
+
+			Assert::AreEqual( 3.0f, result->getValue(3, 0, 0, 0));
+			Assert::AreEqual( 4.0f, result->getValue(3, 0, 0, 1));
+			Assert::AreEqual( 9.0f, result->getValue(3, 1, 0, 0));
+			Assert::AreEqual(10.0f, result->getValue(3, 1, 0, 1));
+
+			delete tensor;
+			delete result;
+		}
+
+		TEST_METHOD(TensorSliceThirdAxis) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(3, 2, 3, 2);
+
+			tensor->setValue( 1.0f, 3, 0, 0, 0);
+			tensor->setValue( 2.0f, 3, 0, 0, 1);
+			tensor->setValue( 3.0f, 3, 0, 1, 0);
+			tensor->setValue( 4.0f, 3, 0, 1, 1);
+			tensor->setValue( 5.0f, 3, 0, 2, 0);
+			tensor->setValue( 6.0f, 3, 0, 2, 1);
+			tensor->setValue( 7.0f, 3, 1, 0, 0);
+			tensor->setValue( 8.0f, 3, 1, 0, 1);
+			tensor->setValue( 9.0f, 3, 1, 1, 0);
+			tensor->setValue(10.0f, 3, 1, 1, 1);
+			tensor->setValue(11.0f, 3, 1, 2, 0);
+			tensor->setValue(12.0f, 3, 1, 2, 1);
+
+			result = tensor->slice(2, 1, 2);
+
+			Assert::AreEqual(3, (int)result->getDim());
+
+			Assert::AreEqual(2, (int)result->getShape()[0]);
+			Assert::AreEqual(3, (int)result->getShape()[1]);
+			Assert::AreEqual(1, (int)result->getShape()[2]);
+
+			Assert::AreEqual( 2.0f, result->getValue(3, 0, 0, 0));
+			Assert::AreEqual( 4.0f, result->getValue(3, 0, 1, 0));
+			Assert::AreEqual( 6.0f, result->getValue(3, 0, 2, 0));
+			Assert::AreEqual( 8.0f, result->getValue(3, 1, 0, 0));
+			Assert::AreEqual(10.0f, result->getValue(3, 1, 1, 0));
+			Assert::AreEqual(12.0f, result->getValue(3, 1, 2, 0));
+
+			delete tensor;
+			delete result;
+		}
+
+		TEST_METHOD(TensorShuffleShouldRearrangeValues) {
+			Tensor* tensor;
+			Tensor* result;
+
+			tensor = new Tensor(2, 2, 2);
+
+			tensor->setValue(1.0f, 2, 0, 0);
+			tensor->setValue(2.0f, 2, 0, 1);
+			tensor->setValue(3.0f, 2, 1, 0);
+			tensor->setValue(4.0f, 2, 1, 1);
+
+			result = tensor->shuffle();
+
+			Assert::IsTrue(result->getValue(2, 0, 0) == 1 || result->getValue(2, 1, 0) == 1);
+			Assert::IsTrue(result->getValue(2, 0, 0) == 3 || result->getValue(2, 1, 0) == 3);
+			Assert::IsTrue(result->getValue(2, 0, 1) == 2 || result->getValue(2, 1, 1) == 2);
+			Assert::IsTrue(result->getValue(2, 0, 1) == 4 || result->getValue(2, 1, 1) == 4);
 		}
 	};
 
@@ -413,6 +571,10 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual( 4.0f, result->getValue(2, 0, 1));
 			Assert::AreEqual( 9.0f, result->getValue(2, 1, 0));
 			Assert::AreEqual(16.0f, result->getValue(2, 1, 1));
+
+			delete tensor;
+			delete result;
+			delete layer;
 		}
 
 		TEST_METHOD(ActivationLayerShouldApplyGivenFunctionDerivativeWhenPrograpateBackward) {
@@ -429,12 +591,16 @@ namespace NeuralNetworkUnitTests {
 			tensor->setValue(4.0f, 2, 1, 1);
 
 			result = layer->forwardPropagation(*tensor);
-			result = layer->backwardPropagation(*tensor);
+			result = layer->backwardPropagation(*tensor, 1.0f);
 
 			Assert::AreEqual( 2.0f, result->getValue(2, 0, 0));
 			Assert::AreEqual( 8.0f, result->getValue(2, 0, 1));
 			Assert::AreEqual(18.0f, result->getValue(2, 1, 0));
 			Assert::AreEqual(32.0f, result->getValue(2, 1, 1));
+
+			delete tensor;
+			delete result;
+			delete layer;
 		}
 	};
 	TEST_CLASS(DenseLayerUnitTests) {
@@ -453,6 +619,10 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(2, (int)result->getDim());
 			Assert::AreEqual(2, (int)result->getShape()[0]);
 			Assert::AreEqual(4, (int)result->getShape()[1]);
+
+			delete tensor;
+			delete result;
+			delete layer;
 		}
 
 		TEST_METHOD(DenseLayerBackwardPropagationOutputShapeTest) {
@@ -467,11 +637,57 @@ namespace NeuralNetworkUnitTests {
 			layer = new DenseLayer(2, input_shape, 4);
 
 			layer->forwardPropagation(*tensor);
-			result = layer->backwardPropagation(*tensor_d);
+			result = layer->backwardPropagation(*tensor_d, 1.0f);
 
 			Assert::AreEqual(2, (int)result->getDim());
 			Assert::AreEqual(2, (int)result->getShape()[0]);
 			Assert::AreEqual(12, (int)result->getShape()[1]);
+
+			delete tensor;
+			delete tensor_d;
+			delete result;
+			delete layer;
+		}
+	};
+
+	TEST_CLASS(NeuralNetworkUnitTests) {
+		TEST_METHOD(PredictShouldReturnTensor) {
+			Tensor* tensor;
+			Tensor* result;
+			Tensor* (*activation_fun)(const Tensor & x) = [](const Tensor& x) { return x * x; };
+			Tensor* (*activation_fun_d)(const Tensor & x, const Tensor & dx) = [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); };
+			ActivationLayer* layer_1;
+			ActivationLayer* layer_2;
+			ActivationLayer* layer_3;
+			NeuralNetwork* nn;
+
+			tensor = new Tensor(2, 2, 2);
+			tensor->setValue( 1.0f, 2, 0, 0);
+			tensor->setValue( 2.0f, 2, 0, 1);
+			tensor->setValue( 3.0f, 2, 1, 0);
+			tensor->setValue(-1.0f, 2, 1, 1);
+
+			layer_1 = new ActivationLayer(tensor->getDim(), tensor->getShape(), activation_fun, activation_fun_d);
+			layer_2 = new ActivationLayer(*layer_1, activation_fun, activation_fun_d);
+			layer_3 = new ActivationLayer(*layer_2, activation_fun, activation_fun_d);
+
+			nn = new NeuralNetwork(*layer_1, *layer_3, nullptr);
+
+			result = nn->predict(tensor);
+
+			Assert::AreEqual(2, (int)result->getDim());
+			Assert::AreEqual(2, (int)result->getShape()[0]);
+			Assert::AreEqual(2, (int)result->getShape()[1]);
+			Assert::AreEqual(   1.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual( 256.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(6561.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(   1.0f, result->getValue(2, 1, 1));
+
+			delete tensor;
+			delete result;
+			delete layer_1;
+			delete layer_2;
+			delete layer_3;
 		}
 	};
 }

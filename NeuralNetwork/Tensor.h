@@ -39,6 +39,9 @@ public:
 	Tensor* flatten(uint32_t from_axis=0) const;
 	Tensor* sum(uint32_t axis) const;
 	Tensor* transpose() const;
+	Tensor* slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
+	Tensor* shuffle() const;
+	Tensor* shuffle(uint32_t *pattern) const;
 
 private:
 	uint32_t _dim;

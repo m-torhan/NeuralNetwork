@@ -5,16 +5,18 @@
 #include <random>
 
 DenseLayer::DenseLayer(uint32_t input_dim, uint32_t* input_shape, uint32_t neurons_count) {
-	InitInput(input_dim, input_shape);
-	InitWeights(input_dim, input_shape, neurons_count);
+	initInput(input_dim, input_shape);
+	initWeights(input_dim, input_shape, neurons_count);
 }
 
-DenseLayer::DenseLayer(const Layer& prev_layer, uint32_t neurons_count) {
-	InitInput(prev_layer.getOutputDim(), prev_layer.getOutputShape());
-	InitWeights(prev_layer.getOutputDim(), prev_layer.getOutputShape(), neurons_count);
+DenseLayer::DenseLayer(Layer& prev_layer, uint32_t neurons_count) {
+	initInput(prev_layer.getOutputDim(), prev_layer.getOutputShape());
+	initWeights(prev_layer.getOutputDim(), prev_layer.getOutputShape(), neurons_count);
+	this->setPrevLayer(&prev_layer);
+	prev_layer.setNextLayer(this);
 }
 
-void DenseLayer::InitWeights(uint32_t input_dim, uint32_t* input_shape, uint32_t neurons_count) {
+void DenseLayer::initWeights(uint32_t input_dim, uint32_t* input_shape, uint32_t neurons_count) {
 	uint32_t i = 0;
 	uint32_t j = 0;
 	uint32_t input_size = 1;
@@ -69,7 +71,7 @@ Tensor* DenseLayer::forwardPropagation(const Tensor& x) {
 	return x_next;
 }
 
-Tensor* DenseLayer::backwardPropagation(const Tensor& dx) {
+Tensor* DenseLayer::backwardPropagation(const Tensor& dx, float learning_step) {
 	uint32_t n;
 	Tensor* dx_prev = new Tensor(dx);
 	Tensor* weights_d;
@@ -82,8 +84,8 @@ Tensor* DenseLayer::backwardPropagation(const Tensor& dx) {
 
 	dx_prev = dx.dotProduct(*_weights);
 
-	// _weights -= weights_d * learning_step;
-	// _biases -= biases_d * learning_step;
+	*_weights -= *((*weights_d) * learning_step);
+	*_biases -= *((*biases_d) * learning_step);
 
 	return dx_prev;
 }

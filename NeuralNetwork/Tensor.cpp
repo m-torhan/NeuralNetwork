@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
+#include <ctime>
 
 Tensor::Tensor(uint32_t dim, uint32_t* shape) {
 	uint32_t size = 1;
@@ -603,7 +604,7 @@ Tensor* Tensor::sum(uint32_t axis) const {
 	if (!result_shape) {
 		// exception
 	}
-	for (i = 0; i < this->_size; ++i) {
+	for (i = 0; i < this->_dim; ++i) {
 		if (i != axis) {
 			result_shape[i - (i > axis ? 1 : 0)] = this->_shape[i];
 		}
@@ -660,6 +661,114 @@ Tensor* Tensor::transpose() const {
 	}
 
 	free(result_shape);
+
+	return result;
+}
+
+Tensor* Tensor::slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const {
+	uint32_t i = 0;
+	uint32_t j = 0;
+	uint32_t subsize_1 = 1;
+	uint32_t subsize_2 = 1;
+	Tensor* result;
+	uint32_t* result_shape;
+
+	if (start_idx <= end_idx || axis >= this->_dim) {
+		// exception
+	}
+
+	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * this->_dim);
+	if (!result_shape) {
+		// exception
+	}
+	memcpy(result_shape, this->_shape, sizeof(uint32_t) * this->_dim);
+	result_shape[axis] = end_idx - start_idx;
+
+	result = new Tensor(this->_dim, result_shape);
+
+	for (i = axis + 1; i < this->_dim; ++i) {
+		subsize_2 *= this->_shape[i];
+	}
+	subsize_1 = this->_shape[axis] * subsize_2;
+
+	for (i = 0; i < this->_size; ++i) {
+		if (start_idx * subsize_2 <= i % subsize_1 && i % subsize_1 < end_idx * subsize_2) {
+			result->_data[j] = this->_data[i];
+			++j;
+		}
+	}
+
+	free(result_shape);
+
+	return result;
+}
+
+Tensor* Tensor::shuffle() const {
+	uint32_t axis = 0; // currently only for first axis
+	uint32_t i = 0;
+	uint32_t rand_a;
+	uint32_t rand_b;
+	Tensor* result;
+	uint32_t subsize = 0;
+	uint32_t shuffle_count = 0;
+	float* tmp;
+
+	result = new Tensor(*this);
+
+	subsize = this->_dim / this->_shape[axis];
+	tmp = (float*)malloc(sizeof(float) * subsize);
+	if (!tmp) {
+		// exception
+	}
+
+	srand(time(NULL));
+
+	shuffle_count = this->_shape[axis] + rand() % this->_shape[axis];
+
+	for (i = 0; i < shuffle_count; ++i) {
+		rand_a = rand() % this->_shape[axis];
+		rand_b = rand() % this->_shape[axis];
+
+		memcpy(tmp, &this->_data[subsize * rand_a], sizeof(float) * subsize);
+		memcpy(&this->_data[subsize * rand_a], &this->_data[subsize * rand_b], sizeof(float) * subsize);
+		memcpy(&this->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
+	}
+
+	free(tmp);
+
+	return result;
+}
+
+Tensor* Tensor::shuffle(uint32_t *pattern) const {
+	uint32_t axis = 0; // currently only for first axis
+	uint32_t i = 0;
+	uint32_t rand_a;
+	uint32_t rand_b;
+	Tensor* result;
+	uint32_t subsize = 0;
+	uint32_t shuffle_count = 0;
+	float* tmp;
+
+	result = new Tensor(*this);
+
+	subsize = this->_dim / this->_shape[axis];
+	tmp = (float*)malloc(sizeof(float) * subsize);
+	if (!tmp) {
+		// exception
+	}
+
+	srand(time(NULL));
+
+	for (i = 0; i < this->_shape[axis]; ++i) {
+		rand_a = rand() % this->_shape[axis];
+		rand_b = rand() % this->_shape[axis];
+
+		memcpy(tmp, &this->_data[subsize * rand_a], sizeof(float) * subsize);
+		memcpy(&this->_data[subsize * rand_a], &this->_data[subsize * rand_b], sizeof(float) * subsize);
+		memcpy(&this->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
+	}
+
+	free(tmp);
 
 	return result;
 }
