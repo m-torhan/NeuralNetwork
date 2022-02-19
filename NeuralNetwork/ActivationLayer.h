@@ -15,6 +15,8 @@ public:
 
 	virtual Tensor* forwardPropagation(const Tensor& x);
 	virtual Tensor* backwardPropagation(const Tensor& dx, float learning_step);
+	virtual void updateWeights();
+	virtual void initCachedGradient();
 
 private:
 	void initActivationFun(Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&));
@@ -24,4 +26,6 @@ private:
 
 	static Tensor* ReLU_fun(const Tensor& x);
 	static Tensor* ReLU_fun_d(const Tensor& x, const Tensor& dx);
+	static Tensor* Sigmoid_fun(const Tensor& x);
+	static Tensor* Sigmoid_fun_d(const Tensor& x, const Tensor& dx);
 };

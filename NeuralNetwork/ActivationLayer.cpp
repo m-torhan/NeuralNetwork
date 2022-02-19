@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 
 ActivationLayer::ActivationLayer( uint32_t input_dim, uint32_t* input_shape, Tensor* (*activation_fun)(const Tensor&), Tensor* (*activation_fun_d)(const Tensor&, const Tensor&)) : Layer() {
 	initInput(input_dim, input_shape);
@@ -39,16 +40,17 @@ void ActivationLayer::initActivationFun(Tensor* (*activation_fun)(const Tensor&)
 void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 	switch (activation_fun) {
 	case ActivationFun::Sigmoid:
-		_activation_fun = 0;
-		_activation_fun_d = 0;
+		_activation_fun = Sigmoid_fun;
+		_activation_fun_d = Sigmoid_fun_d;
 		break;
 	case ActivationFun::ReLU:
 		_activation_fun = ReLU_fun;
 		_activation_fun_d = ReLU_fun_d;
 		break;
 	default:
-		_activation_fun = 0;
-		_activation_fun_d = 0;
+		_activation_fun = nullptr;
+		_activation_fun_d = nullptr;
+		// exception
 	}
 }
 
@@ -65,10 +67,29 @@ Tensor* ActivationLayer::backwardPropagation(const Tensor& dx, float learning_st
 	return result;
 }
 
+void ActivationLayer::updateWeights() {
+
+}
+
+void ActivationLayer::initCachedGradient() {
+
+}
+
 Tensor* ActivationLayer::ReLU_fun(const Tensor& x) {
 	return x * (*(x > 0.0f));
 }
 
 Tensor* ActivationLayer::ReLU_fun_d(const Tensor& x, const Tensor& dx) {
 	return dx * (*(x > 0.0f));
+}
+
+Tensor* ActivationLayer::Sigmoid_fun(const Tensor& x) {
+	Tensor* result;
+	result = x.applyFunction([](float value) {return powf(1.0f + expf(-value), -1); });
+	return result;
+}
+
+Tensor* ActivationLayer::Sigmoid_fun_d(const Tensor& x, const Tensor& dx) {
+	Tensor* result = Sigmoid_fun(x);
+	return *(dx * (*result)) * (*(*(-(*result)) + 1.0f));
 }

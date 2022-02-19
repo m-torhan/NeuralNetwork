@@ -15,6 +15,7 @@ public:
 	float* getData() const;
 	float getValue(size_t i ...) const;
 	void setValue(float value, size_t i ...);
+	Tensor* operator-() const;
 	Tensor* operator+(const Tensor& other) const;
 	Tensor* operator-(const Tensor& other) const;
 	Tensor* operator*(const Tensor& other) const;
@@ -35,9 +36,10 @@ public:
 	Tensor* operator>(float other) const;
 	Tensor* dotProduct(const Tensor& other) const;
 	Tensor* tensorProduct(const Tensor& other) const;
-	void applyFunction(float (*function)(float));
+	Tensor* applyFunction(float (*function)(float)) const;
 	Tensor* flatten(uint32_t from_axis=0) const;
 	Tensor* sum(uint32_t axis) const;
+	float sum() const;
 	Tensor* transpose() const;
 	Tensor* slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
 	Tensor* shuffle() const;

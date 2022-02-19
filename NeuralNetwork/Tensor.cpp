@@ -153,6 +153,10 @@ void Tensor::setValue(float value, size_t n ...) {
 	this->_data[idx] = value;
 }
 
+Tensor* Tensor::operator-() const {
+	return *this * (-1.0f);
+}
+
 Tensor* Tensor::operator+(const Tensor& other) const {
 	uint32_t i = 0;
 
@@ -540,12 +544,15 @@ Tensor* Tensor::tensorProduct(const Tensor& other) const {
 	return result;
 }
 
-void Tensor::applyFunction(float (*function)(float)) {
+Tensor* Tensor::applyFunction(float (*function)(float)) const {
+	Tensor* result = new Tensor(*this);
 	uint32_t i = 0;
 
 	for (i = 0; i < this->_size; ++i) {
-		this->_data[i] = function(this->_data[i]);
+		result->_data[i] = function(result->_data[i]);
 	}
+
+	return result;
 }
 
 Tensor* Tensor::flatten(uint32_t from_axis) const {
@@ -634,6 +641,17 @@ Tensor* Tensor::sum(uint32_t axis) const {
 	return result;
 }
 
+float Tensor::sum() const {
+	uint32_t i{ 0 };
+	float result{ 0.0f };
+
+	for (i = 0; i < this->_size; ++i) {
+		result += this->_data[i];
+	}
+
+	return result;
+}
+
 Tensor* Tensor::transpose() const {
 	Tensor* result;
 	uint32_t i = 0;
@@ -656,7 +674,7 @@ Tensor* Tensor::transpose() const {
 
 	for (i = 0; i < result_shape[0]; ++i) {
 		for (j = 0; j < result_shape[1]; ++j) {
-			result->_data[i * result_shape[0] + j] = this->_data[j * result_shape[1] + i];
+			result->_data[i * result_shape[1] + j] = this->_data[j * result_shape[0] + i];
 		}
 	}
 
@@ -715,7 +733,7 @@ Tensor* Tensor::shuffle() const {
 
 	result = new Tensor(*this);
 
-	subsize = this->_dim / this->_shape[axis];
+	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
 	if (!tmp) {
 		// exception
@@ -729,9 +747,9 @@ Tensor* Tensor::shuffle() const {
 		rand_a = rand() % this->_shape[axis];
 		rand_b = rand() % this->_shape[axis];
 
-		memcpy(tmp, &this->_data[subsize * rand_a], sizeof(float) * subsize);
-		memcpy(&this->_data[subsize * rand_a], &this->_data[subsize * rand_b], sizeof(float) * subsize);
-		memcpy(&this->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
+		memcpy(tmp, &result->_data[subsize * rand_a], sizeof(float) * subsize);
+		memcpy(&result->_data[subsize * rand_a], &result->_data[subsize * rand_b], sizeof(float) * subsize);
+		memcpy(&result->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
 	}
 
 	free(tmp);
@@ -742,33 +760,43 @@ Tensor* Tensor::shuffle() const {
 Tensor* Tensor::shuffle(uint32_t *pattern) const {
 	uint32_t axis = 0; // currently only for first axis
 	uint32_t i = 0;
-	uint32_t rand_a;
-	uint32_t rand_b;
+	uint32_t j = 0;
+	uint32_t* shuffled;
 	Tensor* result;
 	uint32_t subsize = 0;
-	uint32_t shuffle_count = 0;
 	float* tmp;
 
 	result = new Tensor(*this);
 
-	subsize = this->_dim / this->_shape[axis];
+	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
 	if (!tmp) {
 		// exception
 	}
-
-	srand(time(NULL));
+	shuffled = (uint32_t*)malloc(sizeof(uint32_t) * this->_shape[axis]);
+	if (!shuffled) {
+		// exception
+	}
+	memset(shuffled, 0, sizeof(uint32_t) * this->_shape[axis]);
 
 	for (i = 0; i < this->_shape[axis]; ++i) {
-		rand_a = rand() % this->_shape[axis];
-		rand_b = rand() % this->_shape[axis];
+		if (!shuffled[i]) {
+			shuffled[i] = 1;
+			j = pattern[i];
+			do {
+				shuffled[j] = 1;
 
-		memcpy(tmp, &this->_data[subsize * rand_a], sizeof(float) * subsize);
-		memcpy(&this->_data[subsize * rand_a], &this->_data[subsize * rand_b], sizeof(float) * subsize);
-		memcpy(&this->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
+				memcpy(tmp, &result->_data[subsize * j], sizeof(float) * subsize);
+				memcpy(&result->_data[subsize * j], &result->_data[subsize * pattern[j]], sizeof(float) * subsize);
+				memcpy(&result->_data[subsize * pattern[j]], tmp, sizeof(float) * subsize);
+			
+				j = pattern[j];
+			} while (j != i);
+		}
 	}
 
 	free(tmp);
+	free(shuffled);
 
 	return result;
 }

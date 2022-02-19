@@ -55,9 +55,10 @@ void Layer::setPrevLayer(Layer* layer) {
 	_prev_layer = layer;
 }
 
-Layer* Layer::getNextLayer() {
-	return _next_layer;
-}
-Layer* Layer::setNextLayer() {
+Layer* Layer::getPrevLayer() const {
 	return _prev_layer;
+}
+
+Layer* Layer::getNextLayer() const {
+	return _next_layer;
 }

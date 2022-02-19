@@ -5,11 +5,32 @@
 #include "../NeuralNetwork/ActivationLayer.cpp"
 #include "../NeuralNetwork/DenseLayer.cpp"
 #include "../NeuralNetwork/NeuralNetwork.cpp"
+#include "../NeuralNetwork/Utils.cpp"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace NeuralNetworkUnitTests {
+	TEST_CLASS(UtilsUnitTests) { 
+	public:
+		TEST_METHOD(GenPermutationResultShouldContainAllNumbersUpToN) {
+			bool b[32] = { false };
+			uint32_t* permutation;
+			int s = 0;
+			int i = 0;
+
+			permutation = genPermutation(32);
+
+			for (i = 0; i < 32; ++i) {
+				b[permutation[i]] = true;
+			}
+			for (i = 0; i < 32; ++i) {
+				s += b[i];
+			}
+			Assert::AreEqual(32, s);
+		}
+	};
+
 	TEST_CLASS(TensorUnitTests) {
 	public:
 		
@@ -268,6 +289,7 @@ namespace NeuralNetworkUnitTests {
 
 		TEST_METHOD(ApplyFunctionShouldApplyGivenFunctionToTensor) {
 			Tensor* tensor;
+			Tensor* result;
 
 			tensor = new Tensor(2, 2, 2);
 
@@ -276,14 +298,15 @@ namespace NeuralNetworkUnitTests {
 			tensor->setValue(3.0f, 2, 1, 0);
 			tensor->setValue(4.0f, 2, 1, 1);
 
-			tensor->applyFunction([](float value) {return value * 2.0f; });
+			result = tensor->applyFunction([](float value) {return value * 2.0f; });
 
-			Assert::AreEqual(2.0f, tensor->getValue(2, 0, 0));
-			Assert::AreEqual(4.0f, tensor->getValue(2, 0, 1));
-			Assert::AreEqual(6.0f, tensor->getValue(2, 1, 0));
-			Assert::AreEqual(8.0f, tensor->getValue(2, 1, 1));
+			Assert::AreEqual(2.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(4.0f, result->getValue(2, 0, 1));
+			Assert::AreEqual(6.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(8.0f, result->getValue(2, 1, 1));
 
 			delete tensor;
+			delete result;
 		}
 
 		TEST_METHOD(SumAcrossFirstAxis) {
@@ -546,6 +569,33 @@ namespace NeuralNetworkUnitTests {
 			Assert::IsTrue(result->getValue(2, 0, 0) == 3 || result->getValue(2, 1, 0) == 3);
 			Assert::IsTrue(result->getValue(2, 0, 1) == 2 || result->getValue(2, 1, 1) == 2);
 			Assert::IsTrue(result->getValue(2, 0, 1) == 4 || result->getValue(2, 1, 1) == 4);
+
+			delete tensor;
+			delete result;
+		}
+
+		TEST_METHOD(TensorShuffleWithPatternShouldRearrangeValues) {
+			Tensor* tensor;
+			Tensor* result;
+			uint32_t pattern[4] = { 2, 3, 0, 1 };
+
+			tensor = new Tensor(2, 4, 2);
+
+			tensor->setValue(1.0f, 2, 0, 0);
+			tensor->setValue(2.0f, 2, 0, 1);
+			tensor->setValue(3.0f, 2, 1, 0);
+			tensor->setValue(4.0f, 2, 1, 1);
+			tensor->setValue(5.0f, 2, 2, 0);
+			tensor->setValue(6.0f, 2, 2, 1);
+			tensor->setValue(7.0f, 2, 3, 0);
+			tensor->setValue(8.0f, 2, 3, 1);
+
+			result = tensor->shuffle(pattern);
+			
+			Assert::AreEqual(5.0f, result->getValue(2, 0, 0));
+			Assert::AreEqual(7.0f, result->getValue(2, 1, 0));
+			Assert::AreEqual(1.0f, result->getValue(2, 2, 0));
+			Assert::AreEqual(3.0f, result->getValue(2, 3, 0));
 		}
 	};
 
@@ -636,6 +686,7 @@ namespace NeuralNetworkUnitTests {
 			tensor_d = new Tensor(2, 2, 4);
 			layer = new DenseLayer(2, input_shape, 4);
 
+			layer->initCachedGradient();
 			layer->forwardPropagation(*tensor);
 			result = layer->backwardPropagation(*tensor_d, 1.0f);
 
@@ -671,7 +722,7 @@ namespace NeuralNetworkUnitTests {
 			layer_2 = new ActivationLayer(*layer_1, activation_fun, activation_fun_d);
 			layer_3 = new ActivationLayer(*layer_2, activation_fun, activation_fun_d);
 
-			nn = new NeuralNetwork(*layer_1, *layer_3, nullptr);
+			nn = new NeuralNetwork(*layer_1, *layer_3, nullptr, nullptr);
 
 			result = nn->predict(tensor);
 
@@ -688,6 +739,95 @@ namespace NeuralNetworkUnitTests {
 			delete layer_1;
 			delete layer_2;
 			delete layer_3;
+			delete nn;
+		}
+
+		TEST_METHOD(FitShouldDecreaseCost) {
+			uint32_t i = 0;
+			Tensor* x_train;
+			Tensor* y_train;
+			Tensor* x_test;
+			Tensor* y_test;
+			Tensor* y_hat;
+			Tensor* (*activation_fun)(const Tensor & x) = [](const Tensor& x) { return x * x; };
+			Tensor* (*activation_fun_d)(const Tensor & x, const Tensor & dx) = [](const Tensor& x, const Tensor& dx) { return x * (*(dx * 2.0f)); };
+			ActivationLayer* layer_1;
+			DenseLayer* layer_2;
+			ActivationLayer* layer_3;
+			DenseLayer* layer_4;
+			ActivationLayer* layer_5;
+			DenseLayer* layer_6;
+			ActivationLayer* layer_7;
+			NeuralNetwork* nn;
+			float x;
+			float y;
+			float u;
+			float cost_1;
+			float cost_2;
+
+			x_train = new Tensor(2, 128, 2);
+			y_train = new Tensor(2, 128, 2);
+			x_test = new Tensor(2, 32, 2);
+			y_test = new Tensor(2, 32, 2);
+
+			srand(time(NULL));
+
+			for (i = 0; i < x_train->getShape()[0]; ++i) {
+				x = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
+				y = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
+
+				x_train->setValue(x, 2, i, 0);
+				x_train->setValue(y, 2, i, 1);
+
+				u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
+
+				y_train->setValue(u, 2, i, 0);
+				y_train->setValue(1.0f - u, 2, i, 1);
+			}
+			for (i = 0; i < x_test->getShape()[0]; ++i) {
+				x = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
+				y = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
+
+				x_test->setValue(x, 2, i, 0);
+				x_test->setValue(y, 2, i, 1);
+
+				u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
+
+				y_test->setValue(u, 2, i, 0);
+				y_test->setValue(1.0f - u, 2, i, 1);
+			}
+
+			layer_1 = new ActivationLayer(x_train->getDim() - 1, &x_train->getShape()[1], ActivationFun::ReLU);
+			layer_2 = new DenseLayer(*layer_1, 128);
+			layer_3 = new ActivationLayer(*layer_2, ActivationFun::ReLU);
+			layer_4 = new DenseLayer(*layer_3, 128);
+			layer_5 = new ActivationLayer(*layer_4, ActivationFun::ReLU);
+			layer_6 = new DenseLayer(*layer_5, 2);
+			layer_7 = new ActivationLayer(*layer_6, ActivationFun::Sigmoid);
+
+			nn = new NeuralNetwork(*layer_1, *layer_7, CostFun::BinaryCrossentropy);
+
+			y_hat = nn->predict(x_test);
+
+			cost_1 = nn->getCostFun()(*y_hat, *y_test);
+
+			nn->fit(x_train, y_train, x_test, y_test, 32, 20, 0.01f);
+
+			y_hat = nn->predict(x_test);
+
+			cost_2 = nn->getCostFun()(*y_hat, *y_test);
+
+			Assert::IsTrue(cost_2 < cost_1);
+
+			delete x_train;
+			delete y_train;
+			delete y_hat;
+			delete layer_1;
+			delete layer_2;
+			delete layer_3;
+			delete layer_4;
+			delete layer_5;
+			delete nn;
 		}
 	};
 }

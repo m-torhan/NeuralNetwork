@@ -12,11 +12,13 @@ public:
 
 	void setPrevLayer(Layer* layer);
 	void setNextLayer(Layer* layer);
-	Layer* getNextLayer();
-	Layer* setNextLayer();
+	Layer* getPrevLayer() const;
+	Layer* getNextLayer() const;
 
 	virtual Tensor* forwardPropagation(const Tensor& x) = 0;
 	virtual Tensor* backwardPropagation(const Tensor& dx, float learning_step) = 0;
+	virtual void updateWeights() = 0;
+	virtual void initCachedGradient() = 0;
 
 protected:
 	Layer* _next_layer;
