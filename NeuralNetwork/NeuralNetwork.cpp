@@ -5,7 +5,7 @@
 #include <chrono>
 #include <cmath>
 
-NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), Tensor*(*cost_function_d)(const Tensor&, const Tensor&)) {
+NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), const Tensor(*cost_function_d)(const Tensor&, const Tensor&)) {
 	_input_layer = &input_layer;
 	_output_layer = &output_layer;
 	_cost_function = cost_function;
@@ -31,90 +31,76 @@ float(*NeuralNetwork::getCostFun())(const Tensor&, const Tensor&) {
 	return _cost_function;
 }
 
-Tensor* NeuralNetwork::predict(Tensor* input) {
+const Tensor NeuralNetwork::predict(const Tensor& input) {
 	Layer* layer;
-	Tensor* output;
+	Tensor output;
 
 	layer = _input_layer;
-	output = layer->forwardPropagation(*input);
+	output = layer->forwardPropagation(input);
 
 	while (layer != _output_layer) {
 		layer = layer->getNextLayer();
-		output = layer->forwardPropagation(*output);
+		output = layer->forwardPropagation(output);
 	}
 
 	return output;
 }
 
-FitHistory* NeuralNetwork::fit(Tensor* train_x, Tensor* train_y, Tensor* test_x, Tensor* test_y, uint32_t batch_size, uint32_t epochs, float learning_step) {
-	FitHistory* result;
+FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step) {
+	FitHistory result;
 	Layer* layer;
-	Tensor* dx;
-	Tensor* batch_x;
-	Tensor* batch_y;
-	Tensor* y_hat;
-	uint32_t batch_count = 0;
 	uint32_t epoch = 0;
 	uint32_t batch_start = 0;
-	uint32_t* permutation;
-	float train_cost;
-	float test_cost;
-	float batch_cost;
-	double train_start;
-	uint32_t done;
-	uint32_t total;
 
-	result = (FitHistory*)malloc(sizeof(FitHistory));
-	if (!result) {
+	result.test_cost = (float*)malloc(sizeof(float) * epochs);
+	if (!result.test_cost) {
 		// exception
 	}
-	result->test_cost = (float*)malloc(sizeof(float) * epochs);
-	if (!result->test_cost) {
-		// exception
-	}
-	result->train_cost = (float*)malloc(sizeof(float) * epochs);
-	if (!result->train_cost) {
+	result.train_cost = (float*)malloc(sizeof(float) * epochs);
+	if (!result.train_cost) {
 		// exception
 	}
 
 	for (epoch = 0; epoch < epochs; ++epoch) {
-		permutation = genPermutation(train_x->getShape()[0]);
+		uint32_t* permutation = genPermutation(train_x.getShape()[0]);
 
-		train_x = train_x->shuffle(permutation);
-		train_y = train_y->shuffle(permutation);
+		Tensor train_x_shuffled = train_x.shuffle(permutation);
+		Tensor train_y_shuffled = train_y.shuffle(permutation);
 
-		train_cost = 0;
-		test_cost = 0;
+		free(permutation);
+
+		float train_cost = 0;
+		float test_cost = 0;
+		uint32_t batch_count = 0;
 
 		initLayersCachedGradient();
 
-		train_start = perf_counter_ns();
+		double train_start = perf_counter_ns();
+		for (batch_start = 0; batch_start + batch_size <= train_x.getShape()[0]; batch_start += batch_size) {
+			Tensor batch_x = train_x_shuffled.slice(0, batch_start, batch_start + batch_size);
+			Tensor batch_y = train_y_shuffled.slice(0, batch_start, batch_start + batch_size);
 
-		for (batch_start = 0; batch_start + batch_size <= train_x->getShape()[0]; batch_start += batch_size) {
-			batch_x = train_x->slice(0, batch_start, batch_start + batch_size);
-			batch_y = train_y->slice(0, batch_start, batch_start + batch_size);
+			Tensor y_hat = predict(batch_x);
 
-			y_hat = predict(batch_x);
-
-			batch_cost = _cost_function(*y_hat, *batch_y);
+			float batch_cost = _cost_function(y_hat, batch_y);
 
 			layer = _output_layer;
 
-			dx = _cost_function_d(*y_hat, *batch_y);
-			dx = layer->backwardPropagation(*dx, learning_step);
+			Tensor dx = _cost_function_d(y_hat, batch_y);
+			dx = layer->backwardPropagation(dx, learning_step);
 
 			while (layer != _input_layer) {
 				layer = layer->getPrevLayer();
-				dx = layer->backwardPropagation(*dx, learning_step);
+				dx = layer->backwardPropagation(dx, learning_step);
 			}
 
 			train_cost += batch_cost;
 			++batch_count;
 
-			done = batch_start / batch_size + 1;
-			total = train_x->getShape()[0] / batch_size;
+			uint32_t done = batch_start / batch_size + 1;
+			uint32_t total = train_x.getShape()[0] / batch_size;
 
-			printf("\r %d ", epoch);
+			printf("\r%4d ", epoch);
 			print_progress(static_cast<float>(done) / total);
 			printf(" ");
 			print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()) * (total - done) / done);
@@ -124,11 +110,12 @@ FitHistory* NeuralNetwork::fit(Tensor* train_x, Tensor* train_y, Tensor* test_x,
 		updateLayersWeights();
 
 		batch_count = 0;
-		for (batch_start = 0; batch_start + batch_size <= test_x->getShape()[0]; batch_start += batch_size) {
-			batch_x = test_x->slice(0, batch_start, batch_start + batch_size);
-			batch_y = test_y->slice(0, batch_start, batch_start + batch_size);
+		uint32_t test_batch_size = batch_size < test_x.getShape()[0] ? batch_size : test_x.getShape()[0];
+		for (batch_start = 0; batch_start + test_batch_size <= test_x.getShape()[0]; batch_start += test_batch_size) {
+			Tensor batch_x = test_x.slice(0, batch_start, batch_start + test_batch_size);
+			Tensor batch_y = test_y.slice(0, batch_start, batch_start + test_batch_size);
 
-			batch_cost = _cost_function(*predict(batch_x), *batch_y);
+			float batch_cost = _cost_function(predict(batch_x), batch_y);
 
 			test_cost += batch_cost;
 			++batch_count;
@@ -202,13 +189,11 @@ double NeuralNetwork::perf_counter_ns() {
 }
 
 float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
-	Tensor* result;
-	result = *y.dotProduct(*(y_hat + 1e-9f)->applyFunction(logf)) + *(*(*-y + 1.0f)).dotProduct(*(*(*-y_hat + 1.0f) + 1e-9f)->applyFunction(logf));
-	return result->sum() * (-1.0f / y.getShape()[0]);
+	Tensor result = y.dotProduct((y_hat + 1e-9f).applyFunction(logf)) + (-y + 1.0f).dotProduct((-y_hat + 1.0f + 1e-9f).applyFunction(logf));
+	return result.sum() * (-1.0f / y.getShape()[0]);
 }
 
-Tensor* NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
-	Tensor* result;
-	result = *(y / *(y_hat + 1e-9f)) - *(*(*-y + 1.0f) / *(*(*-y_hat + 1.0f) + 1e-9f));
-	return *result * (-1.0f / y.getShape()[0]);
+const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
+	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
+	return result;
 }

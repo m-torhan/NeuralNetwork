@@ -1,230 +1,129 @@
 #include "Tensor.h"
 
-#include <cstdlib>
-#include <cstring>
-#include <cstdarg>
-#include <ctime>
+Tensor::Tensor(const std::vector<uint32_t>& shape) {
+	_shape = shape;
 
-Tensor::Tensor(uint32_t dim, uint32_t* shape) {
-	uint32_t size = 1;
-	uint32_t i = 0;
-
-	_dim = dim;
-	_shape = (uint32_t*)malloc(sizeof(uint32_t) * _dim);
-	if (!_shape) {
-		// exception
-	}
-	memcpy(_shape, shape, sizeof(uint32_t) * _dim);
-
-	for (i = 0; i < _dim; ++i) {
-		size *= _shape[i];
-	}
-	_size = size;
-
-	_data = (float*)malloc(sizeof(float) * _size);
-}
-
-Tensor::Tensor(uint32_t dim ...) {
-	va_list shape;
-	uint32_t size = 1;
-	uint32_t i = 0;
-
-	_dim = dim;
-	_shape = (uint32_t*)malloc(sizeof(uint32_t) * _dim);
-	if (!_shape) {
-		// exception
+	_size = 1;
+	for (auto s : shape) {
+		_size *= s;
 	}
 
-	va_start(shape, dim);
-	for (i = 0; i < _dim; ++i) {
-		_shape[i] = va_arg(shape, uint32_t);
-		size *= _shape[i];
-	}
-	va_end(shape);
-
-	_size = size;
-
-	_data = (float*)malloc(sizeof(float) * _size);
+	_data.insert(_data.end(), _size, 0.0f);
 }
 
 Tensor::Tensor(const Tensor& other) {
-	_dim = other._dim;
 	_size = other._size;
+	_shape = other._shape;
+	_data = other._data;
+}
 
-	_shape = (uint32_t*)malloc(sizeof(uint32_t) * _dim);
-	if (!_shape) {
-		// exception
-	}
-	memcpy(_shape, other._shape, sizeof(uint32_t) * _dim);
+Tensor& Tensor::operator=(const Tensor& other) {
+	_size = other._size;
+	_shape = other._shape;
+	_data = other._data;
 
-	_data = (float*)malloc(sizeof(float) * _size);
-	if (!_data) {
-		// exception
-	}
-	memcpy(_data, other._data, sizeof(float) * _size);
+	return *this;
 }
 
 Tensor::Tensor() {
-	_dim = 0;
-	_shape = 0;
-	_size = 0;
-	_data = 0;
+	_size = 1;
+	_shape.push_back(1);
+	_data.push_back(0.0f);
 }
 
 Tensor::~Tensor() {
-	free(_shape);
-	free(_data);
 }
 
 uint32_t Tensor::getDim() const {
-	return _dim;
+	return _shape.size();
 }
 
 uint32_t Tensor::getSize() const {
 	return _size;
 }
 
-uint32_t* Tensor::getShape() const {
-	uint32_t* shape;
-
-	shape = (uint32_t*)malloc(sizeof(uint32_t) * _dim);
-	if (!shape) {
-		// exception
-	}
-	memcpy(shape, _shape, sizeof(uint32_t) * _dim);
-
-	return shape;
+std::vector<uint32_t> Tensor::getShape() const {
+	return _shape;
 }
 
-float* Tensor::getData() const {
-	float* data;
-
-	data = (float*)malloc(sizeof(float) * _size);
-	if (!data) {
-		// exception
-	}
-	memcpy(data, _data, sizeof(float) * _size);
-
-	return data;
+std::vector<float> Tensor::getData() const {
+	return _data;
 }
 
-float Tensor::getValue(size_t n ...) const {
-	va_list indices;
-	uint32_t idx = 0;
+float Tensor::getValue(const std::vector<uint32_t>& idx) const {
+	uint32_t flat_idx = 0;
 	uint32_t subidx = 0;
 	uint32_t subsize = this->_size;
 	uint32_t i = 0;
 
-	if (n != this->_dim) {
+	if (idx.size() != this->_shape.size()) {
 		// exception
 	}
 
-	va_start(indices, n);
-	for (i = 0; i < this->_dim; ++i) {
+	for (i = 0; i < this->_shape.size(); ++i) {
 		subsize /= this->_shape[i];
-		subidx = va_arg(indices, uint32_t);
+		subidx = idx[i];
 		if (subidx >= this->_shape[i]) {
 			// exception
 		}
-		idx += subsize * subidx;
+		flat_idx += subsize * subidx;
 	}
-	va_end(indices);
 
-	return this->_data[idx];
+	return this->_data[flat_idx];
 }
 
-void Tensor::setValue(float value, size_t n ...) {
-	va_list indices;
-	uint32_t idx = 0;
-	uint32_t size_prod = this->_size;
-	uint32_t i = 0;
-
-	if (n != this->_dim) {
+void Tensor::setValue(float value, const std::vector<uint32_t>& idx) {
+	if (idx.size() != this->_shape.size()) {
 		// exception
 	}
 
-	va_start(indices, n);
-	for (i = 0; i < this->_dim; ++i) {
-		size_prod /= this->_shape[i];
-		idx += size_prod * va_arg(indices, uint32_t);
+	uint32_t flat_idx = 0;
+	uint32_t subsize = this->_size;
+	for (uint32_t i = 0; i < this->_shape.size(); ++i) {
+		subsize /= this->_shape[i];
+		flat_idx += subsize * idx[i];
 	}
-	va_end(indices);
 
-	this->_data[idx] = value;
+	this->_data[flat_idx] = value;
 }
 
-Tensor* Tensor::operator-() const {
-	return *this * (-1.0f);
-}
-
-Tensor* Tensor::operator+(const Tensor& other) const {
-	uint32_t i = 0;
-
-	if (!this->validateShape(other)) {
+void Tensor::setValues(const std::vector<float>& values) {
+	if (this->_data.size() != values.size()) {
 		// exception
 	}
+	this->_data = values;
+}
 
-	Tensor* result = new Tensor(this->_dim, this->_shape);
+const Tensor Tensor::operator-() const {
+	Tensor result = *this;
+	return result * (-1.0f);
+}
 
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] + other._data[i % other._size];
-	}
-
+const Tensor Tensor::operator+(const Tensor& other) const {
+	Tensor result = *this;
+	result += other;
 	return result;
 }
 
-Tensor* Tensor::operator-(const Tensor& other) const {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
-	}
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] - other._data[i % other._size];
-	}
-
+const Tensor Tensor::operator-(const Tensor& other) const {
+	Tensor result = *this;
+	result -= other;
 	return result;
 }
 
-Tensor* Tensor::operator*(const Tensor& other) const {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
-	}
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] * other._data[i % other._size];
-	}
-
+const Tensor Tensor::operator*(const Tensor& other) const {
+	Tensor result = *this;
+	result *= other;
 	return result;
 }
 
-Tensor* Tensor::operator/(const Tensor& other) const {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
-	}
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] / other._data[i % other._size];
-	}
-
+const Tensor Tensor::operator/(const Tensor& other) const {
+	Tensor result = *this;
+	result /= other;
 	return result;
 }
 
-Tensor* Tensor::operator+=(const Tensor& other) {
+Tensor& Tensor::operator+=(const Tensor& other) {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -236,10 +135,10 @@ Tensor* Tensor::operator+=(const Tensor& other) {
 		this->_data[i] += other._data[i % other._size];
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator-=(const Tensor& other) {
+Tensor& Tensor::operator-=(const Tensor& other) {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -251,10 +150,10 @@ Tensor* Tensor::operator-=(const Tensor& other) {
 		this->_data[i] -= other._data[i % other._size];
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator*=(const Tensor& other) {
+Tensor& Tensor::operator*=(const Tensor& other) {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -266,10 +165,10 @@ Tensor* Tensor::operator*=(const Tensor& other) {
 		this->_data[i] *= other._data[i % other._size];
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator/=(const Tensor& other) {
+Tensor& Tensor::operator/=(const Tensor& other) {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -281,10 +180,10 @@ Tensor* Tensor::operator/=(const Tensor& other) {
 		this->_data[i] /= other._data[i % other._size];
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator>(const Tensor& other) const {
+const Tensor Tensor::operator>(const Tensor& other) const {
 	uint32_t i = 0;
 
 	if (!this->validateDimGreater(other) ||
@@ -292,352 +191,256 @@ Tensor* Tensor::operator>(const Tensor& other) const {
 		// exception
 	}
 
-	Tensor* result = new Tensor(this->_dim, this->_shape);
+	Tensor result = *this;
 
 	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] > other._data[i % other._size] ? 1.0f: 0.0f;
+		result._data[i] = this->_data[i] > other._data[i % other._size] ? 1.0f: 0.0f;
 	}
 
 	return result;
 }
 
-Tensor* Tensor::operator+(float number) const {
-	uint32_t i = 0;
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] + number;
-	}
-
+const Tensor Tensor::operator+(float number) const {
+	Tensor result = *this;
+	result += number;
 	return result;
 }
 
-Tensor* Tensor::operator-(float number) const {
-	uint32_t i = 0;
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] - number;
-	}
-
+const Tensor Tensor::operator-(float number) const {
+	Tensor result = *this;
+	result -= number;
 	return result;
 }
 
-Tensor* Tensor::operator*(float number) const {
-	uint32_t i = 0;
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] * number;
-	}
-
+const Tensor Tensor::operator*(float number) const {
+	Tensor result = *this;
+	result *= number;
 	return result;
 }
 
-Tensor* Tensor::operator/(float number) const {
-	uint32_t i = 0;
-
-	Tensor* result = new Tensor(this->_dim, this->_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] / number;
-	}
-
+const Tensor Tensor::operator/(float number) const {
+	Tensor result = *this;
+	result /= number;
 	return result;
 }
 
-Tensor* Tensor::operator+=(float number) {
+Tensor& Tensor::operator+=(float number) {
 	uint32_t i = 0;
 
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] += number;
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator-=(float number) {
+Tensor& Tensor::operator-=(float number) {
 	uint32_t i = 0;
 
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] -= number;
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator*=(float number) {
+Tensor& Tensor::operator*=(float number) {
 	uint32_t i = 0;
 
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] *= number;
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator/=(float number) {
+Tensor& Tensor::operator/=(float number) {
 	uint32_t i = 0;
 
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] /= number;
 	}
 
-	return this;
+	return *this;
 }
 
-Tensor* Tensor::operator>(float number) const {
+const Tensor Tensor::operator>(float number) const {
 	uint32_t i = 0;
 
-	Tensor* result = new Tensor(this->_dim, this->_shape);
+	Tensor result = *this;
 
 	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = this->_data[i] > number ? 1.0f : 0.0f;
+		result._data[i] = this->_data[i] > number ? 1.0f : 0.0f;
 	}
 
 	return result;
 }
 
-Tensor* Tensor::dotProduct(const Tensor& other) const {
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint32_t k = 0;
-	uint32_t d_i;
-	uint32_t d_j;
-	uint32_t result_dim;
-	uint32_t* result_shape;
-	Tensor* result;
-
-	if (this->_dim == 1 && other._dim == 1) {
+const Tensor Tensor::dotProduct(const Tensor& other) const {
+	if (this->_shape.size() == 1 && other._shape.size() == 1) {
 		// vector inner product
 		if (this->_shape[0] != other._shape[0]) {
 			// exception
 		}
-		result = new Tensor(0);
+		Tensor result = Tensor();
 
-		*result *= 0.0f;
+		result *= 0.0f;
 
-		for (i = 0; i < this->_size; ++i) {
-			result->_data[0] += this->_data[i] * other._data[i];
+		for (uint32_t i = 0; i < this->_size; ++i) {
+			result._data[0] += this->_data[i] * other._data[i];
 		}
 
 		return result;
 	}
 
-	if (this->_dim == 2 && other._dim == 2) {
+	if (this->_shape.size() == 2 && other._shape.size() == 2) {
 		// matrix multiplication
 		if (this->_shape[1] != other._shape[0]) {
 			// exception
 		}
-		result_dim = 2;
-		result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
-		if (!result_shape) {
-			// exception
-		}
-		result_shape[0] = this->_shape[0];
-		result_shape[1] = other._shape[1];
+		std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[1] };
 
-		result = new Tensor(result_dim, result_shape);
+		Tensor result = Tensor(result_shape);
 
-		*result *= 0.0f;
-
-		for (i = 0; i < result_shape[0]; ++i) {
-			for (j = 0; j < result_shape[1]; ++j) {
-				for (k = 0; k < this->_shape[1]; ++k) {
-					result->_data[i * result_shape[1] + j] += this->_data[i * this->_shape[1] + k] * other._data[k * other._shape[1] + j];
+		for (uint32_t i = 0; i < result_shape[0]; ++i) {
+			for (uint32_t j = 0; j < result_shape[1]; ++j) {
+				for (uint32_t k = 0; k < this->_shape[1]; ++k) {
+					result._data[i * result_shape[1] + j] += this->_data[i * this->_shape[1] + k] * other._data[k * other._shape[1] + j];
 				}
 			}
 		}
 
-		free(result_shape);
-
 		return result;
 	}
 
-	if (this->_dim == 0) {
+	if (this->_shape.size() == 0) {
 		// scalar multiplication
 		return other * this->_data[0];
 	}
 
-	if (other._dim == 0) {
+	if (other._shape.size() == 0) {
 		// scalar multiplication
 		return *this * other._data[0];
 	}
 
-	if (other._dim == 1) {
+	if (other._shape.size() == 1) {
 		// sum product over the last axis of this and other (vector)
-		if (this->_shape[this->_dim - 1] != other._shape[0]) {
+		if (this->_shape[this->_shape.size() - 1] != other._shape[0]) {
 			// exception
 		}
-		result_dim = this->_dim - 1;
-		result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
+		std::vector<uint32_t> result_shape = this->_shape;
+		result_shape.pop_back();
 
-		memcpy(result_shape, this->_shape, sizeof(uint32_t) * result_dim);
+		Tensor result = Tensor(result_shape);
 
-		result = new Tensor(result_dim, result_shape);
+		uint32_t d_i = this->_size / other._shape[0];
 
-		*result *= 0.0f;
-
-		d_i = this->_size / other._shape[0];
-
-		for (i = 0; i < other._shape[0]; ++i) {
-			for (j = 0; j < d_i; ++j) {
-				result->_data[j] += this->_data[i * d_i + j] * other._data[i];
+		for (uint32_t i = 0; i < other._shape[0]; ++i) {
+			for (uint32_t j = 0; j < d_i; ++j) {
+				result._data[j] += this->_data[i * d_i + j] * other._data[i];
 			}
 		}
-
-		free(result_shape);
 
 		return result;
 	}
 
 	else {
 		// sum product over the last axis of this and the second-to-last axis of other
-		if (this->_shape[this->_dim - 1] != other._shape[other._dim - 2]) {
+		if (this->_shape[this->_shape.size()  - 1] != other._shape[other._shape.size()  - 2]) {
 			// exception
 		}
-		result_dim = this->_dim + other._dim - 2;
-		result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
 
-		result = new Tensor(result_dim, result_shape);
+		Tensor result = Tensor();
 
-		*result *= 0.0f;
-
-		d_i = this->_size / this->_shape[this->_dim - 1];
-		d_j = other._size / other._shape[other._dim - 2];
+		//d_i = this->_size / this->_shape[this->_shape.size()  - 1];
+		//d_j = other._size / other._shape[other._shape.size()  - 2];
 
 		// TODO (dot product for higher dimensions currently not essential)
-
-		free(result_shape);
 
 		return result;
 	}
 }
 
-Tensor* Tensor::tensorProduct(const Tensor& other) const {
-	uint32_t i = 0;
-	Tensor* result;
-	Tensor* subresult;
-	uint32_t result_dim = this->_dim + other._dim;
-	uint32_t* result_shape;
+const Tensor Tensor::tensorProduct(const Tensor& other) const {
+	std::vector<uint32_t> result_shape = this->_shape;
+	result_shape.insert(result_shape.end(), other._shape.begin(), other._shape.end());
 
-	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
-	if (!result_shape) {
+	Tensor result = Tensor(result_shape);
+
+	for (uint32_t i = 0; i < this->_size; ++i) {
+		Tensor subresult = Tensor(other);
+		subresult *= this->_data[i];
+		std::copy(subresult._data.begin(), subresult._data.end(), result._data.begin() + i * subresult._data.size());
+	}
+
+	return result;
+}
+
+const Tensor Tensor::applyFunction(float (*function)(float)) const {
+	Tensor result = *this;
+
+	for (uint32_t i = 0; i < this->_size; ++i) {
+		result._data[i] = function(result._data[i]);
+	}
+
+	return result;
+}
+
+const Tensor Tensor::flatten(uint32_t from_axis) const {
+	if (from_axis >= this->_shape.size() ) {
 		// exception
 	}
-	memcpy(result_shape, this->_shape, sizeof(uint32_t) * this->_dim);
-	memcpy(&result_shape[this->_dim], other._shape, sizeof(uint32_t) * other._dim);
 
-	result = new Tensor(result_dim, result_shape);
-
-	for (i = 0; i < this->_size; ++i) {
-		subresult = new Tensor(other);
-		*subresult *= this->_data[i];
-		memcpy(&(result->_data[subresult->_size * i]), subresult->_data, sizeof(float) * subresult->_size);
-	}
-
-	free(result_shape);
-
-	return result;
-}
-
-Tensor* Tensor::applyFunction(float (*function)(float)) const {
-	Tensor* result = new Tensor(*this);
-	uint32_t i = 0;
-
-	for (i = 0; i < this->_size; ++i) {
-		result->_data[i] = function(result->_data[i]);
-	}
-
-	return result;
-}
-
-Tensor* Tensor::flatten(uint32_t from_axis) const {
-	uint32_t i = 0;
 	uint32_t subsize = 1;
-	uint32_t result_dim;
-	uint32_t* result_shape;
-	Tensor* result;
-
-	if (from_axis >= this->_dim) {
-		// exception
-	}
-
-	for (i = from_axis; i < this->_dim; ++i) {
+	for (uint32_t i = from_axis; i < this->_shape.size() ; ++i) {
 		subsize *= this->_shape[i];
 	}
 
-	result_dim = 1 + from_axis;
+	std::vector<uint32_t> result_shape;
 
-	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
-	if (result_shape) {
-		// exception
+	for (uint32_t i = 0; i < from_axis; ++i) {
+		result_shape.push_back(this->_shape[i]);
 	}
+	result_shape.push_back(subsize);
 
-	for (i = 0; i < from_axis; ++i) {
-		result_shape[i] = this->_shape[i];
-	}
-	result_shape[from_axis] = subsize;
+	Tensor result = Tensor(result_shape);
 
-	result = new Tensor(result_dim, result_shape);
-
-	memcpy(result->_data, this->_data, sizeof(float) * this->_dim);
-
-	free(result_shape);
+	std::copy(this->_data.begin(), this->_data.end(), result._data.begin());
 
 	return result;
 }
 
-Tensor* Tensor::sum(uint32_t axis) const {
-	Tensor* result;
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint32_t k = 0;
-	uint32_t d_i = 0;
-	uint32_t d_j = 0;
-	uint32_t d_k = 0;
-	uint32_t result_dim;
-	uint32_t* result_shape;
-
-	if (axis >= this->_dim) {
+const Tensor Tensor::sum(uint32_t axis) const {
+	if (axis >= this->_shape.size() ) {
 		// exception
 	}
 
-	result_dim = this->_dim - 1;
-	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * result_dim);
-	if (!result_shape) {
-		// exception
-	}
-	for (i = 0; i < this->_dim; ++i) {
+	std::vector<uint32_t> result_shape;
+
+	for (uint32_t i = 0; i < this->_shape.size() ; ++i) {
 		if (i != axis) {
-			result_shape[i - (i > axis ? 1 : 0)] = this->_shape[i];
+			result_shape.push_back(this->_shape[i]);
 		}
 	}
 
-	result = new Tensor(result_dim, result_shape);
+	Tensor result = Tensor(result_shape);
 
-	d_j = axis == this->_dim - 1 ? this->_shape[this->_dim - 1] : 1;
+	uint32_t d_j = axis == this->_shape.size()  - 1 ? this->_shape[this->_shape.size()  - 1] : 1;
 
-	d_i = 1;
-	for (i = axis + 1; i < this->_dim; ++i) {
+	uint32_t d_i = 1;
+	for (uint32_t i = axis + 1; i < this->_shape.size() ; ++i) {
 		d_i *= this->_shape[i];
 	}
-	d_k = d_i * this->_shape[axis];
+	uint32_t d_k = d_i * this->_shape[axis];
 
-	*result *= 0.0f;
-
-	for (k = 0; k < this->_size / d_k; ++k) {
-		for (j = 0; j < d_i; ++j) {
-			for (i = 0; i < this->_shape[axis] ; ++i) {
-				result->_data[j + d_i * k] += this->_data[d_i * i + d_j * j + d_k * k];
+	for (uint32_t k = 0; k < this->_size / d_k; ++k) {
+		for (uint32_t j = 0; j < d_i; ++j) {
+			for (uint32_t i = 0; i < this->_shape[axis] ; ++i) {
+				result._data[j + d_i * k] += this->_data[d_i * i + d_j * j + d_k * k];
 			}
 		}
 	}
 
-	free(result_shape);
 	return result;
 }
 
@@ -652,86 +455,61 @@ float Tensor::sum() const {
 	return result;
 }
 
-Tensor* Tensor::transpose() const {
-	Tensor* result;
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint32_t* result_shape;
-
-	if (this->_dim != 2) {
+const Tensor Tensor::transpose() const {
+	if (this->_shape.size()  != 2) {
 		// exception
 	}
 
-	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * this->_dim);
-	if (!result_shape) {
-		// exception
-	}
+	std::vector<uint32_t> result_shape = { this->_shape[1], this->_shape[0] };
 
-	result_shape[0] = this->_shape[1];
-	result_shape[1] = this->_shape[0];
+	Tensor result = Tensor(result_shape);
 
-	result = new Tensor(this->_dim, result_shape);
-
-	for (i = 0; i < result_shape[0]; ++i) {
-		for (j = 0; j < result_shape[1]; ++j) {
-			result->_data[i * result_shape[1] + j] = this->_data[j * result_shape[0] + i];
+	for (uint32_t i = 0; i < result_shape[0]; ++i) {
+		for (uint32_t j = 0; j < result_shape[1]; ++j) {
+			result._data[i * result_shape[1] + j] = this->_data[j * result_shape[0] + i];
 		}
 	}
-
-	free(result_shape);
 
 	return result;
 }
 
-Tensor* Tensor::slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const {
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint32_t subsize_1 = 1;
-	uint32_t subsize_2 = 1;
-	Tensor* result;
-	uint32_t* result_shape;
-
-	if (start_idx <= end_idx || axis >= this->_dim) {
+const Tensor Tensor::slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const {
+	if (start_idx <= end_idx || axis >= this->_shape.size() ) {
 		// exception
 	}
 
-	result_shape = (uint32_t*)malloc(sizeof(uint32_t) * this->_dim);
-	if (!result_shape) {
-		// exception
-	}
-	memcpy(result_shape, this->_shape, sizeof(uint32_t) * this->_dim);
+	std::vector<uint32_t> result_shape = this->_shape;
 	result_shape[axis] = end_idx - start_idx;
 
-	result = new Tensor(this->_dim, result_shape);
+	Tensor result = Tensor(result_shape);
 
-	for (i = axis + 1; i < this->_dim; ++i) {
+	uint32_t subsize_2 = 1;
+	for (uint32_t i = axis + 1; i < this->_shape.size() ; ++i) {
 		subsize_2 *= this->_shape[i];
 	}
-	subsize_1 = this->_shape[axis] * subsize_2;
+	uint32_t subsize_1 = this->_shape[axis] * subsize_2;
 
-	for (i = 0; i < this->_size; ++i) {
+	uint32_t j = 0;
+	for (uint32_t i = 0; i < this->_size; ++i) {
 		if (start_idx * subsize_2 <= i % subsize_1 && i % subsize_1 < end_idx * subsize_2) {
-			result->_data[j] = this->_data[i];
+			result._data[j] = this->_data[i];
 			++j;
 		}
 	}
-
-	free(result_shape);
-
 	return result;
 }
 
-Tensor* Tensor::shuffle() const {
+const Tensor Tensor::shuffle() const {
 	uint32_t axis = 0; // currently only for first axis
 	uint32_t i = 0;
 	uint32_t rand_a;
 	uint32_t rand_b;
-	Tensor* result;
+	Tensor result;
 	uint32_t subsize = 0;
 	uint32_t shuffle_count = 0;
 	float* tmp;
 
-	result = new Tensor(*this);
+	result = *this;
 
 	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
@@ -741,15 +519,15 @@ Tensor* Tensor::shuffle() const {
 
 	srand(time(NULL));
 
-	shuffle_count = this->_shape[axis] + rand() % this->_shape[axis];
+	shuffle_count = 2 * this->_shape[axis] + rand() % this->_shape[axis];
 
 	for (i = 0; i < shuffle_count; ++i) {
 		rand_a = rand() % this->_shape[axis];
 		rand_b = rand() % this->_shape[axis];
 
-		memcpy(tmp, &result->_data[subsize * rand_a], sizeof(float) * subsize);
-		memcpy(&result->_data[subsize * rand_a], &result->_data[subsize * rand_b], sizeof(float) * subsize);
-		memcpy(&result->_data[subsize * rand_b], tmp, sizeof(float) * subsize);
+		memcpy(tmp, &result._data[subsize * rand_a], sizeof(float) * subsize);
+		memcpy(&result._data[subsize * rand_a], &result._data[subsize * rand_b], sizeof(float) * subsize);
+		memcpy(&result._data[subsize * rand_b], tmp, sizeof(float) * subsize);
 	}
 
 	free(tmp);
@@ -757,16 +535,16 @@ Tensor* Tensor::shuffle() const {
 	return result;
 }
 
-Tensor* Tensor::shuffle(uint32_t *pattern) const {
+const Tensor Tensor::shuffle(uint32_t *pattern) const {
 	uint32_t axis = 0; // currently only for first axis
 	uint32_t i = 0;
 	uint32_t j = 0;
 	uint32_t* shuffled;
-	Tensor* result;
+	Tensor result;
 	uint32_t subsize = 0;
 	float* tmp;
 
-	result = new Tensor(*this);
+	result = *this;
 
 	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
@@ -786,9 +564,9 @@ Tensor* Tensor::shuffle(uint32_t *pattern) const {
 			do {
 				shuffled[j] = 1;
 
-				memcpy(tmp, &result->_data[subsize * j], sizeof(float) * subsize);
-				memcpy(&result->_data[subsize * j], &result->_data[subsize * pattern[j]], sizeof(float) * subsize);
-				memcpy(&result->_data[subsize * pattern[j]], tmp, sizeof(float) * subsize);
+				memcpy(tmp, &result._data[subsize * j], sizeof(float) * subsize);
+				memcpy(&result._data[subsize * j], &result._data[subsize * pattern[j]], sizeof(float) * subsize);
+				memcpy(&result._data[subsize * pattern[j]], tmp, sizeof(float) * subsize);
 			
 				j = pattern[j];
 			} while (j != i);
@@ -802,22 +580,22 @@ Tensor* Tensor::shuffle(uint32_t *pattern) const {
 }
 
 bool Tensor::validateDimGreater(const Tensor& other) const {
-	return this->_dim >= other._dim;
+	return this->_shape.size()  >= other._shape.size() ;
 }
 
 bool Tensor::validateDimEqual(const Tensor& other) const {
-	return this->_dim == other._dim;
+	return this->_shape.size()  == other._shape.size() ;
 }
 
 bool Tensor::validateShape(const Tensor& other) const {
 	uint32_t i = 0;
 	uint32_t min_dim = 0;
 
-	if (this->_dim < other._dim) {
-		min_dim = this->_dim;
+	if (this->_shape.size()  < other._shape.size() ) {
+		min_dim = this->_shape.size() ;
 	}
 	else {
-		min_dim = other._dim;
+		min_dim = other._shape.size() ;
 	}
 	
 	for (i = 0; i < min_dim; ++i) {

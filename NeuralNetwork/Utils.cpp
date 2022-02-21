@@ -18,7 +18,7 @@ uint32_t* genPermutation(uint32_t n) {
 
 	srand(time(NULL));
 
-	inversionsCount = n + rand() % n;
+	inversionsCount = 2 * n + rand() % n;
 
 	while (inversionsCount-- != 0) {
 		i = rand() % n;
