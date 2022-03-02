@@ -495,7 +495,7 @@ namespace NeuralNetworkUnitTests {
 				});
 
 			layer.forwardPropagation(tensor);
-			Tensor result = layer.backwardPropagation(tensor, 1.0f);
+			Tensor result = layer.backwardPropagation(tensor);
 
 			Assert::AreEqual( 2.0f, result.getValue({ 0, 0 }));
 			Assert::AreEqual( 8.0f, result.getValue({ 0, 1 }));
@@ -517,7 +517,7 @@ namespace NeuralNetworkUnitTests {
 				});
 
 			Tensor forward = layer.forwardPropagation(tensor);
-			Tensor backward = layer.backwardPropagation(tensor_back, 1.0f);
+			Tensor backward = layer.backwardPropagation(tensor_back);
 
 			Assert::IsTrue(abs(0.26894f - forward.getValue({ 0 })) < 0.001f);
 			Assert::IsTrue(abs(0.5f - forward.getValue({ 1 })) < 0.001f);
@@ -542,7 +542,7 @@ namespace NeuralNetworkUnitTests {
 				});
 
 			Tensor forward = layer.forwardPropagation(tensor);
-			Tensor backward = layer.backwardPropagation(tensor_d, 1.0f);
+			Tensor backward = layer.backwardPropagation(tensor_d);
 
 			Assert::IsTrue(abs(0.0f - forward.getValue({ 0 })) < 0.001f);
 			Assert::IsTrue(abs(0.25f - forward.getValue({ 1 })) < 0.001f);
@@ -567,13 +567,13 @@ namespace NeuralNetworkUnitTests {
 		}
 
 		TEST_METHOD(DenseLayerBackwardPropagationOutputShapeTest) {
-			Tensor tensor = Tensor({ 2, 3, 4 });
+			Tensor tensor = Tensor({ 2, 12 });
 			Tensor tensor_d = Tensor({ 2, 4 });
 			DenseLayer layer = DenseLayer({ 3, 4 }, 4);
 
 			layer.initCachedGradient();
 			layer.forwardPropagation(tensor);
-			Tensor result = layer.backwardPropagation(tensor_d, 1.0f);
+			Tensor result = layer.backwardPropagation(tensor_d);
 
 			Assert::AreEqual(2, (int)result.getDim());
 			Assert::AreEqual(2, (int)result.getShape()[0]);
@@ -604,7 +604,7 @@ namespace NeuralNetworkUnitTests {
 				});
 
 			Tensor forward = layer.forwardPropagation(tensor);
-			Tensor backward = layer.backwardPropagation(tensor_d, 1.0f);
+			Tensor backward = layer.backwardPropagation(tensor_d);
 
 			Assert::IsTrue(abs(0.6845f - forward.getValue({ 0, 0 })) < 0.001f);
 			Assert::IsTrue(abs(-2.60345f - forward.getValue({ 0, 1 })) < 0.001f);
@@ -621,6 +621,35 @@ namespace NeuralNetworkUnitTests {
 	};
 
 	TEST_CLASS(NeuralNetworkUnitTests) {
+		TEST_METHOD(BinaryCrossentropyTest) {
+			Tensor y = Tensor({ 2, 2 });
+			Tensor y_hat = Tensor({ 2, 2 });
+
+			y.setValues({
+				1.0f, 0.123f,
+				0.2f, 0.45f
+				});
+
+			y_hat.setValues({
+				0.2f, 0.123f,
+				0.456f, 0.321f
+				});
+
+			float result = NeuralNetwork::binary_crossentropy(y_hat, y);
+			Tensor result_d = NeuralNetwork::binary_crossentropy_d(y_hat, y);
+
+			Assert::IsTrue(abs(0.83766f - result) < 0.001f);
+
+			Assert::AreEqual(2, (int)result_d.getDim());
+			Assert::AreEqual(2, (int)result_d.getShape()[0]);
+			Assert::AreEqual(2, (int)result_d.getShape()[1]);
+
+			Assert::IsTrue(abs(-4.99999f - result_d.getValue({ 0, 0 })) < 0.001f);
+			Assert::IsTrue(abs(0.0f - result_d.getValue({ 0, 1 })) < 0.001f);
+			Assert::IsTrue(abs(1.03199f - result_d.getValue({ 1, 0 })) < 0.001f);
+			Assert::IsTrue(abs(-0.59185f - result_d.getValue({ 1, 1 })) < 0.001f);
+		}
+
 		TEST_METHOD(PredictShouldReturnTensor) {
 			Tensor tensor = Tensor({ 2, 2 });
 			const Tensor (*activation_fun)(const Tensor & x) = [](const Tensor& x) -> const Tensor { return x * x; };

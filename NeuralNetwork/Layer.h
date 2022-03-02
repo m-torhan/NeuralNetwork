@@ -20,8 +20,8 @@ public:
 	Layer* getNextLayer() const;
 
 	virtual const Tensor forwardPropagation(const Tensor& x) = 0;
-	virtual const Tensor backwardPropagation(const Tensor& dx, float learning_step) = 0;
-	virtual void updateWeights() = 0;
+	virtual const Tensor backwardPropagation(const Tensor& dx) = 0;
+	virtual void updateWeights(float learning_step) = 0;
 	virtual void initCachedGradient() = 0;
 
 protected:

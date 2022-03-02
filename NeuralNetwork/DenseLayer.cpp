@@ -65,9 +65,9 @@ void DenseLayer::initCachedGradient() {
 	_samples = 0;
 }
 
-void DenseLayer::updateWeights() {
-	_weights -= _cached_weights_d / _samples;
-	_biases -= _cached_biases_d / _samples;
+void DenseLayer::updateWeights(float learning_step) {
+	_weights -=  _cached_weights_d * learning_step / _samples;
+	_biases -= _cached_biases_d * learning_step / _samples;
 }
 
 const Tensor DenseLayer::forwardPropagation(const Tensor& x) {
@@ -83,7 +83,7 @@ const Tensor DenseLayer::forwardPropagation(const Tensor& x) {
 	return x_next;
 }
 
-const Tensor DenseLayer::backwardPropagation(const Tensor& dx, float learning_step) {
+const Tensor DenseLayer::backwardPropagation(const Tensor& dx) {
 	uint32_t n;
 	Tensor dx_prev = Tensor(dx);
 
@@ -95,8 +95,8 @@ const Tensor DenseLayer::backwardPropagation(const Tensor& dx, float learning_st
 
 	dx_prev = dx.dotProduct(_weights);
 
-	_cached_weights_d += weights_d * learning_step;
-	_cached_biases_d += biases_d * learning_step;
+	_cached_weights_d += weights_d;
+	_cached_biases_d += biases_d;
 
 	return dx_prev;
 }

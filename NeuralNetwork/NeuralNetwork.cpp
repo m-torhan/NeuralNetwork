@@ -87,11 +87,11 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			layer = _output_layer;
 
 			Tensor dx = _cost_function_d(y_hat, batch_y);
-			dx = layer->backwardPropagation(dx, learning_step);
+			dx = layer->backwardPropagation(dx);
 
 			while (layer != _input_layer) {
 				layer = layer->getPrevLayer();
-				dx = layer->backwardPropagation(dx, learning_step);
+				dx = layer->backwardPropagation(dx);
 			}
 
 			train_cost += batch_cost;
@@ -107,7 +107,7 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			printf(" train cost: %f", train_cost / batch_count);
 		}
 
-		updateLayersWeights();
+		updateLayersWeights(learning_step);
 
 		batch_count = 0;
 		uint32_t test_batch_size = batch_size < test_x.getShape()[0] ? batch_size : test_x.getShape()[0];
@@ -126,15 +126,25 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 	return result;
 }
 
-void NeuralNetwork::updateLayersWeights() {
+float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
+	Tensor result = y * (y_hat + 1e-9f).applyFunction(logf) + (-y + 1.0f) * (-y_hat + 1.0f + 1e-9f).applyFunction(logf);
+	return result.sum() * (-1.0f / y.getSize());
+}
+
+const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
+	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
+	return -result;
+}
+
+void NeuralNetwork::updateLayersWeights(float learning_step) {
 	Layer* layer;
 
 	layer = _input_layer;
-	layer->updateWeights();
+	layer->updateWeights(learning_step);
 
 	while (layer != _output_layer) {
 		layer = layer->getNextLayer();
-		layer->updateWeights();
+		layer->updateWeights(learning_step);
 	}
 }
 
@@ -186,14 +196,4 @@ void NeuralNetwork::print_time(double seconds_d) {
 
 double NeuralNetwork::perf_counter_ns() {
 	return (long double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
-float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
-	Tensor result = y.dotProduct((y_hat + 1e-9f).applyFunction(logf)) + (-y + 1.0f).dotProduct((-y_hat + 1.0f + 1e-9f).applyFunction(logf));
-	return result.sum() * (-1.0f / y.getShape()[0]);
-}
-
-const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
-	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
-	return -result;
 }

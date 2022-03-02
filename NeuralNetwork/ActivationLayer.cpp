@@ -60,12 +60,12 @@ const Tensor ActivationLayer::forwardPropagation(const Tensor& x) {
 	return result;
 }
 
-const Tensor ActivationLayer::backwardPropagation(const Tensor& dx, float learning_step) {
+const Tensor ActivationLayer::backwardPropagation(const Tensor& dx) {
 	Tensor result = _activation_fun_d(_cached_input, dx);
 	return result;
 }
 
-void ActivationLayer::updateWeights() {
+void ActivationLayer::updateWeights(float learning_step) {
 
 }
 

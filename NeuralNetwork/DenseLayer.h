@@ -11,8 +11,8 @@ public:
 	void setBiases(std::vector<float> biases);
 
 	virtual const Tensor forwardPropagation(const Tensor& x);
-	virtual const Tensor backwardPropagation(const Tensor& dx, float learning_step);
-	virtual void updateWeights();
+	virtual const Tensor backwardPropagation(const Tensor& dx);
+	virtual void updateWeights(float learning_step);
 	virtual void initCachedGradient(); 
 
 private:
