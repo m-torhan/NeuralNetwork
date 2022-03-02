@@ -29,7 +29,7 @@ int main() {
 		x_train.setValue((x + 1) / 2, { i, 0 });
 		x_train.setValue((y + 1) / 2, { i, 1 });
 
-		float u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
+		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
 		y_train.setValue(u, { i, 0 });
 	}
@@ -41,7 +41,7 @@ int main() {
 		x_test.setValue((x + 1) / 2, { i, 0 });
 		x_test.setValue((y + 1) / 2, { i, 1 });
 
-		float u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
+		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
 		y_test.setValue(u, { i, 0 });
 	}
@@ -73,7 +73,7 @@ int main() {
 		}
 	}
 
-	nn.fit(x_train, y_train, x_test, y_test, 128, 10, 1.0f);
+	nn.fit(x_train, y_train, x_test, y_test, 128, 10, 0.05f);
 
 	y_hat = nn.predict(x_test);
 

@@ -99,7 +99,7 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 			uint32_t done = batch_start / batch_size + 1;
 			uint32_t total = train_x.getShape()[0] / batch_size;
-
+			 
 			printf("\r%4d ", epoch);
 			print_progress(static_cast<float>(done) / total);
 			printf(" ");
@@ -195,5 +195,5 @@ float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
 
 const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
 	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
-	return result;
+	return -result;
 }

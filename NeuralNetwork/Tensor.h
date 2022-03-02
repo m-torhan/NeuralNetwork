@@ -21,7 +21,7 @@ public:
 	std::vector<float> getData() const;
 	float getValue(const std::vector<uint32_t>& idx = { 0 }) const;
 	void setValue(float value, const std::vector<uint32_t>& idx = { 0 });
-	void setValues(const std::vector<float>& values);
+	void setValues(	const std::vector<float>& values);
 	const Tensor operator-() const;
 	const Tensor operator+(const Tensor& other) const;
 	const Tensor operator-(const Tensor& other) const;

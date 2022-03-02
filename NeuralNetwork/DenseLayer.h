@@ -7,6 +7,9 @@ public:
 	DenseLayer(std::vector<uint32_t> input_shape, uint32_t neurons_count);
 	DenseLayer(Layer& prev_layer, uint32_t neurons_count);
 	
+	void setWeights(std::vector<float> weights);
+	void setBiases(std::vector<float> biases);
+
 	virtual const Tensor forwardPropagation(const Tensor& x);
 	virtual const Tensor backwardPropagation(const Tensor& dx, float learning_step);
 	virtual void updateWeights();

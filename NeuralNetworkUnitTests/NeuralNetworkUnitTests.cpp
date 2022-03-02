@@ -95,6 +95,22 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(8.0f, tensor.getData()[7]);
 		}
 
+		TEST_METHOD(WhenTensorPreceededByMinusEachValueShouldChangeSign) {
+			Tensor tensor = Tensor({ 2, 2 });
+
+			tensor.setValues({
+				1.0f, .5f,
+				.25f, -2.0f
+				});
+
+			Tensor result = -tensor;
+
+			Assert::AreEqual(-1.0f, result.getValue({ 0, 0 }));
+			Assert::AreEqual( -.5f, result.getValue({ 0, 1 }));
+			Assert::AreEqual(-.25f, result.getValue({ 1, 0 }));
+			Assert::AreEqual( 2.0f, result.getValue({ 1, 1 }));
+		}
+
 		TEST_METHOD(WhenMultipliedByTensorEachValuePairShouldBeMultiplied) {
 			Tensor tensor_a = Tensor({ 2, 2 });
 			Tensor tensor_b = Tensor({ 2, 2 });
@@ -486,6 +502,56 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(18.0f, result.getValue({ 1, 0 }));
 			Assert::AreEqual(32.0f, result.getValue({ 1, 1 }));
 		}
+
+		TEST_METHOD(SigmoidActivationValuesTest) {
+			Tensor tensor = Tensor({ 3 });
+			Tensor tensor_back = Tensor({ 3 });
+			ActivationLayer layer = ActivationLayer({ 2, 2 }, ActivationFun::Sigmoid);
+
+			tensor.setValues({
+				-1.0f, 0.0f, 1.0f
+				});
+
+			tensor_back.setValues({
+				0.25f, 0.4f, -1.5f
+				});
+
+			Tensor forward = layer.forwardPropagation(tensor);
+			Tensor backward = layer.backwardPropagation(tensor_back, 1.0f);
+
+			Assert::IsTrue(abs(0.26894f - forward.getValue({ 0 })) < 0.001f);
+			Assert::IsTrue(abs(0.5f - forward.getValue({ 1 })) < 0.001f);
+			Assert::IsTrue(abs(0.73106f - forward.getValue({ 2 })) < 0.001f);
+
+			Assert::IsTrue(abs(0.04915f - backward.getValue({ 0 })) < 0.001f);
+			Assert::IsTrue(abs(0.1f - backward.getValue({ 1 })) < 0.001f);
+			Assert::IsTrue(abs(-0.29491f - backward.getValue({ 2 })) < 0.001f);
+		}
+
+		TEST_METHOD(ReLUActivationValuesTest) {
+			Tensor tensor = Tensor({ 3 });
+			Tensor tensor_d = Tensor({ 3 });
+			ActivationLayer layer = ActivationLayer({ 2, 2 }, ActivationFun::ReLU);
+
+			tensor.setValues({
+				-1.0f, 0.25f, 1.0f
+				});
+
+			tensor_d.setValues({
+				0.25f, 0.4f, -1.5f
+				});
+
+			Tensor forward = layer.forwardPropagation(tensor);
+			Tensor backward = layer.backwardPropagation(tensor_d, 1.0f);
+
+			Assert::IsTrue(abs(0.0f - forward.getValue({ 0 })) < 0.001f);
+			Assert::IsTrue(abs(0.25f - forward.getValue({ 1 })) < 0.001f);
+			Assert::IsTrue(abs(1.0f - forward.getValue({ 2 })) < 0.001f);
+
+			Assert::IsTrue(abs(0.0f - backward.getValue({ 0 })) < 0.001f);
+			Assert::IsTrue(abs(0.4f - backward.getValue({ 1 })) < 0.001f);
+			Assert::IsTrue(abs(-1.5f - backward.getValue({ 2 })) < 0.001f);
+		}
 	};
 	TEST_CLASS(DenseLayerUnitTests) {
 	public:
@@ -512,6 +578,45 @@ namespace NeuralNetworkUnitTests {
 			Assert::AreEqual(2, (int)result.getDim());
 			Assert::AreEqual(2, (int)result.getShape()[0]);
 			Assert::AreEqual(12, (int)result.getShape()[1]);
+		}
+
+		TEST_METHOD(DenseLayerForwardPropagationReturnValuesTest) {
+			Tensor tensor = Tensor({ 2, 3 });
+			Tensor tensor_d = Tensor({ 2, 2 });
+			DenseLayer layer = DenseLayer({ 3 }, 2);
+
+			tensor.setValues({
+				1.0f, -0.5f, 2.2f,
+				3.1f, -10.0f, 123.0f
+				});
+
+			tensor_d.setValues({
+				-1.0f, -1.5f,
+				1.7f, 43.2f
+				});
+
+			layer.setWeights({
+				-0.2f, 0.123f, 0.43f,
+				-0.543f, 0.2433f, -0.654f
+				});
+			layer.setBiases({
+				0.0f, -0.5f
+				});
+
+			Tensor forward = layer.forwardPropagation(tensor);
+			Tensor backward = layer.backwardPropagation(tensor_d, 1.0f);
+
+			Assert::IsTrue(abs(0.6845f - forward.getValue({ 0, 0 })) < 0.001f);
+			Assert::IsTrue(abs(-2.60345f - forward.getValue({ 0, 1 })) < 0.001f);
+			Assert::IsTrue(abs(51.04f - forward.getValue({ 1, 0 })) < 0.001f);
+			Assert::IsTrue(abs(-85.0583f - forward.getValue({ 1, 1 })) < 0.001f);
+
+			Assert::IsTrue(abs(1.0145f - backward.getValue({ 0, 0 })) < 0.001f);
+			Assert::IsTrue(abs(-0.48795f - backward.getValue({ 0, 1 })) < 0.001f);
+			Assert::IsTrue(abs(0.551f - backward.getValue({ 0, 2 })) < 0.001f);
+			Assert::IsTrue(abs(-23.7976f - backward.getValue({ 1, 0 })) < 0.001f);
+			Assert::IsTrue(abs(10.71966f - backward.getValue({ 1, 1 })) < 0.001f);
+			Assert::IsTrue(abs(-27.5218f - backward.getValue({ 1, 2 })) < 0.001f);
 		}
 	};
 

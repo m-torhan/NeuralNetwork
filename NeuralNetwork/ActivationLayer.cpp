@@ -88,6 +88,6 @@ const Tensor ActivationLayer::Sigmoid_fun(const Tensor& x) {
 }
 
 const Tensor ActivationLayer::Sigmoid_fun_d(const Tensor& x, const Tensor& dx) {
-	Tensor result = Sigmoid_fun(x);
-	return (dx * result) * (-result + 1.0f);
+	Tensor sig = Sigmoid_fun(x);
+	return dx * (sig * (-sig + 1.0f));
 }
