@@ -4,7 +4,6 @@
 
 #include <cstdint>
 #include <stdio.h>
-#include <windows.h>
 #include <ctime>
 #include <cmath>
 

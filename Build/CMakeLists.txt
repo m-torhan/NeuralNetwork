@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.2)
+cmake_minimum_required(VERSION 3.16)
 
 project(NeuralNetwork)
 
@@ -15,13 +15,34 @@ CPMAddPackage(
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+if(WIN32)
+    message("WARNING: Google benchmark not supported on Windows")
+else(WIN32)
+    CPMAddPackage(
+        NAME benchmark
+        GITHUB_REPOSITORY google/benchmark
+        GIT_TAG v1.6.1
+        OPTIONS -DBUILD_TESTING=OFF
+    )
+endif(WIN32)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if(WIN32)
+    set(OS "Win")
+else(WIN32)
+    set(OS "Linux")
+endif(WIN32)
+
 set(SOURCE_DIR ../src)
-set(TEST_DIR ../tests)
+set(UNIT_TEST_DIR ../tests/unit_tests)
+set(PERFORMANCE_TEST_DIR ../tests/performance_tests)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
 
-add_subdirectory(${SOURCE_DIR} ${SOURCE_DIR}/Build)
-add_subdirectory(${TEST_DIR} ${TEST_DIR}/Build)
+add_subdirectory(${SOURCE_DIR} ${SOURCE_DIR}/Build/${OS})
+add_subdirectory(${UNIT_TEST_DIR} ${UNIT_TEST_DIR}/Build/${OS})
+if(NOT WIN32)
+    add_subdirectory(${PERFORMANCE_TEST_DIR} ${PERFORMANCE_TEST_DIR}/Build/${OS})
+endif(NOT WIN32)

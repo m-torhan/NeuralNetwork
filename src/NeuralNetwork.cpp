@@ -97,13 +97,13 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			uint32_t total = train_x.getShape()[0] / batch_size;
 			
 			if (verbose >= 1) {
-				printf("\r%4d ", epoch);
+				printf("\r%4d ", epoch + 1);
 				print_progress(static_cast<float>(done) / total);
 				printf(" ");
 				print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()) * (total - done) / done);
 				printf(" train cost: %f", train_cost / batch_count);
 			}
-			
+
 			updateLayersWeights(learning_step);
 		}
 
