@@ -1,5 +1,0 @@
-![BM_DenseLayerForwardPropagation](https://github.com/maciek97x/NeuralNet/blob/master/./performance_raport/plots//BM_DenseLayerForwardPropagation.png)
-![BM_Tensor1D1DDotProduct](https://github.com/maciek97x/NeuralNet/blob/master/./performance_raport/plots//BM_Tensor1D1DDotProduct.png)
-![BM_Tensor2D2DDotProduct](https://github.com/maciek97x/NeuralNet/blob/master/./performance_raport/plots//BM_Tensor2D2DDotProduct.png)
-![BM_DenseLayerBackwardPropagation](https://github.com/maciek97x/NeuralNet/blob/master/./performance_raport/plots//BM_DenseLayerBackwardPropagation.png)
-![BM_Tensor2D1DDotProduct](https://github.com/maciek97x/NeuralNet/blob/master/./performance_raport/plots//BM_Tensor2D1DDotProduct.png)

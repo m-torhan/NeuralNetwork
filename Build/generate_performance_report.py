@@ -4,11 +4,11 @@ import git
 import os
 import  matplotlib.pyplot as plt
 
-perf_raport_path = r'./performance_raport/'
+perf_report_path = r'./performance_report/'
 perf_test_path = r'../tests/performance_tests/Build/Linux/Release/NeuralNetwork_performance_tests'
-perf_test_tmp_result_path = perf_raport_path + r'tmp_result.txt'
-perf_test_results_path = perf_raport_path + r'results/'
-perf_test_plots_path = perf_raport_path + r'plots/'
+perf_test_tmp_result_path = perf_report_path + r'tmp_result.txt'
+perf_test_results_path = perf_report_path + r'results/'
+perf_test_plots_path = perf_report_path + r'plots/'
 
 plt.style.use('dark_background')
 
@@ -26,8 +26,8 @@ if len(repo_diff) > 0:
 commit_hash = repo.head.commit.hexsha
 print(f'Commit hash = {commit_hash}')
 
-if not(os.path.isdir(perf_raport_path)):
-    os.mkdir(perf_raport_path)
+if not(os.path.isdir(perf_report_path)):
+    os.mkdir(perf_report_path)
 
 os.system(f'{perf_test_path} > {perf_test_tmp_result_path}')
 
@@ -87,9 +87,11 @@ for test in all_tests:
 
 remote_url = repo.remotes.origin.url
 
+print(remote_url)
+
 print('Creating report.')
-with open(os.path.join(perf_raport_path, 'report.md'), 'w') as report_file:
+with open(os.path.join(perf_report_path, 'report.md'), 'w') as report_file:
     for test in all_tests:
-        report_file.write(f'![{test}]({remote_url[:-4]}/blob/master/{perf_test_plots_path}/{test}.png)\n')
+        report_file.write(f'![{test}]({remote_url}/blob/master/{perf_test_plots_path}/{test}.png)\n')
 
 print('All done.')
