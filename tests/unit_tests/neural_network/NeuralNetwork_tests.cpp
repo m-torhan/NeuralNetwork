@@ -60,8 +60,8 @@ TEST(NeuralNetwork_test, PredictShouldReturnTensor) {
 }
 
 TEST(NeuralNetwork_test, FitShouldDecreaseCost) {
-    auto x_train = Tensor({ 128, 2 });
-    auto y_train = Tensor({ 128, 2 });
+    auto x_train = Tensor({ 512, 2 });
+    auto y_train = Tensor({ 512, 2 });
     auto x_test = Tensor({ 32, 2 });
     auto y_test = Tensor({ 32, 2 });
 
@@ -93,9 +93,9 @@ TEST(NeuralNetwork_test, FitShouldDecreaseCost) {
     }
 
     auto layer_1 = ActivationLayer({ 2 }, ActivationFun::ReLU);
-    auto layer_2 = DenseLayer(layer_1, 128);
+    auto layer_2 = DenseLayer(layer_1, 16);
     auto layer_3 = ActivationLayer(layer_2, ActivationFun::ReLU);
-    auto layer_4 = DenseLayer(layer_3, 128);
+    auto layer_4 = DenseLayer(layer_3, 16);
     auto layer_5 = ActivationLayer(layer_4, ActivationFun::ReLU);
     auto layer_6 = DenseLayer(layer_5, 2);
     auto layer_7 = ActivationLayer(layer_6, ActivationFun::Sigmoid);

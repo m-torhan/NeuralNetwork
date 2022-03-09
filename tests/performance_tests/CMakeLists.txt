@@ -1,4 +1,4 @@
-set(PERFORMANCE_TEST_BINARY ${CMAKE_PROJECT_NAME}_permornace_tests)
+set(PERFORMANCE_TEST_BINARY ${CMAKE_PROJECT_NAME}_performance_tests)
 file(GLOB_RECURSE PERFORMANCE_TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
 
 enable_testing()
