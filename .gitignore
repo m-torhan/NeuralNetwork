@@ -5,11 +5,12 @@ tests/performance_tests/Build*
 Build/_deps/*
 Build/cmake/*
 Build/CMakeFiles/*
-Build/CPM_Modules/*
+Build/CPM_modules/*
 Build/lib/*
 Build/.ninja_deps
 Build/.ninja_log
 Build/build.ninja
+Build/rules.ninja
 Build/cmake_install.cmake
 Build/CMakeCache.txt
 Build/cpm-package-lock.cmake
