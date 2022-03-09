@@ -18,6 +18,7 @@ public:
 	void setNextLayer(Layer* layer);
 	Layer* getPrevLayer() const;
 	Layer* getNextLayer() const;
+	Tensor getCachedOutput() const;
 
 	virtual const Tensor forwardPropagation(const Tensor& x) = 0;
 	virtual const Tensor backwardPropagation(const Tensor& dx) = 0;
@@ -32,4 +33,5 @@ protected:
 	std::vector<uint32_t> _output_shape;
 
 	Tensor _cached_input;
+	Tensor _cached_output;
 };

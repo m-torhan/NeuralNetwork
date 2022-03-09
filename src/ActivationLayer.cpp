@@ -43,6 +43,10 @@ void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 		_activation_fun = ReLU_fun;
 		_activation_fun_d = ReLU_fun_d;
 		break;
+	case ActivationFun::LeakyReLU:
+		_activation_fun = LeakyReLU_fun;
+		_activation_fun_d = LeakyReLU_fun_d;
+		break;
 	default:
 		_activation_fun = nullptr;
 		_activation_fun_d = nullptr;
@@ -53,6 +57,7 @@ void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 const Tensor ActivationLayer::forwardPropagation(const Tensor& x) {
 	_cached_input = Tensor(x);
 	Tensor result = _activation_fun(x);
+	_cached_output = Tensor(result);
 	return result;
 }
 
@@ -77,10 +82,16 @@ const Tensor ActivationLayer::ReLU_fun_d(const Tensor& x, const Tensor& dx) {
 	return dx * (x > 0.0f);
 }
 
+const Tensor ActivationLayer::LeakyReLU_fun(const Tensor& x) {
+	return x.applyFunction([](float value) {return value > 0.0f ? value * 1.0f : value * 0.1f; });
+}
+
+const Tensor ActivationLayer::LeakyReLU_fun_d(const Tensor& x, const Tensor& dx) {
+	return dx * x.applyFunction([](float value) {return value > 0.0f ? 1.0f : 0.1f; });
+}
+
 const Tensor ActivationLayer::Sigmoid_fun(const Tensor& x) {
-	Tensor result;
-	result = x.applyFunction([](float value) {return powf(1.0f + expf(-value), -1); });
-	return result;
+	return x.applyFunction([](float value) {return powf(1.0f + expf(-value), -1); });
 }
 
 const Tensor ActivationLayer::Sigmoid_fun_d(const Tensor& x, const Tensor& dx) {

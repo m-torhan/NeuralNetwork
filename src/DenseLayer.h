@@ -2,10 +2,9 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <random>
 
+#include "Utils.h"
 #include "Layer.h"
-
 
 class DenseLayer : public Layer {
 public:

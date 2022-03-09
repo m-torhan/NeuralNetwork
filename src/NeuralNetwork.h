@@ -26,7 +26,7 @@ public:
 
 	float(*getCostFun())(const Tensor&, const Tensor&);
 	const Tensor predict(const Tensor& input);
-	FitHistory fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step);
+	FitHistory fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, uint8_t verbose=1u);
 
 	static float binary_crossentropy(const Tensor& y_hat, const Tensor& y);
 	static const Tensor binary_crossentropy_d(const Tensor& y_hat, const Tensor& y);

@@ -27,3 +27,19 @@ uint32_t* genPermutation(uint32_t n) {
 
 	return result;
 }
+
+float randNormalDistribution() {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	static std::normal_distribution<float> d(0, 1);
+
+	return d(gen);
+}
+
+float randUniform(float a, float b) {
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	static std::uniform_real_distribution<float> u(a, b);
+
+	return u(gen);
+}

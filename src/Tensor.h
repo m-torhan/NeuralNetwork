@@ -33,6 +33,7 @@ public:
 	Tensor& operator*=(const Tensor& other);
 	Tensor& operator/=(const Tensor& other);
 	const Tensor operator>(const Tensor& other) const;
+	const Tensor operator<(const Tensor& other) const;
 	const Tensor operator+(float number) const;
 	const Tensor operator-(float number) const;
 	const Tensor operator*(float number) const;
@@ -42,6 +43,7 @@ public:
 	Tensor& operator*=(float number);
 	Tensor& operator/=(float number);
 	const Tensor operator>(float other) const;
+	const Tensor operator<(float other) const;
 	const Tensor dotProduct(const Tensor& other) const;
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;

@@ -200,6 +200,23 @@ const Tensor Tensor::operator>(const Tensor& other) const {
 	return result;
 }
 
+const Tensor Tensor::operator<(const Tensor& other) const {
+	uint32_t i = 0;
+
+	if (!this->validateDimGreater(other) ||
+		!this->validateShape(other)) {
+		// exception
+	}
+
+	Tensor result = *this;
+
+	for (i = 0; i < this->_size; ++i) {
+		result._data[i] = this->_data[i] < other._data[i % other._size] ? 1.0f: 0.0f;
+	}
+
+	return result;
+}
+
 const Tensor Tensor::operator+(float number) const {
 	Tensor result = *this;
 	result += number;
@@ -265,6 +282,18 @@ Tensor& Tensor::operator/=(float number) {
 }
 
 const Tensor Tensor::operator>(float number) const {
+	uint32_t i = 0;
+
+	Tensor result = *this;
+
+	for (i = 0; i < this->_size; ++i) {
+		result._data[i] = this->_data[i] > number ? 1.0f : 0.0f;
+	}
+
+	return result;
+}
+
+const Tensor Tensor::operator<(float number) const {
 	uint32_t i = 0;
 
 	Tensor result = *this;

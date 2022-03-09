@@ -8,7 +8,8 @@
 
 enum class ActivationFun {
 	Sigmoid,
-	ReLU
+	ReLU,
+	LeakyReLU
 };
 
 class ActivationLayer : public Layer {
@@ -31,6 +32,8 @@ private:
 
 	static const Tensor ReLU_fun(const Tensor& x);
 	static const Tensor ReLU_fun_d(const Tensor& x, const Tensor& dx);
+	static const Tensor LeakyReLU_fun(const Tensor& x);
+	static const Tensor LeakyReLU_fun_d(const Tensor& x, const Tensor& dx);
 	static const Tensor Sigmoid_fun(const Tensor& x);
 	static const Tensor Sigmoid_fun_d(const Tensor& x, const Tensor& dx);
 };

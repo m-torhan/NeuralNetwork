@@ -17,3 +17,15 @@ TEST(Utils_test, GenPermutationResultShouldContainAllNumbersUpToN) {
     }
     ASSERT_EQ(32, s);
 }
+
+TEST(Utils_test, RandNormalDistributionValesMeanShouldBeCloseToZero) {
+    constexpr int n = 1000000;
+    float mean = 0;
+
+    for (int i = 0; i < n; ++i) {
+        mean += randNormalDistribution();
+    }
+    mean /= n;
+
+    ASSERT_LE(mean, 0.001f);
+}

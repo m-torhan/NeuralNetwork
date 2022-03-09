@@ -41,7 +41,7 @@ const Tensor NeuralNetwork::predict(const Tensor& input) {
 	return output;
 }
 
-FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step) {
+FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, uint8_t verbose) {
 	FitHistory result;
 	Layer* layer;
 	uint32_t epoch = 0;
@@ -68,10 +68,11 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 		float test_cost = 0;
 		uint32_t batch_count = 0;
 
-		initLayersCachedGradient();
 
 		double train_start = perf_counter_ns();
 		for (batch_start = 0; batch_start + batch_size <= train_x.getShape()[0]; batch_start += batch_size) {
+			initLayersCachedGradient();
+
 			Tensor batch_x = train_x_shuffled.slice(0, batch_start, batch_start + batch_size);
 			Tensor batch_y = train_y_shuffled.slice(0, batch_start, batch_start + batch_size);
 
@@ -94,15 +95,18 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 			uint32_t done = batch_start / batch_size + 1;
 			uint32_t total = train_x.getShape()[0] / batch_size;
-			 
-			printf("\r%4d ", epoch);
-			print_progress(static_cast<float>(done) / total);
-			printf(" ");
-			print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()) * (total - done) / done);
-			printf(" train cost: %f", train_cost / batch_count);
+			
+			if (verbose >= 1) {
+				printf("\r%4d ", epoch);
+				print_progress(static_cast<float>(done) / total);
+				printf(" ");
+				print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()) * (total - done) / done);
+				printf(" train cost: %f", train_cost / batch_count);
+			}
+			
+			updateLayersWeights(learning_step);
 		}
 
-		updateLayersWeights(learning_step);
 
 		batch_count = 0;
 		uint32_t test_batch_size = batch_size < test_x.getShape()[0] ? batch_size : test_x.getShape()[0];
@@ -115,7 +119,9 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			test_cost += batch_cost;
 			++batch_count;
 		}
-		printf(" test cost: %f\n", test_cost / batch_count);
+		if (verbose >= 1) {
+			printf(" test cost: %f\n", test_cost / batch_count);
+		}
 	}
 
 	return result;

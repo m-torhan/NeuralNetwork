@@ -34,3 +34,7 @@ Layer* Layer::getPrevLayer() const {
 Layer* Layer::getNextLayer() const {
 	return _next_layer;
 }
+
+Tensor Layer::getCachedOutput() const {
+	return _cached_output;
+}

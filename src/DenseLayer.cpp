@@ -23,10 +23,6 @@ void DenseLayer::setBiases(std::vector<float> biases) {
 }
 
 void DenseLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t neurons_count) {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::normal_distribution<float> d(0, 1);
-
 	_neurons_count = neurons_count;
 
 	uint32_t input_size = 1;
@@ -40,7 +36,7 @@ void DenseLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t neurons
 
 	for (uint32_t i = 0; i < _neurons_count; ++i) {
 		for (uint32_t j = 0; j < input_size; ++j) {
-			_weights.setValue(d(gen) * 0.1f, { i, j });
+			_weights.setValue(randUniform(-1.0f, 1.0f) * sqrtf(6.0f / input_size), { i, j });
 		}
 	}
 
@@ -49,7 +45,7 @@ void DenseLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t neurons
 	_biases = Tensor(shape);
 
 	for (uint32_t i = 0; i < _neurons_count; ++i) {
-		_biases.setValue(d(gen) * 0.1f, { i });
+		_biases.setValue(0.0f, { i });
 	}
 }
 
@@ -76,6 +72,7 @@ const Tensor DenseLayer::forwardPropagation(const Tensor& x) {
 	}
 	_cached_input = Tensor(x_next);
 	x_next = _weights.dotProduct(x_next.transpose()).transpose() + _biases;
+	_cached_output = Tensor(x_next);
 	return x_next;
 }
 
