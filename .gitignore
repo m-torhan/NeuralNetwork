@@ -1,0 +1,15 @@
+.vscode/*
+src/Build/*
+tests/unit_tests/Build*
+tests/performance_tests/Build*
+Build/_deps/*
+Build/cmake/*
+Build/CMakeFiles/*
+Build/CPM_Modules/*
+Build/lib/*
+Build/.ninja_deps
+Build/.ninja_log
+Build/build.ninja
+Build/cmake_install.cmake
+Build/CMakeCache.txt
+Build/cpm-package-lock.cmake
