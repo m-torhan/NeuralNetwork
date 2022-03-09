@@ -1,10 +1,5 @@
 #include "NeuralNetwork.h"
 
-#include <cstdlib>
-#include <cstdio>
-#include <chrono>
-#include <cmath>
-
 NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), const Tensor(*cost_function_d)(const Tensor&, const Tensor&)) {
 	_input_layer = &input_layer;
 	_output_layer = &output_layer;

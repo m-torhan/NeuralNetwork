@@ -1,9 +1,5 @@
 #include "DenseLayer.h"
 
-#include <cstdlib>
-#include <cstring>
-#include <random>
-
 DenseLayer::DenseLayer(std::vector<uint32_t> input_shape, uint32_t neurons_count) : Layer() {
 	_input_shape = input_shape;
 	_output_shape = { neurons_count };

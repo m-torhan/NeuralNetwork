@@ -1,4 +1,9 @@
 #pragma once
+
+#include <cstdlib>
+#include <cstring>
+#include <random>
+
 #include "Layer.h"
 
 

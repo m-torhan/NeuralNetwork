@@ -1,4 +1,9 @@
 #pragma once
+
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+
 #include "Layer.h"
 
 enum class ActivationFun {

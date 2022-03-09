@@ -73,7 +73,7 @@ int main() {
 		}
 	}
 
-	nn.fit(x_train, y_train, x_test, y_test, 128, 10, 0.05f);
+	nn.fit(x_train, y_train, x_test, y_test, 64, 10, 0.05f);
 
 	y_hat = nn.predict(x_test);
 

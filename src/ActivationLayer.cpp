@@ -1,9 +1,5 @@
 #include "ActivationLayer.h"
 
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-
 ActivationLayer::ActivationLayer(std::vector<uint32_t> input_shape, const Tensor (*activation_fun)(const Tensor&), const Tensor (*activation_fun_d)(const Tensor&, const Tensor&)) : Layer() {
 	_input_shape = input_shape;
 	_output_shape = input_shape;

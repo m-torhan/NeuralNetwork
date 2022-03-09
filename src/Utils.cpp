@@ -1,8 +1,5 @@
 #include "Utils.h"
 
-#include <cstdlib>
-#include <ctime>
-
 uint32_t* genPermutation(uint32_t n) {
 	uint32_t i = 0;
 	uint32_t j = 0;
