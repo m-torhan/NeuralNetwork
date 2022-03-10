@@ -7,6 +7,12 @@
 #include <cstdarg>
 #include <ctime>
 #include <algorithm>
+#include <cstdio>
+
+#ifdef SSE
+extern "C" void SSE_vector_inner_product(const uint32_t n, const float* v1, const float* v2, float* r);
+#endif
+
 
 class Tensor {
 public:

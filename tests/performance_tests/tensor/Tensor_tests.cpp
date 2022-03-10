@@ -9,6 +9,7 @@ constexpr uint32_t M = 100;
 static void BM_Tensor1D1DDotProduct(benchmark::State& state) {
     Tensor a = Tensor({ N }).applyFunction([](float) { return randNormalDistribution(); });
     Tensor b = Tensor({ N }).applyFunction([](float) { return randNormalDistribution(); });
+    
     for (auto _ : state) {
         Tensor c = a.dotProduct(b);
     }
@@ -17,6 +18,7 @@ static void BM_Tensor1D1DDotProduct(benchmark::State& state) {
 static void BM_Tensor2D1DDotProduct(benchmark::State& state) {
     Tensor a = Tensor({ M, N }).applyFunction([](float) { return randNormalDistribution(); });
     Tensor b = Tensor({ N }).applyFunction([](float) { return randNormalDistribution(); });
+
     for (auto _ : state) {
         Tensor c = a.dotProduct(b);
     }
@@ -25,6 +27,7 @@ static void BM_Tensor2D1DDotProduct(benchmark::State& state) {
 static void BM_Tensor2D2DDotProduct(benchmark::State& state) {
     Tensor a = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
     Tensor b = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
+
     for (auto _ : state) {
         Tensor c = a.dotProduct(b);
     }

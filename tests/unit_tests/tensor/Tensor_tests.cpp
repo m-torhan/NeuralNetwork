@@ -137,6 +137,24 @@ TEST(Tensor_test, WhenMultipliedByNumberEachValueShouldBeMultiplied) {
     ASSERT_EQ(.25f, tensor.getValue({ 1, 1 }));
 }
 
+TEST(Tensor_test, WhenTensorsAreTwoVectorsDotProductShouldReturnSumOfProductsOfAllPairs) {
+    Tensor tensor_a = Tensor({ 2 });
+    Tensor tensor_b = Tensor({ 2 });
+
+    tensor_a.setValues({
+        2.0f, .5f,
+        });
+
+    tensor_b.setValues({
+        8.0f, 4.0f
+        });
+
+    Tensor result = tensor_a.dotProduct(tensor_b);
+
+    ASSERT_EQ(1, (int)result.getDim());
+    ASSERT_EQ(18.0f, result.getValue());
+}
+
 TEST(Tensor_test, WhenTensorsAreMatrixAndVectorDotProductShouldReturnSumsOfProductsOfRowsByVector) {
     Tensor tensor_a = Tensor({ 2, 2 });
     Tensor tensor_b = Tensor({ 2 });

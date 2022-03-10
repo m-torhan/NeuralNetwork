@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(NeuralNetwork)
+project(NeuralNetwork LANGUAGES C CXX ASM ASM_NASM)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE})
+
+set(CMAKE_ASM_NASM_COMPILER nasm)
 
 include(CPM.cmake)
 
@@ -34,6 +36,10 @@ if(WIN32)
 else(WIN32)
     set(OS "Linux")
 endif(WIN32)
+
+if("SSE" STREQUAL "${CMAKE_BUILD_MODE}")
+    add_definitions( -DSSE )
+endif()
 
 set(SOURCE_DIR ../src)
 set(UNIT_TEST_DIR ../tests/unit_tests)
