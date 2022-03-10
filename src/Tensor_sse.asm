@@ -16,26 +16,44 @@ _SSE_vector_inner_product:
 	mov		edi, [ebp+24]		; *r
 	
 	sub		esp, 16
+	xorps 	xmm0, xmm0
 
-mul_loop:
+ups_mul_loop:
 	sub		ecx, 4
 	
-	movups	xmm5, [eax + 4*ecx]
-	movups	xmm6, [esi + 4*ecx]
+	movups	xmm1, [eax + 4*ecx]
+	movups	xmm2, [esi + 4*ecx]
 
-	mulps	xmm5, xmm6
- 
-	movups	[esp], xmm5
+	mulps	xmm1, xmm2
+	addps	xmm0, xmm1
 
-	fld		dword [edi]
-	fadd	dword [esp]
-	fadd	dword [esp+4]
-	fadd	dword [esp+8]
-	fadd	dword [esp+16]
-	fstp	dword [edi]
+	cmp		ecx, 4
+	jge		ups_mul_loop
 
 	cmp		ecx, 0
-	jl		mul_loop
+	jle		end
+
+mul_loop:
+	sub		ecx, 1
+
+	movss	xmm1, dword [eax + 4*ecx]
+	movss	xmm2, dword [esi + 4*ecx]
+	
+	mulss	xmm1, xmm2
+	addss	xmm0, xmm1
+
+	cmp		ecx, 0
+	jge		mul_loop
+
+end:
+
+	movhlps xmm1, xmm0
+	addps   xmm0, xmm1
+	movaps  xmm1, xmm0
+	shufps  xmm1, xmm1, 0b01010101
+	addss   xmm0, xmm1
+
+	movss   [edi], xmm0
 
 	mov     esp, ebp
 

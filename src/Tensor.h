@@ -10,6 +10,9 @@
 #include <cstdio>
 
 #ifdef SSE
+	#ifndef WIN
+		#define SSE_vector_inner_product _SSE_vector_inner_product
+	#endif
 extern "C" void SSE_vector_inner_product(const uint32_t n, const float* v1, const float* v2, float* r);
 #endif
 

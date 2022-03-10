@@ -12,7 +12,7 @@ perf_test_plots_path = perf_report_path + r'plots/'
 
 plt.style.use('dark_background')
 
-os.system(r'./build_release.sh')
+os.system(r'./build_release_sse.sh')
 
 repo = git.Repo('./..')
 
@@ -62,7 +62,7 @@ all_commits = [c.hexsha for c in repo.iter_commits()]
 
 print('Preparing plots.')
 for test in all_tests:
-    results = {c: None for c in all_commits}
+    results = {c: None for c in all_commits[::-1]}
     with open(os.path.join(perf_test_results_path, test + '.txt')) as result_file:
         for line in result_file:
             commit, time, _ = line.split()
@@ -71,8 +71,9 @@ for test in all_tests:
     x = []
     y = []
     for commit, time in results.items():
-        x.append(commit[:6])
-        y.append(time)
+        if time is not None:
+            x.append(commit[:6])
+            y.append(time)
     
     fig = plt.figure(figsize=(12, 3), facecolor=(13./255, 17./255, 23./255))
     ax = plt.gca()
@@ -92,6 +93,6 @@ print(remote_url)
 print('Creating report.')
 with open(os.path.join(perf_report_path, 'report.md'), 'w') as report_file:
     for test in all_tests:
-        report_file.write(f'![{test}]({remote_url}/blob/master/{perf_test_plots_path}/{test}.png)\n')
+        report_file.write(f'![{test}]({remote_url}/blob/master/Build/{perf_test_plots_path}/{test}.png)\n')
 
 print('All done.')

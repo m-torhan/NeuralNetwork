@@ -321,22 +321,9 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 		}
 		#else
 		float result_value = 0.0f;
-		
-		uint32_t n_fill = (this->_shape[0] % 4 == 0 ? 0 : 4 - this->_shape[0] % 4);
-		uint32_t n = this->_shape[0] + n_fill;
-		float *v1 = (float*)malloc(sizeof(float) * n);
-		float *v2 = (float*)malloc(sizeof(float) * n);
 
-		printf("%d %d %d\n", n, n_fill, this->_shape[0]);
-		memcpy(v1, &this->_data.front(), sizeof(float) * this->_shape[0]);
-		memset(&v1[this->_shape[0]], 0, sizeof(float) * n_fill);
-		memcpy(v2, &other._data.front(), sizeof(float) * other._shape[0]);
-		memset(&v2[other._shape[0]], 0, sizeof(float) * n_fill);
+		SSE_vector_inner_product(this->_size, this->_data.data(), other._data.data(), &result_value);
 
-		SSE_vector_inner_product(n, v1, v2, &result_value);
-
-		free(v1);
-		free(v2);
 		result._data[0] = result_value;
 		#endif
 

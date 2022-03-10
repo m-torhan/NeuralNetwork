@@ -6,8 +6,16 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./${CMAKE_BUILD_TYPE})
 
 set(CMAKE_ASM_NASM_COMPILER nasm)
+if(NOT WIN32)
+    set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> <FLAGS> -f elf32 -o <OBJECT> <SOURCE>")
+    set(CMAKE_FIND_ROOT_PATH   /usr/i486-linux-gnu)
+endif(NOT WIN32)
+
+set(CMAKE_C_FLAGS -m32)
+set(CMAKE_CXX_FLAGS -m32)
 
 include(CPM.cmake)
+
 
 CPMAddPackage(
     NAME googletest
@@ -33,6 +41,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
     set(OS "Win")
+    add_definitions( -DWIN )
 else(WIN32)
     set(OS "Linux")
 endif(WIN32)
