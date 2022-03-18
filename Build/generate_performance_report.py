@@ -40,6 +40,8 @@ with open(perf_test_tmp_result_path, 'r') as tmp_result_file:
         if line_split[0][:3] == 'BM_':
             results[line_split[0]] = f'{line_split[1]} {line_split[2]}'
 
+os.remove(perf_test_tmp_result_path)
+
 if not(os.path.isdir(perf_test_results_path)):
     os.mkdir(perf_test_results_path)
 
