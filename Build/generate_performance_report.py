@@ -87,6 +87,7 @@ for test in all_tests:
     plt.title(test)
     plt.grid('both')
     plt.savefig(os.path.join(perf_test_plots_path, test + '.png'), dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())
+    plt.clf()
 
 remote_url = repo.remotes.origin.url
 
