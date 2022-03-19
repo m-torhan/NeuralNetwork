@@ -11,9 +11,16 @@
 
 #ifdef SSE
 	#ifndef WIN
-		#define SSE_vector_inner_product _SSE_vector_inner_product
+		#define SSE_vector_inner_product 			_SSE_vector_inner_product
+		#define SSE_vector_add 						_SSE_vector_add
+		#define SSE_tensor_add 						_SSE_tensor_add
+		#define SSE_tensor_add_scalar 				_SSE_tensor_add_scalar
 	#endif
-extern "C" void SSE_vector_inner_product(const uint32_t n, const float* v1, const float* v2, float* r);
+	
+	extern "C" void SSE_vector_inner_product(const uint32_t n, const float* v1, const float* v2, float* r);
+	extern "C" void SSE_vector_add(const uint32_t n, const float* v1, const float* v2, float* r);
+	extern "C" void SSE_tensor_add(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
+	extern "C" void SSE_tensor_add_scalar(const uint32_t n1, const float* v, const float* s, float* r);
 #endif
 
 
@@ -72,4 +79,5 @@ private:
 	bool validateDimGreater(const Tensor& other) const;
 	bool validateDimEqual(const Tensor& other) const;
 	bool validateShape(const Tensor& other) const;
+	bool validateShapeReversed(const Tensor& other) const;
 };

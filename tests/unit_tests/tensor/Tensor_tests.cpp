@@ -78,7 +78,83 @@ TEST(Tensor_test, WhenTensorPreceededByMinusEachValueShouldChangeSign) {
     ASSERT_EQ( 2.0f, result.getValue({ 1, 1 }));
 }
 
-TEST(Tensor_test, WhenMultipliedByTensorEachValuePairShouldBeMultiplied) {
+TEST(Tensor_test, WhenAddedTwoTensorsEachValuePairShouldBeAdded) {
+    Tensor tensor_a = Tensor({ 2, 3 });
+    Tensor tensor_b = Tensor({ 2, 3 });
+
+    tensor_a.setValues({
+        1.0f, .5f,   1.0f,
+        .25f, .125f, 8.0f
+        });
+
+    tensor_b.setValues({
+        16.0f, 8.0f, 2.0f,
+        4.0f, 2.0f,  .5f
+        });
+
+    Tensor tensor_c = tensor_a + tensor_b;
+
+    ASSERT_EQ( 17.0f, tensor_c.getValue({ 0, 0 }));
+    ASSERT_EQ(  8.5f, tensor_c.getValue({ 0, 1 }));
+    ASSERT_EQ(  3.0f, tensor_c.getValue({ 0, 2 }));
+    ASSERT_EQ( 4.25f, tensor_c.getValue({ 1, 0 }));
+    ASSERT_EQ(2.125f, tensor_c.getValue({ 1, 1 }));
+    ASSERT_EQ(  8.5f, tensor_c.getValue({ 1, 2 }));
+}
+
+TEST(Tensor_test, WhenAddedTwoTensorsWithDifferentShapesSecondTensorShoudBeAddedToEachRow) {
+    Tensor tensor_a = Tensor({ 2, 3 });
+    Tensor tensor_b = Tensor({ 3 });
+
+    tensor_a.setValues({
+        1.0f, .5f,   1.0f,
+        .25f, .125f, 8.0f
+        });
+
+    tensor_b.setValues({
+        16.0f, 8.0f, 2.0f,
+        });
+
+    Tensor tensor_c = tensor_a + tensor_b;
+
+    ASSERT_EQ(2, (int)tensor_c.getDim());
+    
+    ASSERT_EQ(2, (int)tensor_c.getShape()[0]);
+    ASSERT_EQ(3, (int)tensor_c.getShape()[1]);
+
+    ASSERT_EQ( 17.0f, tensor_c.getValue({ 0, 0 }));
+    ASSERT_EQ(  8.5f, tensor_c.getValue({ 0, 1 }));
+    ASSERT_EQ(  3.0f, tensor_c.getValue({ 0, 2 }));
+    ASSERT_EQ(16.25f, tensor_c.getValue({ 1, 0 }));
+    ASSERT_EQ(8.125f, tensor_c.getValue({ 1, 1 }));
+    ASSERT_EQ( 10.0f, tensor_c.getValue({ 1, 2 }));
+}
+
+TEST(Tensor_test, WhenMultipliedTwoTensorsEachValuePairShouldBeMultiplied) {
+    Tensor tensor_a = Tensor({ 2, 3 });
+    Tensor tensor_b = Tensor({ 2, 3 });
+
+    tensor_a.setValues({
+        1.0f, .5f,   1.0f,
+        .25f, .125f, 8.0f
+        });
+
+    tensor_b.setValues({
+        16.0f, 8.0f, 2.0f,
+        4.0f, 2.0f,  .5f
+        });
+
+    Tensor tensor_c = tensor_a * tensor_b;
+
+    ASSERT_EQ(16.0f, tensor_c.getValue({ 0, 0 }));
+    ASSERT_EQ( 4.0f, tensor_c.getValue({ 0, 1 }));
+    ASSERT_EQ( 2.0f, tensor_c.getValue({ 0, 2 }));
+    ASSERT_EQ( 1.0f, tensor_c.getValue({ 1, 0 }));
+    ASSERT_EQ( .25f, tensor_c.getValue({ 1, 1 }));
+    ASSERT_EQ( 4.0f, tensor_c.getValue({ 1, 2 }));
+}
+
+TEST(Tensor_test, WhenMultipliedInPlaceByTensorEachValuePairShouldBeMultiplied) {
     Tensor tensor_a = Tensor({ 2, 2 });
     Tensor tensor_b = Tensor({ 2, 2 });
 

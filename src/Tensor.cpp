@@ -101,7 +101,23 @@ const Tensor Tensor::operator-() const {
 
 const Tensor Tensor::operator+(const Tensor& other) const {
 	Tensor result = *this;
+	
+	#ifndef SSE
 	result += other;
+	#else
+	if (this->_size == other._size) {
+		SSE_vector_add(this->_size, this->_data.data(), other._data.data(), result._data.data());
+	}
+	else if (1 == other._size) {
+		SSE_tensor_add_scalar(this->_size, this->_data.data(), other._data.data(), result._data.data());
+	}
+	else if (this->validateShapeReversed(other)) {
+		SSE_tensor_add(this->_size, this->_data.data(), other._size, other._data.data(), result._data.data());
+	} else {
+		// exception
+	}
+	#endif
+
 	return result;
 }
 
@@ -131,9 +147,23 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 		// exception
 	}
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] += other._data[i % other._size];
 	}
+	#else
+	if (this->_size == other._size) {
+		SSE_vector_add(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (1 == other._size) {
+		SSE_tensor_add_scalar(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (this->validateShapeReversed(other)) {
+		SSE_tensor_add(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
+	} else {
+		// exception
+	}
+	#endif
 
 	return *this;
 }
@@ -219,7 +249,12 @@ const Tensor Tensor::operator<(const Tensor& other) const {
 
 const Tensor Tensor::operator+(float number) const {
 	Tensor result = *this;
+	
+	#ifndef SSE
 	result += number;
+	#else
+	SSE_tensor_add_scalar(this->_size, this->_data.data(), &number, result._data.data());
+	#endif
 	return result;
 }
 
@@ -244,10 +279,13 @@ const Tensor Tensor::operator/(float number) const {
 Tensor& Tensor::operator+=(float number) {
 	uint32_t i = 0;
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] += number;
 	}
-
+	#else
+	SSE_tensor_add_scalar(this->_size, this->_data.data(), &number, this->_data.data());
+	#endif
 	return *this;
 }
 
@@ -637,6 +675,26 @@ bool Tensor::validateShape(const Tensor& other) const {
 	
 	for (i = 0; i < min_dim; ++i) {
 		if (this->_shape[i] != other._shape[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Tensor::validateShapeReversed(const Tensor& other) const {
+	uint32_t i = 0;
+	uint32_t min_dim = 0;
+
+	if (this->_shape.size()  < other._shape.size() ) {
+		min_dim = this->_shape.size() ;
+	}
+	else {
+		min_dim = other._shape.size() ;
+	}
+	
+	for (i = 0; i < min_dim; ++i) {
+		if (this->_shape[this->_shape.size() - i - 1] != other._shape[other._shape.size() - 1 - i]) {
 			return false;
 		}
 	}

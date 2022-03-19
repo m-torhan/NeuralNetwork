@@ -26,7 +26,7 @@ TEST(DenseLayer_test, DenseLayerBackwardPropagationOutputShapeTest) {
     ASSERT_EQ(12, (int)result.getShape()[1]);
 }
 
-TEST(DenseLayer_test, DenseLayerForwardPropagationReturnValuesTest) {
+TEST(DenseLayer_test, DenseLayerForwardAndBackwardPropagationReturnValuesTest) {
     Tensor tensor = Tensor({ 2, 3 });
     Tensor tensor_d = Tensor({ 2, 2 });
     DenseLayer layer = DenseLayer({ 3 }, 2);
@@ -52,15 +52,15 @@ TEST(DenseLayer_test, DenseLayerForwardPropagationReturnValuesTest) {
     Tensor forward = layer.forwardPropagation(tensor);
     Tensor backward = layer.backwardPropagation(tensor_d);
 
-    ASSERT_TRUE(fabs(0.6845f - forward.getValue({ 0, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(-2.60345f - forward.getValue({ 0, 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(51.04f - forward.getValue({ 1, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(-85.0583f - forward.getValue({ 1, 1 })) < 0.001f);
+    ASSERT_LE(fabs(0.6845f - forward.getValue({ 0, 0 })), 0.001f);
+    ASSERT_LE(fabs(-2.60345f - forward.getValue({ 0, 1 })), 0.001f);
+    ASSERT_LE(fabs(51.04f - forward.getValue({ 1, 0 })), 0.001f);
+    ASSERT_LE(fabs(-85.0583f - forward.getValue({ 1, 1 })), 0.001f);
 
-    ASSERT_TRUE(fabs(1.0145f - backward.getValue({ 0, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(-0.48795f - backward.getValue({ 0, 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.551f - backward.getValue({ 0, 2 })) < 0.001f);
-    ASSERT_TRUE(fabs(-23.7976f - backward.getValue({ 1, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(10.71966f - backward.getValue({ 1, 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(-27.5218f - backward.getValue({ 1, 2 })) < 0.001f);
+    ASSERT_LE(fabs(1.0145f - backward.getValue({ 0, 0 })), 0.001f);
+    ASSERT_LE(fabs(-0.48795f - backward.getValue({ 0, 1 })), 0.001f);
+    ASSERT_LE(fabs(0.551f - backward.getValue({ 0, 2 })), 0.001f);
+    ASSERT_LE(fabs(-23.7976f - backward.getValue({ 1, 0 })), 0.001f);
+    ASSERT_LE(fabs(10.71966f - backward.getValue({ 1, 1 })), 0.001f);
+    ASSERT_LE(fabs(-27.5218f - backward.getValue({ 1, 2 })), 0.001f);
 }
