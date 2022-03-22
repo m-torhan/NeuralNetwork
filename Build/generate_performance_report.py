@@ -84,6 +84,7 @@ for test in all_tests:
     plt.plot(x, y, color='aqua')
 
     plt.xticks(rotation=90)
+    plt.ylim(0, None)
     plt.title(test)
     plt.grid('both')
     plt.savefig(os.path.join(perf_test_plots_path, test + '.png'), dpi=300, bbox_inches='tight', facecolor=fig.get_facecolor())

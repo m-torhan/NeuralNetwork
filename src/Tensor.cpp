@@ -151,7 +151,7 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] += other._data[i % other._size];
 	}
-	#else
+	#else	// SSE
 	if (this->_size == other._size) {
 		SSE_vector_add(this->_size, this->_data.data(), other._data.data(), this->_data.data());
 	}
@@ -163,7 +163,7 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 	} else {
 		// exception
 	}
-	#endif
+	#endif	// SSE
 
 	return *this;
 }
@@ -176,9 +176,23 @@ Tensor& Tensor::operator-=(const Tensor& other) {
 		// exception
 	}
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] -= other._data[i % other._size];
 	}
+	#else	// SSE
+	if (this->_size == other._size) {
+		SSE_vector_sub(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (1 == other._size) {
+		SSE_tensor_sub_scalar(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (this->validateShapeReversed(other)) {
+		SSE_tensor_sub(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
+	} else {
+		// exception
+	}
+	#endif	// SSE
 
 	return *this;
 }
@@ -191,9 +205,23 @@ Tensor& Tensor::operator*=(const Tensor& other) {
 		// exception
 	}
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] *= other._data[i % other._size];
 	}
+	#else	// SSE
+	if (this->_size == other._size) {
+		SSE_vector_mul(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (1 == other._size) {
+		SSE_tensor_mul_scalar(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (this->validateShapeReversed(other)) {
+		SSE_tensor_mul(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
+	} else {
+		// exception
+	}
+	#endif	// SSE
 
 	return *this;
 }
@@ -206,9 +234,23 @@ Tensor& Tensor::operator/=(const Tensor& other) {
 		// exception
 	}
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] /= other._data[i % other._size];
 	}
+	#else	// SSE
+	if (this->_size == other._size) {
+		SSE_vector_div(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (1 == other._size) {
+		SSE_tensor_div_scalar(this->_size, this->_data.data(), other._data.data(), this->_data.data());
+	}
+	else if (this->validateShapeReversed(other)) {
+		SSE_tensor_div(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
+	} else {
+		// exception
+	}
+	#endif	// SSE
 
 	return *this;
 }
@@ -252,27 +294,46 @@ const Tensor Tensor::operator+(float number) const {
 	
 	#ifndef SSE
 	result += number;
-	#else
+	#else	// SSE
 	SSE_tensor_add_scalar(this->_size, this->_data.data(), &number, result._data.data());
-	#endif
+	#endif	// SSE
+
 	return result;
 }
 
 const Tensor Tensor::operator-(float number) const {
 	Tensor result = *this;
+
+	#ifndef SSE
 	result -= number;
+	#else	// SSE
+	SSE_tensor_sub_scalar(this->_size, this->_data.data(), &number, result._data.data());
+	#endif	// SSE
+
 	return result;
 }
 
 const Tensor Tensor::operator*(float number) const {
 	Tensor result = *this;
+
+	#ifndef SSE
 	result *= number;
+	#else	// SSE
+	SSE_tensor_mul_scalar(this->_size, this->_data.data(), &number, result._data.data());
+	#endif	// SSE
+
 	return result;
 }
 
 const Tensor Tensor::operator/(float number) const {
 	Tensor result = *this;
+
+	#ifndef SSE
 	result /= number;
+	#else	// SSE
+	SSE_tensor_div_scalar(this->_size, this->_data.data(), &number, result._data.data());
+	#endif	// SSE
+
 	return result;
 }
 
@@ -283,18 +344,23 @@ Tensor& Tensor::operator+=(float number) {
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] += number;
 	}
-	#else
+	#else	// SSE
 	SSE_tensor_add_scalar(this->_size, this->_data.data(), &number, this->_data.data());
-	#endif
+	#endif	// SSE
+
 	return *this;
 }
 
 Tensor& Tensor::operator-=(float number) {
 	uint32_t i = 0;
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] -= number;
 	}
+	#else	// SSE
+	SSE_tensor_sub_scalar(this->_size, this->_data.data(), &number, this->_data.data());
+	#endif	// SSE
 
 	return *this;
 }
@@ -302,19 +368,26 @@ Tensor& Tensor::operator-=(float number) {
 Tensor& Tensor::operator*=(float number) {
 	uint32_t i = 0;
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] *= number;
 	}
-
+	#else	// SSE
+	SSE_tensor_mul_scalar(this->_size, this->_data.data(), &number, this->_data.data());
+	#endif	// SSE
 	return *this;
 }
 
 Tensor& Tensor::operator/=(float number) {
 	uint32_t i = 0;
 
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		this->_data[i] /= number;
 	}
+	#else	// SSE
+	SSE_tensor_div_scalar(this->_size, this->_data.data(), &number, this->_data.data());
+	#endif	// SSE
 
 	return *this;
 }
