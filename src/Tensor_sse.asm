@@ -38,9 +38,9 @@ _SSE_vector_inner_product:
 	
 	xorps 	xmm0, xmm0
 
-VIP_ups_mul_loop:
+.ps_mul_loop:
 	cmp		ecx, 4
-	jl		VIP_ss_mul_loop
+	jl		.ss_mul_loop
 
 	sub		ecx, 4
 	
@@ -50,11 +50,11 @@ VIP_ups_mul_loop:
 	mulps	xmm1, xmm2
 	addps	xmm0, xmm1
 
-	jmp		VIP_ups_mul_loop
+	jmp		.ps_mul_loop
 
-VIP_ss_mul_loop:
+.ss_mul_loop:
 	cmp		ecx, 1
-	jl		VIP_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -64,9 +64,9 @@ VIP_ss_mul_loop:
 	mulss	xmm1, xmm2
 	addss	xmm0, xmm1
 
-	jmp		VIP_ss_mul_loop
+	jmp		.ss_mul_loop
 
-VIP_end:
+.end:
 
 	movhlps xmm1, xmm0
 	addps   xmm0, xmm1
@@ -101,9 +101,9 @@ _SSE_vector_add:
 	
 	xorps 	xmm0, xmm0
 
-VA_ups_add_loop:
+.ps_add_loop:
 	cmp		ecx, 4
-	jl		VA_ss_add_loop
+	jl		.ss_add_loop
 
 	sub		ecx, 4
 	
@@ -114,11 +114,11 @@ VA_ups_add_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		VA_ups_add_loop
+	jmp		.ps_add_loop
 
-VA_ss_add_loop:
+.ss_add_loop:
 	cmp		ecx, 1
-	jl		VA_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -129,9 +129,9 @@ VA_ss_add_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		VA_ss_add_loop
+	jmp		.ss_add_loop
 
-VA_end:
+.end:
 
 	mov     esp, ebp
 
@@ -160,14 +160,14 @@ _SSE_tensor_add:
 	
 	mov		ebx, ecx
 
-TA_row_loop:
+.row_loop:
 	mov		ecx, edx
 
 	xorps 	xmm0, xmm0
 
-TA_ups_add_row_loop:
+.ps_add_row_loop:
 	cmp		ecx, 4
-	jl		TA_ss_add_loop
+	jl		.ss_add_loop
 
 	sub		ecx, 4
 	sub		ebx, 4
@@ -179,11 +179,11 @@ TA_ups_add_row_loop:
 
 	movups	[edi + 4*ebx], xmm0
 
-	jmp		TA_ups_add_row_loop
+	jmp		.ps_add_row_loop
 
-TA_ss_add_loop:
+.ss_add_loop:
 	cmp		ecx, 1
-	jl		TA_row_end
+	jl		.row_end
 
 	sub		ecx, 1
 	sub		ebx, 1
@@ -195,11 +195,11 @@ TA_ss_add_loop:
 
 	movss	[edi + 4*ebx], xmm0
 
-	jmp		TA_ss_add_loop
+	jmp		.ss_add_loop
 
-TA_row_end:
+.row_end:
 	cmp		ebx, 0
-	jg		TA_row_loop
+	jg		.row_loop
 
 	mov     esp, ebp
 
@@ -230,9 +230,9 @@ _SSE_tensor_add_scalar:
 	
 	xorps 	xmm0, xmm0
 
-TAS_ups_add_loop:
+.ps_add_loop:
 	cmp		ecx, 4
-	jl		TAS_ss_add_loop
+	jl		.ss_add_loop
 
 	sub		ecx, 4
 	
@@ -242,11 +242,11 @@ TAS_ups_add_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		TAS_ups_add_loop
+	jmp		.ps_add_loop
 
-TAS_ss_add_loop:
+.ss_add_loop:
 	cmp		ecx, 1
-	jl		TAS_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -256,9 +256,9 @@ TAS_ss_add_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		TAS_ss_add_loop
+	jmp		.ss_add_loop
 
-TAS_end:
+.end:
 
 	mov     esp, ebp
 
@@ -285,9 +285,9 @@ _SSE_vector_sub:
 	
 	xorps 	xmm0, xmm0
 
-VS_ups_sub_loop:
+.ps_sub_loop:
 	cmp		ecx, 4
-	jl		VS_ss_sub_loop
+	jl		.ss_sub_loop
 
 	sub		ecx, 4
 	
@@ -298,11 +298,11 @@ VS_ups_sub_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		VS_ups_sub_loop
+	jmp		.ps_sub_loop
 
-VS_ss_sub_loop:
+.ss_sub_loop:
 	cmp		ecx, 1
-	jl		VS_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -313,9 +313,9 @@ VS_ss_sub_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		VS_ss_sub_loop
+	jmp		.ss_sub_loop
 
-VS_end:
+.end:
 
 	mov     esp, ebp
 
@@ -344,14 +344,14 @@ _SSE_tensor_sub:
 	
 	mov		ebx, ecx
 
-TS_row_loop:
+.row_loop:
 	mov		ecx, edx
 
 	xorps 	xmm0, xmm0
 
-TS_ups_sub_row_loop:
+.ps_sub_row_loop:
 	cmp		ecx, 4
-	jl		TS_ss_sub_loop
+	jl		.ss_sub_loop
 
 	sub		ecx, 4
 	sub		ebx, 4
@@ -363,11 +363,11 @@ TS_ups_sub_row_loop:
 
 	movups	[edi + 4*ebx], xmm0
 
-	jmp		TS_ups_sub_row_loop
+	jmp		.ps_sub_row_loop
 
-TS_ss_sub_loop:
+.ss_sub_loop:
 	cmp		ecx, 1
-	jl		TS_row_end
+	jl		.row_end
 
 	sub		ecx, 1
 	sub		ebx, 1
@@ -379,11 +379,11 @@ TS_ss_sub_loop:
 
 	movss	[edi + 4*ebx], xmm0
 
-	jmp		TS_ss_sub_loop
+	jmp		.ss_sub_loop
 
-TS_row_end:
+.row_end:
 	cmp		ebx, 0
-	jg		TS_row_loop
+	jg		.row_loop
 
 	mov     esp, ebp
 
@@ -414,9 +414,9 @@ _SSE_tensor_sub_scalar:
 	
 	xorps 	xmm0, xmm0
 
-TSS_ups_sub_loop:
+.ps_sub_loop:
 	cmp		ecx, 4
-	jl		TSS_ss_sub_loop
+	jl		.ss_sub_loop
 
 	sub		ecx, 4
 	
@@ -426,11 +426,11 @@ TSS_ups_sub_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		TSS_ups_sub_loop
+	jmp		.ps_sub_loop
 
-TSS_ss_sub_loop:
+.ss_sub_loop:
 	cmp		ecx, 1
-	jl		TSS_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -440,9 +440,9 @@ TSS_ss_sub_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		TSS_ss_sub_loop
+	jmp		.ss_sub_loop
 
-TSS_end:
+.end:
 
 	mov     esp, ebp
 
@@ -469,9 +469,9 @@ _SSE_vector_mul:
 	
 	xorps 	xmm0, xmm0
 
-VM_ups_mul_loop:
+.ps_mul_loop:
 	cmp		ecx, 4
-	jl		VM_ss_mul_loop
+	jl		.ss_mul_loop
 
 	sub		ecx, 4
 	
@@ -482,11 +482,11 @@ VM_ups_mul_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		VM_ups_mul_loop
+	jmp		.ps_mul_loop
 
-VM_ss_mul_loop:
+.ss_mul_loop:
 	cmp		ecx, 1
-	jl		VM_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -497,9 +497,9 @@ VM_ss_mul_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		VM_ss_mul_loop
+	jmp		.ss_mul_loop
 
-VM_end:
+.end:
 
 	mov     esp, ebp
 
@@ -528,14 +528,14 @@ _SSE_tensor_mul:
 	
 	mov		ebx, ecx
 
-TM_row_loop:
+.row_loop:
 	mov		ecx, edx
 
 	xorps 	xmm0, xmm0
 
-TM_ups_mul_row_loop:
+.ps_mul_row_loop:
 	cmp		ecx, 4
-	jl		TM_ss_mul_loop
+	jl		.ss_mul_loop
 
 	sub		ecx, 4
 	sub		ebx, 4
@@ -547,11 +547,11 @@ TM_ups_mul_row_loop:
 
 	movups	[edi + 4*ebx], xmm0
 
-	jmp		TM_ups_mul_row_loop
+	jmp		.ps_mul_row_loop
 
-TM_ss_mul_loop:
+.ss_mul_loop:
 	cmp		ecx, 1
-	jl		TM_row_end
+	jl		.row_end
 
 	sub		ecx, 1
 	sub		ebx, 1
@@ -563,11 +563,11 @@ TM_ss_mul_loop:
 
 	movss	[edi + 4*ebx], xmm0
 
-	jmp		TM_ss_mul_loop
+	jmp		.ss_mul_loop
 
-TM_row_end:
+.row_end:
 	cmp		ebx, 0
-	jg		TM_row_loop
+	jg		.row_loop
 
 	mov     esp, ebp
 
@@ -598,9 +598,9 @@ _SSE_tensor_mul_scalar:
 	
 	xorps 	xmm0, xmm0
 
-TMS_ups_mul_loop:
+.ps_mul_loop:
 	cmp		ecx, 4
-	jl		TMS_ss_mul_loop
+	jl		.ss_mul_loop
 
 	sub		ecx, 4
 	
@@ -610,11 +610,11 @@ TMS_ups_mul_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		TMS_ups_mul_loop
+	jmp		.ps_mul_loop
 
-TMS_ss_mul_loop:
+.ss_mul_loop:
 	cmp		ecx, 1
-	jl		TMS_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -624,9 +624,9 @@ TMS_ss_mul_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		TMS_ss_mul_loop
+	jmp		.ss_mul_loop
 
-TMS_end:
+.end:
 
 	mov     esp, ebp
 
@@ -653,9 +653,9 @@ _SSE_vector_div:
 	
 	xorps 	xmm0, xmm0
 
-VD_ups_div_loop:
+.ps_div_loop:
 	cmp		ecx, 4
-	jl		VD_ss_div_loop
+	jl		.ss_div_loop
 
 	sub		ecx, 4
 	
@@ -666,11 +666,11 @@ VD_ups_div_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		VD_ups_div_loop
+	jmp		.ps_div_loop
 
-VD_ss_div_loop:
+.ss_div_loop:
 	cmp		ecx, 1
-	jl		VD_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -681,9 +681,9 @@ VD_ss_div_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		VD_ss_div_loop
+	jmp		.ss_div_loop
 
-VD_end:
+.end:
 
 	mov     esp, ebp
 
@@ -712,14 +712,14 @@ _SSE_tensor_div:
 	
 	mov		ebx, ecx
 
-TD_row_loop:
+.row_loop:
 	mov		ecx, edx
 
 	xorps 	xmm0, xmm0
 
-TD_ups_div_row_loop:
+.ps_div_row_loop:
 	cmp		ecx, 4
-	jl		TD_ss_div_loop
+	jl		.ss_div_loop
 
 	sub		ecx, 4
 	sub		ebx, 4
@@ -731,11 +731,11 @@ TD_ups_div_row_loop:
 
 	movups	[edi + 4*ebx], xmm0
 
-	jmp		TD_ups_div_row_loop
+	jmp		.ps_div_row_loop
 
-TD_ss_div_loop:
+.ss_div_loop:
 	cmp		ecx, 1
-	jl		TD_row_end
+	jl		.row_end
 
 	sub		ecx, 1
 	sub		ebx, 1
@@ -747,11 +747,11 @@ TD_ss_div_loop:
 
 	movss	[edi + 4*ebx], xmm0
 
-	jmp		TD_ss_div_loop
+	jmp		.ss_div_loop
 
-TD_row_end:
+.row_end:
 	cmp		ebx, 0
-	jg		TD_row_loop
+	jg		.row_loop
 
 	mov     esp, ebp
 
@@ -782,9 +782,9 @@ _SSE_tensor_div_scalar:
 	
 	xorps 	xmm0, xmm0
 
-TDS_ups_div_loop:
+.ps_div_loop:
 	cmp		ecx, 4
-	jl		TDS_ss_div_loop
+	jl		.ss_div_loop
 
 	sub		ecx, 4
 	
@@ -794,11 +794,11 @@ TDS_ups_div_loop:
 
 	movups	[edi + 4*ecx], xmm0
 
-	jmp		TDS_ups_div_loop
+	jmp		.ps_div_loop
 
-TDS_ss_div_loop:
+.ss_div_loop:
 	cmp		ecx, 1
-	jl		TDS_end
+	jl		.end
 
 	sub		ecx, 1
 
@@ -808,9 +808,9 @@ TDS_ss_div_loop:
 
 	movss	[edi + 4*ecx], xmm0
 
-	jmp		TDS_ss_div_loop
+	jmp		.ss_div_loop
 
-TDS_end:
+.end:
 
 	mov     esp, ebp
 
