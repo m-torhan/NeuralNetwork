@@ -320,9 +320,13 @@ const Tensor Tensor::operator-(float number) const {
 const Tensor operator-(float number, const Tensor& other) {
 	Tensor result = other;
 
+	#ifndef SSE
 	for (uint32_t i = 0; i < other._size; ++i) {
 		result._data[i] = number - result._data[i];
 	}
+	#else	// SSE
+	SSE_scalar_sub_tensor(&number, other._size, other._data.data(), result._data.data());
+	#endif	// SSE
 
 	return result;
 }
@@ -358,9 +362,13 @@ const Tensor Tensor::operator/(float number) const {
 const Tensor operator/(float number, const Tensor& other) {
 	Tensor result = other;
 
+	#ifndef SSE
 	for (uint32_t i = 0; i < other._size; ++i) {
 		result._data[i] = number / result._data[i];
 	}
+	#else	// SSE
+	SSE_scalar_div_tensor(&number, other._size, other._data.data(), result._data.data());
+	#endif	// SSE
 
 	return result;
 }

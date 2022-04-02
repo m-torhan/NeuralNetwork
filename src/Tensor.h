@@ -20,6 +20,7 @@
 		#define SSE_vector_sub 						_SSE_vector_sub
 		#define SSE_tensor_sub 						_SSE_tensor_sub
 		#define SSE_tensor_sub_scalar 				_SSE_tensor_sub_scalar
+		#define SSE_scalar_sub_tensor 				_SSE_scalar_sub_tensor
 
 		#define SSE_vector_mul 						_SSE_vector_mul
 		#define SSE_tensor_mul 						_SSE_tensor_mul
@@ -28,6 +29,7 @@
 		#define SSE_vector_div 						_SSE_vector_div
 		#define SSE_tensor_div 						_SSE_tensor_div
 		#define SSE_tensor_div_scalar 				_SSE_tensor_div_scalar
+		#define SSE_scalar_div_tensor 				_SSE_scalar_div_tensor
 	#endif
 	
 	extern "C" {
@@ -39,7 +41,8 @@
 		
 		void SSE_vector_sub(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_sub(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
-		void SSE_tensor_sub_scalar(const uint32_t n1, const float* v, const float* s, float* r);
+		void SSE_tensor_sub_scalar(const uint32_t n, const float* v, const float* s, float* r);
+		void SSE_scalar_sub_tensor(const float* s, const uint32_t n, const float* v, float* r);
 
 		void SSE_vector_mul(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_mul(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
@@ -47,7 +50,8 @@
 
 		void SSE_vector_div(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_div(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
-		void SSE_tensor_div_scalar(const uint32_t n1, const float* v, const float* s, float* r);
+		void SSE_tensor_div_scalar(const uint32_t n, const float* v, const float* s, float* r);
+		void SSE_scalar_div_tensor(const float* s, const uint32_t n, const float* v, float* r);
 	}
 #endif
 

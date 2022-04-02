@@ -7,6 +7,7 @@ global _SSE_tensor_add_scalar
 global _SSE_vector_sub
 global _SSE_tensor_sub
 global _SSE_tensor_sub_scalar
+global _SSE_scalar_sub_tensor
 
 global _SSE_vector_mul
 global _SSE_tensor_mul
@@ -15,6 +16,7 @@ global _SSE_tensor_mul_scalar
 global _SSE_vector_div
 global _SSE_tensor_div
 global _SSE_tensor_div_scalar
+global _SSE_scalar_div_tensor
 
 section .data
 
@@ -392,7 +394,6 @@ _SSE_tensor_sub:
 
 	ret
 
-
 ; void SSE_tensor_sub_scalar(const uint32_t n1, const float* v, const float* s, float* r);
 ;	n - size of v
 ;	v - tensor
@@ -436,9 +437,67 @@ _SSE_tensor_sub_scalar:
 
 	movss	xmm0, dword [eax + 4*ecx]
 	
-	addss	xmm0, xmm1
+	subss	xmm0, xmm1
 
 	movss	[edi + 4*ecx], xmm0
+
+	jmp		.ss_sub_loop
+
+.end:
+
+	mov     esp, ebp
+
+	pop 	edi
+	pop		ebp
+
+	ret
+
+; void SSE_scalar_sub_tensor(const float* s, const uint32_t n, const float* v, float* r);
+;	s - scalar
+;	n - size of v
+;	v - tensor
+;	r - return value
+_SSE_scalar_sub_tensor:
+	push	ebp
+	push	edi
+
+	mov		ebp, esp
+	
+	mov		esi, [ebp+12]		; *s	float* (scalar)
+	mov		ecx, [ebp+16]		; n		uint32
+	mov		eax, [ebp+20]		; *v	float* (array)
+	mov		edi, [ebp+24]		; *r	float* (array)
+
+	movss	xmm1, dword [esi]
+	shufps	xmm1, xmm1, 0x0
+	
+	xorps 	xmm0, xmm0
+
+.ps_sub_loop:
+	cmp		ecx, 4
+	jl		.ss_sub_loop
+
+	sub		ecx, 4
+	
+	movups	xmm0, [eax + 4*ecx]
+
+	vsubps	xmm2, xmm1, xmm0
+
+	movups	[edi + 4*ecx], xmm2
+
+	jmp		.ps_sub_loop
+
+.ss_sub_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	sub		ecx, 1
+
+	movss	xmm0, dword [eax + 4*ecx]
+	
+	vsubss	xmm2, xmm1, xmm0
+
+	movss	[edi + 4*ecx], xmm2
 
 	jmp		.ss_sub_loop
 
@@ -809,6 +868,64 @@ _SSE_tensor_div_scalar:
 	movss	[edi + 4*ecx], xmm0
 
 	jmp		.ss_div_loop
+
+.end:
+
+	mov     esp, ebp
+
+	pop 	edi
+	pop		ebp
+
+	ret
+	
+; void SSE_scalar_div_tensor(const float* s, const uint32_t n, const float* v, float* r);
+;	s - scalar
+;	v - tensor
+;	n - size of v
+;	r - return value
+_SSE_scalar_div_tensor:
+	push	ebp
+	push	edi
+
+	mov		ebp, esp
+	
+	mov		esi, [ebp+12]		; *s	float* (scalar)
+	mov		ecx, [ebp+16]		; n		uint32
+	mov		eax, [ebp+20]		; *v	float* (array)
+	mov		edi, [ebp+24]		; *r	float* (array)
+
+	movss	xmm1, dword [esi]
+	shufps	xmm1, xmm1, 0x0
+	
+	xorps 	xmm0, xmm0
+
+.ps_sub_loop:
+	cmp		ecx, 4
+	jl		.ss_sub_loop
+
+	sub		ecx, 4
+	
+	movups	xmm0, [eax + 4*ecx]
+
+	vdivps	xmm2, xmm1, xmm0
+
+	movups	[edi + 4*ecx], xmm2
+
+	jmp		.ps_sub_loop
+
+.ss_sub_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	sub		ecx, 1
+
+	movss	xmm0, dword [eax + 4*ecx]
+	
+	vdivss	xmm2, xmm1, xmm0
+
+	movss	[edi + 4*ecx], xmm2
+
+	jmp		.ss_sub_loop
 
 .end:
 
