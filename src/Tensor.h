@@ -79,9 +79,13 @@ public:
 	const Tensor operator>(const Tensor& other) const;
 	const Tensor operator<(const Tensor& other) const;
 	const Tensor operator+(float number) const;
+	friend const Tensor operator+(float number, const Tensor& other);
 	const Tensor operator-(float number) const;
+	friend const Tensor operator-(float number, const Tensor& other);
 	const Tensor operator*(float number) const;
+	friend const Tensor operator*(float number, const Tensor& other);
 	const Tensor operator/(float number) const;
+	friend const Tensor operator/(float number, const Tensor& other);
 	Tensor& operator+=(float number);
 	Tensor& operator-=(float number);
 	Tensor& operator*=(float number);

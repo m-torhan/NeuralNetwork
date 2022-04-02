@@ -301,6 +301,10 @@ const Tensor Tensor::operator+(float number) const {
 	return result;
 }
 
+const Tensor operator+(float number, const Tensor& other) {
+	return other + number;
+}
+
 const Tensor Tensor::operator-(float number) const {
 	Tensor result = *this;
 
@@ -309,6 +313,16 @@ const Tensor Tensor::operator-(float number) const {
 	#else	// SSE
 	SSE_tensor_sub_scalar(this->_size, this->_data.data(), &number, result._data.data());
 	#endif	// SSE
+
+	return result;
+}
+
+const Tensor operator-(float number, const Tensor& other) {
+	Tensor result = other;
+
+	for (uint32_t i = 0; i < other._size; ++i) {
+		result._data[i] = number - result._data[i];
+	}
 
 	return result;
 }
@@ -325,6 +339,10 @@ const Tensor Tensor::operator*(float number) const {
 	return result;
 }
 
+const Tensor operator*(float number, const Tensor& other) {
+	return other * number;
+}
+
 const Tensor Tensor::operator/(float number) const {
 	Tensor result = *this;
 
@@ -333,6 +351,16 @@ const Tensor Tensor::operator/(float number) const {
 	#else	// SSE
 	SSE_tensor_div_scalar(this->_size, this->_data.data(), &number, result._data.data());
 	#endif	// SSE
+
+	return result;
+}
+
+const Tensor operator/(float number, const Tensor& other) {
+	Tensor result = other;
+
+	for (uint32_t i = 0; i < other._size; ++i) {
+		result._data[i] = number / result._data[i];
+	}
 
 	return result;
 }

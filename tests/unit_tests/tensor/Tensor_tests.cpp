@@ -130,6 +130,25 @@ TEST(Tensor_test, WhenAddedTwoTensorsWithDifferentShapesSecondTensorShoudBeAdded
     ASSERT_EQ( 10.0f, tensor_c.getValue({ 1, 2 }));
 }
 
+TEST(Tensor_test, WhenTensorSubtractedFromNumberShouldBeReturnedTensorWithDifferences) {
+    float number = 1.0f;
+    Tensor tensor_a = Tensor({ 2, 3 });
+
+    tensor_a.setValues({
+        1.0f, .5f,   1.0f,
+        .25f, .125f, 8.0f
+        });
+
+    Tensor tensor_c = number - tensor_a;
+
+    ASSERT_EQ(  0.0f, tensor_c.getValue({ 0, 0 }));
+    ASSERT_EQ(  0.5f, tensor_c.getValue({ 0, 1 }));
+    ASSERT_EQ( 0.00f, tensor_c.getValue({ 0, 2 }));
+    ASSERT_EQ( 0.75f, tensor_c.getValue({ 1, 0 }));
+    ASSERT_EQ(0.875f, tensor_c.getValue({ 1, 1 }));
+    ASSERT_EQ( -7.0f, tensor_c.getValue({ 1, 2 }));
+}
+
 TEST(Tensor_test, WhenMultipliedTwoTensorsEachValuePairShouldBeMultiplied) {
     Tensor tensor_a = Tensor({ 2, 3 });
     Tensor tensor_b = Tensor({ 2, 3 });
