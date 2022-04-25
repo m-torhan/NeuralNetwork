@@ -96,7 +96,7 @@ print(remote_url)
 
 print('Creating report.')
 with open(os.path.join(perf_report_path, 'report.md'), 'w') as report_file:
-    for test in all_tests:
+    for test in sorted(all_tests):
         report_file.write(f'![{test}]({remote_url}/blob/master/Build/{perf_test_plots_path}/{test}.png)\n')
 
 print('All done.')
