@@ -71,7 +71,7 @@ const Tensor DenseLayer::forwardPropagation(const Tensor& x) {
 		x_next = Tensor(x);
 	}
 	_cached_input = Tensor(x_next);
-	x_next = _weights.dotProduct(x_next.transpose()).transpose() + _biases;
+	x_next = _weights.dotProductTranspose(x_next).transpose() + _biases;
 	_cached_output = Tensor(x_next);
 	return x_next;
 }
@@ -83,10 +83,10 @@ const Tensor DenseLayer::backwardPropagation(const Tensor& dx) {
 	n = _cached_input.getShape()[0];
 	_samples += n;
 
-	Tensor weights_d = dx.transpose().dotProduct(_cached_input);
+	Tensor weights_d = dx.dotProductTranspose(_cached_input).transpose();
 	Tensor biases_d = dx.sum(0);
 
-	dx_prev = dx.dotProduct(_weights);
+	dx_prev = dx.dotProductTranspose(_weights.transpose());
 
 	_cached_weights_d += weights_d;
 	_cached_biases_d += biases_d;

@@ -18,6 +18,8 @@ global _SSE_tensor_div
 global _SSE_tensor_div_scalar
 global _SSE_scalar_div_tensor
 
+global _SSE_tensor_dot_product_transpose
+
 section .data
 
 section .text
@@ -928,6 +930,124 @@ _SSE_scalar_div_tensor:
 	jmp		.ss_sub_loop
 
 .end:
+
+	mov     esp, ebp
+
+	pop 	edi
+	pop		ebp
+
+	ret
+	
+; SSE_tensor_dot_product_transpose(const uint32_t n, const uint32_t m, const uint32_t k, const float* v1, const float *v2, float *r);;
+;	n - first dim of v1
+;	m - first dim of v2
+;	k - second dim of v1 and v2
+;	v1 - first tensor
+;	v2 - second tensor
+;	r - result (v1 dot v2^T)
+_SSE_tensor_dot_product_transpose:
+	push	ebp
+	push	edi
+
+	mov		ebp, esp
+	
+	mov		ebx, [ebp+12]		; n		uint32
+	mov		ecx, [ebp+16]		; m 	uint32
+	;			 [ebp+20]		; p		uint32
+	mov		edx, [ebp+24]		; v1	float* (array)
+	mov		esi, [ebp+28]		; v2	float* (array)
+	mov		edi, [ebp+32]		; r		float* (array) 
+
+.outer_loop:
+	cmp		ebx, 1
+	jl		.outer_end
+
+	dec 	ebx
+
+.inner_loop:
+	cmp		ecx, 1
+	jl		.inner_end
+
+	dec		ecx
+	
+	mov		eax, ebx			; i (0 to n-1)
+	mul		dword [ebp+20]		; p*i
+	shl		eax, 2				; 4*p*i
+	mov		edx, eax
+	add		edx, [ebp+24]		; v1[p*i + 0] = v1[i,0]	float* (array)
+
+	push 	edx
+
+	mov		eax, ecx			; j (0 to m-1)
+	mul		dword [ebp+20]		; p*j
+	shl		eax, 2				; 4*p*j
+	mov		esi, eax
+	add		esi, [ebp+28]		; v2[p*j + 0] = v2[j,0]	float* (array)
+
+	mov		eax, ebx			; i (0 to n-1)
+	mul		dword [ebp+16]		; m*i
+	add		eax, ecx			; m*i + j
+	shl		eax, 2				; 4*(m*i + j)
+	mov		edi, eax
+	add		edi, [ebp+32]		; r[m*i + j] = r[i,j]	float* (array) 
+
+	pop		edx
+
+	push	ebx
+	push	ecx
+
+	mov		ecx, [ebp+20]		; p (0 to k-1)
+
+	xorps 	xmm0, xmm0
+
+.ps_mul_loop:
+	cmp		ecx, 4
+	jl		.ss_mul_loop
+
+	sub		ecx, 4
+	
+	movups	xmm1, [edx + 4*ecx]	; v1[i,p]
+	movups	xmm2, [esi + 4*ecx] ; v2[j,p]
+
+	mulps	xmm1, xmm2
+	addps	xmm0, xmm1
+
+	jmp		.ps_mul_loop
+
+.ss_mul_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	sub		ecx, 1
+
+	movss	xmm1, dword [edx + 4*ecx]	; v1[i,p]
+	movss	xmm2, dword [esi + 4*ecx]	; v2[j,p]
+	
+	mulss	xmm1, xmm2
+	addss	xmm0, xmm1
+
+	jmp		.ss_mul_loop
+
+.end:
+
+	movhlps xmm1, xmm0
+	addps   xmm0, xmm1
+	movaps  xmm1, xmm0
+	shufps  xmm1, xmm1, 0b01010101
+	addss   xmm0, xmm1
+
+	movss   [edi], xmm0			; r[i,j]
+
+	pop		ecx
+	pop		ebx
+
+	jmp		.inner_loop
+
+.inner_end:
+	mov		ecx, [ebp+16]
+	jmp		.outer_loop
+
+.outer_end:
 
 	mov     esp, ebp
 

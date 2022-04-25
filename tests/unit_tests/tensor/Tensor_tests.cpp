@@ -288,6 +288,29 @@ TEST(Tensor_test, WhenTensorsAreMatrixAndVectorDotProductShouldReturnSumsOfProdu
     ASSERT_EQ( 9.0f, result.getValue({ 1 }));
 }
 
+TEST(Tensor_test, WhenTensorsAreMatricesDotProductTransposeShouldReturnMatricesProductWhereSecondMatrixIsTransposed) {
+    Tensor tensor_a = Tensor({ 2, 3 });
+    Tensor tensor_b = Tensor({ 2, 3 });
+
+    tensor_a.setValues({
+        1.0f, .5f,   2.0f,
+        .25f, .125f, 1.0f
+        });
+
+    tensor_b.setValues({
+        16.0f, 8.0f, 4.0f,
+        4.0f,  2.0f, 2.0f
+        });
+
+    Tensor result = tensor_a.dotProductTranspose(tensor_b);
+
+    ASSERT_EQ(2, (int)result.getDim());
+    ASSERT_EQ(28.0f, result.getValue({ 0, 0 }));
+    ASSERT_EQ( 9.0f, result.getValue({ 0, 1 }));
+    ASSERT_EQ( 9.0f, result.getValue({ 1, 0 }));
+    ASSERT_EQ(3.25f, result.getValue({ 1, 1 }));
+}
+
 TEST(Tensor_test, TensorProductResultDimShouldBeSumOfArgumentsDims) {
     Tensor tensor_a = Tensor({ 2, 3 });
     Tensor tensor_b = Tensor({ 4, 5, 6 });

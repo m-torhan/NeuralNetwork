@@ -545,6 +545,33 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	}
 }
 
+const Tensor Tensor::dotProductTranspose(const Tensor& other) const {
+	if (this->_shape.size() != 2 || other._shape.size() != 2) {
+		// exception
+	}
+	// matrix multiplication
+	if (this->_shape[1] != other._shape[0]) {
+		// exception
+	}
+	std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[0] };
+
+	Tensor result = Tensor(result_shape);
+
+	#ifndef SSE
+	for (uint32_t i = 0; i < result_shape[0]; ++i) {
+		for (uint32_t j = 0; j < result_shape[1]; ++j) {
+			for (uint32_t k = 0; k < this->_shape[1]; ++k) {
+				result._data[i * result_shape[1] + j] += this->_data[i * this->_shape[1] + k] * other._data[j * other._shape[1] + k];
+			}
+		}
+	}
+	#else	// SSE
+	SSE_tensor_dot_product_transpose(result_shape[0], result_shape[1], this->_shape[1], this->_data.data(), other._data.data(), result._data.data());
+	#endif	// SSE
+
+	return result;
+}
+
 const Tensor Tensor::tensorProduct(const Tensor& other) const {
 	std::vector<uint32_t> result_shape = this->_shape;
 	result_shape.insert(result_shape.end(), other._shape.begin(), other._shape.end());

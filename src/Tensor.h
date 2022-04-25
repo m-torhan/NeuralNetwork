@@ -30,6 +30,8 @@
 		#define SSE_tensor_div 						_SSE_tensor_div
 		#define SSE_tensor_div_scalar 				_SSE_tensor_div_scalar
 		#define SSE_scalar_div_tensor 				_SSE_scalar_div_tensor
+
+		#define SSE_tensor_dot_product_transpose	_SSE_tensor_dot_product_transpose
 	#endif
 	
 	extern "C" {
@@ -52,6 +54,8 @@
 		void SSE_tensor_div(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
 		void SSE_tensor_div_scalar(const uint32_t n, const float* v, const float* s, float* r);
 		void SSE_scalar_div_tensor(const float* s, const uint32_t n, const float* v, float* r);
+
+		void SSE_tensor_dot_product_transpose(const uint32_t n, const uint32_t m, const uint32_t k, const float* v1, const float *v2, float *r);
 	}
 #endif
 
@@ -97,6 +101,7 @@ public:
 	const Tensor operator>(float other) const;
 	const Tensor operator<(float other) const;
 	const Tensor dotProduct(const Tensor& other) const;
+	const Tensor dotProductTranspose(const Tensor& other) const;
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;
 	const Tensor flatten(uint32_t from_axis=0) const;

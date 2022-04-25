@@ -33,6 +33,15 @@ static void BM_Tensor2D2DDotProduct(benchmark::State& state) {
     }
 }
 
+static void BM_TensorDotProductTranspose(benchmark::State& state) {
+    Tensor a = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
+    Tensor b = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
+
+    for (auto _ : state) {
+        Tensor c = a.dotProductTranspose(b);
+    }
+}
+
 static void BM_TensorTensorProduct(benchmark::State& state) {
     Tensor a = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
     Tensor b = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
@@ -146,6 +155,8 @@ static void BM_TensorSum(benchmark::State& state) {
 BENCHMARK(BM_Tensor1D1DDotProduct);
 BENCHMARK(BM_Tensor2D1DDotProduct);
 BENCHMARK(BM_Tensor2D2DDotProduct);
+
+BENCHMARK(BM_TensorDotProductTranspose);
 
 BENCHMARK(BM_TensorTensorProduct);
 
