@@ -658,10 +658,14 @@ const Tensor Tensor::sum(uint32_t axis) const {
 float Tensor::sum() const {
 	uint32_t i{ 0 };
 	float result{ 0.0f };
-
+	
+	#ifndef SSE
 	for (i = 0; i < this->_size; ++i) {
 		result += this->_data[i];
 	}
+	#else 	// SSE
+	SSE_tensor_sum(this->_size, this->_data.data(), &result);
+	#endif	// SSE
 
 	return result;
 }

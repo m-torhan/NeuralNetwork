@@ -372,6 +372,24 @@ TEST(Tensor_test, ApplyFunctionShouldApplyGivenFunctionToTensor) {
     ASSERT_EQ(8.0f, result.getValue({ 1, 1 }));
 }
 
+TEST(Tensor_test, TensorSumTest) {
+    Tensor tensor = Tensor({ 2, 3, 2 });
+
+    tensor.setValues({
+        1.0f, 2.0f,
+        3.0f, 4.0f,
+        5.0f, 6.0f,
+
+        7.0f, 8.0f,
+        9.0f, 10.0f,
+        11.0f, 12.0f
+        });
+
+    float result = tensor.sum();
+
+    ASSERT_EQ(78.0f, result);
+}
+
 TEST(Tensor_test, SumAcrossFirstAxis) {
     Tensor tensor = Tensor({ 2, 3, 2 });
 

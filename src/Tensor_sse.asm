@@ -18,6 +18,8 @@ global _SSE_tensor_div
 global _SSE_tensor_div_scalar
 global _SSE_scalar_div_tensor
 
+global _SSE_tensor_sum
+
 global _SSE_tensor_dot_product_transpose
 
 section .data
@@ -211,7 +213,6 @@ _SSE_tensor_add:
 	pop		ebp
 
 	ret
-
 
 ; void SSE_tensor_add_scalar(const uint32_t n1, const float* v, const float* s, float* r);
 ;	n - size of v
@@ -637,7 +638,6 @@ _SSE_tensor_mul:
 
 	ret
 
-
 ; void SSE_tensor_mul_scalar(const uint32_t n1, const float* v, const float* s, float* r);
 ;	n - size of v
 ;	v - tensor
@@ -937,7 +937,64 @@ _SSE_scalar_div_tensor:
 	pop		ebp
 
 	ret
+
+; void SSE_tensor_sum(const uint32_t n, const float* v1, float* r);
+;	n - size of v
+;	v - tensor
+;	r - return value
+_SSE_tensor_sum:
+	push	ebp
+	push	edi
+
+	mov		ebp, esp
 	
+	mov		ecx, [ebp+12]		; n		uint32
+	mov		eax, [ebp+16]		; *v	float* (array)
+	mov		edi, [ebp+20]		; *r	float* (array)
+	
+	xorps 	xmm0, xmm0
+
+.ps_add_loop:
+	cmp		ecx, 4
+	jl		.ss_add_loop
+
+	sub		ecx, 4
+	
+	movups	xmm1, [eax + 4*ecx]
+
+	addps	xmm0, xmm1
+
+	jmp		.ps_add_loop
+
+.ss_add_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	sub		ecx, 1
+
+	movss	xmm1, dword [eax + 4*ecx]
+	
+	addss	xmm0, xmm1
+
+	jmp		.ss_add_loop
+
+.end:
+
+	movhlps xmm1, xmm0
+	addps   xmm0, xmm1
+	movaps  xmm1, xmm0
+	shufps  xmm1, xmm1, 0b01010101
+	addss   xmm0, xmm1
+
+	movss   [edi], xmm0
+
+	mov     esp, ebp
+
+	pop 	edi
+	pop		ebp
+
+	ret
+
 ; SSE_tensor_dot_product_transpose(const uint32_t n, const uint32_t m, const uint32_t k, const float* v1, const float *v2, float *r);;
 ;	n - first dim of v1
 ;	m - first dim of v2
