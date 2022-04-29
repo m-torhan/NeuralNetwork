@@ -152,6 +152,14 @@ static void BM_TensorSum(benchmark::State& state) {
     }
 }
 
+static void BM_TensorRowSum(benchmark::State& state) {
+    Tensor a = Tensor({ M, M }).applyFunction([](float) { return randNormalDistribution(); });
+
+    for (auto _ : state) {
+        Tensor b = a.sum(0);
+    }
+}
+
 BENCHMARK(BM_Tensor1D1DDotProduct);
 BENCHMARK(BM_Tensor2D1DDotProduct);
 BENCHMARK(BM_Tensor2D2DDotProduct);
@@ -173,3 +181,4 @@ BENCHMARK(BM_TensorDivisionScalar);
 BENCHMARK(BM_TensorCompareScalar);
 
 BENCHMARK(BM_TensorSum);
+BENCHMARK(BM_TensorRowSum);
