@@ -18,6 +18,7 @@
 ![BM_TensorDotProductTranspose](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorDotProductTranspose.png)
 ![BM_TensorMultiplication](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorMultiplication.png)
 ![BM_TensorMultiplicationScalar](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorMultiplicationScalar.png)
+![BM_TensorRowSum](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorRowSum.png)
 ![BM_TensorSubtraction](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorSubtraction.png)
 ![BM_TensorSubtractionScalar](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorSubtractionScalar.png)
 ![BM_TensorSum](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_TensorSum.png)
