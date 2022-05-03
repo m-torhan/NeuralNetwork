@@ -1053,40 +1053,40 @@ _SSE_tensor_axis_sum:
 
 	xorps 	xmm0, xmm0
 
-.ps_add_loop:
-	cmp		ecx, 4
-	jl		.ss_add_loop
+; .ps_add_loop:		slower than one by one (.ss_add_loop)
+; 	cmp		ecx, 4
+; 	jl		.ss_add_loop
 
-	sub		ecx, 4
+; 	sub		ecx, 4
 	
 
-	shr		eax, 2				; eax -= 4*m
-	sub		eax, [ebp+20]
-	shl		eax, 2
-	push	dword [esi + eax]
+; 	shr		eax, 2				; eax -= 4*m
+; 	sub		eax, [ebp+20]
+; 	shl		eax, 2
+; 	push	dword [esi + eax]
 
-	shr		eax, 2				; eax -= 4*m
-	sub		eax, [ebp+20]
-	shl		eax, 2
-	push	dword [esi + eax]
+; 	shr		eax, 2				; eax -= 4*m
+; 	sub		eax, [ebp+20]
+; 	shl		eax, 2
+; 	push	dword [esi + eax]
 
-	shr		eax, 2				; eax -= 4*m
-	sub		eax, [ebp+20]
-	shl		eax, 2
-	push	dword [esi + eax]
+; 	shr		eax, 2				; eax -= 4*m
+; 	sub		eax, [ebp+20]
+; 	shl		eax, 2
+; 	push	dword [esi + eax]
 
-	shr		eax, 2				; eax -= 4*m
-	sub		eax, [ebp+20]
-	shl		eax, 2
-	push	dword [esi + eax]
+; 	shr		eax, 2				; eax -= 4*m
+; 	sub		eax, [ebp+20]
+; 	shl		eax, 2
+; 	push	dword [esi + eax]
 
-	movups 	xmm1, [esp]
+; 	movups 	xmm1, [esp]
 
-	add		esp, 16
+; 	add		esp, 16
 
-	addps	xmm0, xmm1
+; 	addps	xmm0, xmm1
 
-	jmp		.ps_add_loop
+; 	jmp		.ps_add_loop
 
 .ss_add_loop:
 	cmp		ecx, 1

@@ -8,7 +8,7 @@
 #include "Layer.h"
 #include "Utils.h"
 
-#define TIME_DIFF_SEC(t_start, t_end) (float(t_end - t_start) / (CLOCKS_PER_SEC * 1000000LL))
+#define TIME_DIFF_SEC(t_start, t_end) (float(t_end - t_start) / (CLOCKS_PER_SEC * 1000LL))
 
 struct FitHistory {
 	float* train_cost;
