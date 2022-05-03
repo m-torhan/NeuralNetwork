@@ -19,6 +19,8 @@ global _SSE_tensor_div_scalar
 global _SSE_scalar_div_tensor
 
 global _SSE_tensor_sum
+global _SSE_tensor_axis_sum
+global _SSE_tensor_last_axis_sum
 
 global _SSE_tensor_dot_product_transpose
 
@@ -938,7 +940,7 @@ _SSE_scalar_div_tensor:
 
 	ret
 
-; void SSE_tensor_sum(const uint32_t n, const float* v1, float* r);
+; void SSE_tensor_sum(const uint32_t n, const float* v, float* r);
 ;	n - size of v
 ;	v - tensor
 ;	r - return value
@@ -950,7 +952,7 @@ _SSE_tensor_sum:
 	
 	mov		ecx, [ebp+12]		; n		uint32
 	mov		eax, [ebp+16]		; *v	float* (array)
-	mov		edi, [ebp+20]		; *r	float* (array)
+	mov		edi, [ebp+20]		; *r	float* (scalar)
 	
 	xorps 	xmm0, xmm0
 
@@ -990,6 +992,222 @@ _SSE_tensor_sum:
 
 	mov     esp, ebp
 
+	pop 	edi
+	pop		ebp
+
+	ret
+	
+; void SSE_tensor_axis_sum(const uint32_t n, const uint32_t m, const uint32_t k, const float* v, float* r);
+;	n - size of v, before axis to be sumed along
+;	m - size of v, after axis
+;	k - size of v, along axis
+;	v - input tensor
+;	r - return value
+_SSE_tensor_axis_sum:
+	push	ebp
+	push	edi
+	push	ebx
+
+	mov		ebp, esp
+	
+	mov		ebx, [ebp+16]		; n		uint32
+	mov		ecx, [ebp+20]		; m		uint32
+	;			 [ebp+24]		; k		uint32
+	;			 [ebp+28]		; *v	float* (array)
+	;			 [ebp+32]		; *r	float* (array)
+	
+.outer_loop:
+	cmp		ebx, 1				; i (0 to n-1)
+	jl		.outer_end
+
+	dec 	ebx
+
+.inner_loop:
+	cmp		ecx, 1				; j (0 to m-1)
+	jl		.inner_end
+
+	dec		ecx
+	
+	mov		eax, ebx			; i
+	mul		dword [ebp+20]		; m*i
+	mul		dword [ebp+24]		; k*m*i
+	add		eax, ecx			; k*m*i + j
+	shl		eax, 2				; 4*(k*m*i + j)
+	mov		esi, eax
+	add		esi, [ebp+28]		; v1[k*m*i + j] = v1[i,0,j]
+
+	mov		eax, ebx			; i
+	mul		dword [ebp+20]		; m*i
+	add		eax, ecx			; m*i + j
+	shl		eax, 2				; 4*(m*i + j)
+	mov		edi, eax
+	add		edi, [ebp+32]		; r[m*i + j] = r[i,j]
+
+	push	ebx
+	push	ecx
+
+	mov		ecx, [ebp+24]		; p (0 to k-1)
+	mov		eax, [ebp+24]		; p (0 to k-1)
+	mul		dword [ebp+20]		; m*p
+	shl		eax, 2				; 4*m*p
+
+	xorps 	xmm0, xmm0
+
+.ps_add_loop:
+	cmp		ecx, 4
+	jl		.ss_add_loop
+
+	sub		ecx, 4
+	
+
+	shr		eax, 2				; eax -= 4*m
+	sub		eax, [ebp+20]
+	shl		eax, 2
+	push	dword [esi + eax]
+
+	shr		eax, 2				; eax -= 4*m
+	sub		eax, [ebp+20]
+	shl		eax, 2
+	push	dword [esi + eax]
+
+	shr		eax, 2				; eax -= 4*m
+	sub		eax, [ebp+20]
+	shl		eax, 2
+	push	dword [esi + eax]
+
+	shr		eax, 2				; eax -= 4*m
+	sub		eax, [ebp+20]
+	shl		eax, 2
+	push	dword [esi + eax]
+
+	movups 	xmm1, [esp]
+
+	add		esp, 16
+
+	addps	xmm0, xmm1
+
+	jmp		.ps_add_loop
+
+.ss_add_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	dec		ecx
+	shr		eax, 2				; eax -= 4*m
+	sub		eax, [ebp+20]
+	shl		eax, 2
+	
+	movss  	xmm1, [esi + eax]
+
+	addss	xmm0, xmm1
+
+	jmp		.ss_add_loop
+
+.end:
+
+	movhlps xmm1, xmm0
+	addps   xmm0, xmm1
+	movaps  xmm1, xmm0
+	shufps  xmm1, xmm1, 0b01010101
+	addss   xmm0, xmm1
+
+	movss   [edi], xmm0			; r[i,j]
+
+	pop		ecx
+	pop		ebx
+
+	jmp		.inner_loop
+
+.inner_end:
+	mov		ecx, [ebp+16]
+	jmp		.outer_loop
+
+.outer_end:
+	mov     esp, ebp
+
+	pop		ebx
+	pop 	edi
+	pop		ebp
+
+	ret
+; void SSE_tensor_last_axis_sum(const uint32_t n, const uint32_t k, const float* v, float* r);
+;	n - size of v, before axis to be sumed along
+;	k - size of v, along axis
+;	v - input tensor
+;	r - return value
+_SSE_tensor_last_axis_sum:
+	push	ebp
+	push	edi
+	push	ebx
+
+	mov		ebp, esp
+	
+	mov		ebx, [ebp+16]		; n		uint32
+	;			 [ebp+20]		; k		uint32
+	;			 [ebp+24]		; *v	float* (array)
+	;			 [ebp+28]		; *r	float* (array)
+	
+.outer_loop:
+	cmp		ebx, 1				; i (0 to n-1)
+	jl		.outer_end
+
+	dec 	ebx
+	
+	mov		eax, ebx			; i
+	mul		dword [ebp+20]		; k*i
+	shl		eax, 2				; 4*k*i
+	mov		esi, eax
+	add		esi, [ebp+24]		; v1[k*i] = v1[i,0]
+
+	mov		eax, ebx			; i
+	shl		eax, 2				; 4*i
+	mov		edi, eax
+	add		edi, [ebp+28]		; r[i]
+
+	mov		ecx, [ebp+20]
+
+	xorps 	xmm0, xmm0
+
+.ps_add_loop:
+	cmp		ecx, 4
+	jl		.ss_add_loop
+
+	sub		ecx, 4
+
+	movups	xmm1, [esi + 4*ecx]
+
+	addps	xmm0, xmm1
+
+	jmp		.ps_add_loop
+
+.ss_add_loop:
+	cmp		ecx, 1
+	jl		.end
+
+	dec		ecx
+	
+	movss  	xmm1, [esi + 4*ecx]
+
+	addss	xmm0, xmm1
+
+	jmp		.ss_add_loop
+
+.end:
+
+	movhlps xmm1, xmm0
+	addps   xmm0, xmm1
+	movaps  xmm1, xmm0
+	shufps  xmm1, xmm1, 0b01010101
+	addss   xmm0, xmm1
+
+	movss   [edi], xmm0			; r[i,j]
+
+	jmp		.outer_loop
+
+.outer_end:
+	mov     esp, ebp
+
+	pop		ebx
 	pop 	edi
 	pop		ebp
 

@@ -634,23 +634,33 @@ const Tensor Tensor::sum(uint32_t axis) const {
 		}
 	}
 
-	Tensor result = Tensor(result_shape);
+	Tensor result(result_shape);
 
-	uint32_t d_j = axis == this->_shape.size()  - 1 ? this->_shape[this->_shape.size()  - 1] : 1;
-
-	uint32_t d_i = 1;
-	for (uint32_t i = axis + 1; i < this->_shape.size() ; ++i) {
+	uint32_t d_i{ 1u };
+	for (uint32_t i{ axis + 1 }; i < this->_shape.size() ; ++i) {
 		d_i *= this->_shape[i];
 	}
+	#ifndef SSE
+
+	uint32_t d_j = axis == this->_shape.size() - 1 ? this->_shape[this->_shape.size()  - 1] : 1;
+
 	uint32_t d_k = d_i * this->_shape[axis];
 
-	for (uint32_t k = 0; k < this->_size / d_k; ++k) {
-		for (uint32_t j = 0; j < d_i; ++j) {
-			for (uint32_t i = 0; i < this->_shape[axis] ; ++i) {
+	for (uint32_t k{ 0 }; k < this->_size / d_k; ++k) {
+		for (uint32_t j{ 0 }; j < d_i; ++j) {
+			for (uint32_t i{ 0 }; i < this->_shape[axis] ; ++i) {
 				result._data[j + d_i * k] += this->_data[d_i * i + d_j * j + d_k * k];
 			}
 		}
 	}
+	#else 	// SSE
+	if (axis == this->_shape.size() - 1) {
+		SSE_tensor_last_axis_sum(this->_size / (d_i * this->_shape[axis]), this->_shape[axis], this->_data.data(), result._data.data());
+	}
+	else {
+		SSE_tensor_axis_sum(this->_size / (d_i * this->_shape[axis]), d_i, this->_shape[axis], this->_data.data(), result._data.data());
+	}
+	#endif	// SSE
 
 	return result;
 }

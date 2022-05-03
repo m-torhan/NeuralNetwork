@@ -32,6 +32,8 @@
 		#define SSE_scalar_div_tensor 				_SSE_scalar_div_tensor
 		
 		#define SSE_tensor_sum 						_SSE_tensor_sum
+		#define SSE_tensor_axis_sum					_SSE_tensor_axis_sum
+		#define SSE_tensor_last_axis_sum			_SSE_tensor_last_axis_sum
 
 		#define SSE_tensor_dot_product_transpose	_SSE_tensor_dot_product_transpose
 	#endif
@@ -57,7 +59,9 @@
 		void SSE_tensor_div_scalar(const uint32_t n, const float* v, const float* s, float* r);
 		void SSE_scalar_div_tensor(const float* s, const uint32_t n, const float* v, float* r);
 		
-		void SSE_tensor_sum(const uint32_t n, const float* v1, float* r);
+		void SSE_tensor_sum(const uint32_t n, const float* v, float* r);
+		void SSE_tensor_axis_sum(const uint32_t n, const uint32_t m, const uint32_t k, const float* v, float* r);
+		void SSE_tensor_last_axis_sum(const uint32_t n, const uint32_t k, const float* v, float* r);
 
 		void SSE_tensor_dot_product_transpose(const uint32_t n, const uint32_t m, const uint32_t k, const float* v1, const float *v2, float *r);
 	}

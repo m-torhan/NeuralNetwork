@@ -390,7 +390,45 @@ TEST(Tensor_test, TensorSumTest) {
     ASSERT_EQ(78.0f, result);
 }
 
-TEST(Tensor_test, SumAcrossFirstAxis) {
+TEST(Tensor_test, SumAcrossFirstAxisOf2DTensor) {
+    Tensor tensor = Tensor({ 4, 2 });
+
+    tensor.setValues({
+        1.0f, 2.0f,
+        3.0f, 4.0f,
+        5.0f, 6.0f,
+        7.0f, 8.0f
+        });
+
+    Tensor result = tensor.sum(0);
+
+    ASSERT_EQ(1, (int)result.getDim());
+
+    ASSERT_EQ(2, (int)result.getShape()[0]);
+
+    ASSERT_EQ(16.0f, result.getValue({ 0 }));
+    ASSERT_EQ(20.0f, result.getValue({ 1 }));
+}
+
+TEST(Tensor_test, SumAcrossSecondAxisOf2DTensor) {
+    Tensor tensor = Tensor({ 2, 3 });
+
+    tensor.setValues({
+        1.0f, 2.0f, 3.0f,
+        4.0f, 5.0f, 6.0f
+        });
+
+    Tensor result = tensor.sum(1);
+
+    ASSERT_EQ(1, (int)result.getDim());
+
+    ASSERT_EQ(2, (int)result.getShape()[0]);
+
+    ASSERT_EQ( 6.0f, result.getValue({ 0 }));
+    ASSERT_EQ(15.0f, result.getValue({ 1 }));
+}
+
+TEST(Tensor_test, SumAcrossFirstAxisOf3DTensor) {
     Tensor tensor = Tensor({ 2, 3, 2 });
 
     tensor.setValues({
@@ -407,6 +445,9 @@ TEST(Tensor_test, SumAcrossFirstAxis) {
 
     ASSERT_EQ(2, (int)result.getDim());
 
+    ASSERT_EQ(3, (int)result.getShape()[0]);
+    ASSERT_EQ(2, (int)result.getShape()[1]);
+
     ASSERT_EQ( 8.0f, result.getValue({ 0, 0 }));
     ASSERT_EQ(10.0f, result.getValue({ 0, 1 }));
     ASSERT_EQ(12.0f, result.getValue({ 1, 0 }));
@@ -415,7 +456,7 @@ TEST(Tensor_test, SumAcrossFirstAxis) {
     ASSERT_EQ(18.0f, result.getValue({ 2, 1 }));
 }
 
-TEST(Tensor_test, SumAcrossSecondAxis) {
+TEST(Tensor_test, SumAcrossSecondAxisOf3DTensor) {
     Tensor tensor = Tensor({ 2, 3, 2 });
 
     tensor.setValues({
@@ -432,13 +473,16 @@ TEST(Tensor_test, SumAcrossSecondAxis) {
 
     ASSERT_EQ(2, (int)result.getDim());
 
+    ASSERT_EQ(2, (int)result.getShape()[0]);
+    ASSERT_EQ(2, (int)result.getShape()[1]);
+
     ASSERT_EQ( 9.0f, result.getValue({ 0, 0 }));
     ASSERT_EQ(12.0f, result.getValue({ 0, 1 }));
     ASSERT_EQ(27.0f, result.getValue({ 1, 0 }));
     ASSERT_EQ(30.0f, result.getValue({ 1, 1 }));
 }
 
-TEST(Tensor_test, SumAcrossThridAxis) {
+TEST(Tensor_test, SumAcrossThridAxisOf3DTensor) {
     Tensor tensor = Tensor({ 2, 3, 2 });
 
     tensor.setValues({
@@ -454,6 +498,9 @@ TEST(Tensor_test, SumAcrossThridAxis) {
     Tensor result = tensor.sum(2);
 
     ASSERT_EQ(2, (int)result.getDim());
+
+    ASSERT_EQ(2, (int)result.getShape()[0]);
+    ASSERT_EQ(3, (int)result.getShape()[1]);
 
     ASSERT_EQ( 3.0f, result.getValue({ 0, 0 }));
     ASSERT_EQ( 7.0f, result.getValue({ 0, 1 }));
