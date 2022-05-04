@@ -42,5 +42,4 @@ private:
 
 	static void print_progress(float percent);
 	static void print_time(double seconds);
-	static double perf_counter_ns();
 };

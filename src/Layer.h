@@ -1,10 +1,12 @@
 #pragma once
-#include "Tensor.h"
 
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+
+#include "Utils.h"
+#include "Tensor.h"
 
 class Layer {
 public:

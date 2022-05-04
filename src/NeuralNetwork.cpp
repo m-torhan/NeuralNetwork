@@ -1,5 +1,7 @@
 #include "NeuralNetwork.h"
 
+extern double g_time;
+
 NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), const Tensor(*cost_function_d)(const Tensor&, const Tensor&)) {
 	_input_layer = &input_layer;
 	_output_layer = &output_layer;
@@ -193,8 +195,4 @@ void NeuralNetwork::print_time(double seconds_d) {
 	} else {
 		printf("%.3f", seconds_d);
 	}
-}
-
-double NeuralNetwork::perf_counter_ns() {
-	return (long double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }

@@ -1,5 +1,7 @@
 #include "Utils.h"
 
+double g_time{ 0.0 };
+
 uint32_t* genPermutation(uint32_t n) {
 	uint32_t i = 0;
 	uint32_t j = 0;
@@ -42,4 +44,8 @@ float randUniform(float a, float b) {
 	static std::uniform_real_distribution<float> u(a, b);
 
 	return u(gen);
+}
+
+double perf_counter_ns() {
+	return (long double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
