@@ -57,8 +57,26 @@ void DenseLayer::initCachedGradient() {
 	_samples = 0;
 }
 
+void DenseLayer::summary() const {
+	printf("Dense Layer\n");
+	printf("  in shape:  (*");
+	for (uint32_t i{ 0u }; i < _input_shape.size(); ++i) {
+		printf(", %d", _input_shape[i]);
+	}
+	printf(")  ");
+	printf("  out shape: (*");
+	for (uint32_t i { 0u }; i < _output_shape.size(); ++i) {
+		printf(", %d", _output_shape[i]);
+	}
+	printf(")  total params: %d\n", _weights.getSize() + _biases.getSize());
+}
+
+uint32_t DenseLayer::getParamsCount() const {
+	return _weights.getSize() + _biases.getSize();
+}
+
 void DenseLayer::updateWeights(float learning_step) {
-	_weights -=  _cached_weights_d * learning_step / _samples;
+	_weights -= _cached_weights_d * learning_step / _samples;
 	_biases -= _cached_biases_d * learning_step / _samples;
 }
 
@@ -83,7 +101,7 @@ const Tensor DenseLayer::backwardPropagation(const Tensor& dx) {
 	n = _cached_input.getShape()[0];
 	_samples += n;
 
-	Tensor weights_d = dx.dotProductTranspose(_cached_input).transpose();
+	Tensor weights_d = dx.transpose().dotProductTranspose(_cached_input.transpose());
 	Tensor biases_d = dx.sum(0);
 
 	dx_prev = dx.dotProductTranspose(_weights.transpose());

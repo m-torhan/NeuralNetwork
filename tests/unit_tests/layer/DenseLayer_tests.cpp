@@ -31,6 +31,8 @@ TEST(DenseLayer_test, DenseLayerForwardAndBackwardPropagationReturnValuesTest) {
     Tensor tensor_d = Tensor({ 2, 2 });
     DenseLayer layer = DenseLayer({ 3 }, 2);
 
+    layer.initCachedGradient();
+
     tensor.setValues({
         1.0f, -0.5f, 2.2f,
         3.1f, -10.0f, 123.0f
@@ -52,15 +54,15 @@ TEST(DenseLayer_test, DenseLayerForwardAndBackwardPropagationReturnValuesTest) {
     Tensor forward = layer.forwardPropagation(tensor);
     Tensor backward = layer.backwardPropagation(tensor_d);
 
-    ASSERT_LE(fabs(0.6845f - forward.getValue({ 0, 0 })), 0.001f);
-    ASSERT_LE(fabs(-2.60345f - forward.getValue({ 0, 1 })), 0.001f);
-    ASSERT_LE(fabs(51.04f - forward.getValue({ 1, 0 })), 0.001f);
-    ASSERT_LE(fabs(-85.0583f - forward.getValue({ 1, 1 })), 0.001f);
+    ASSERT_LE(fabs(  0.6845f  - forward.getValue({ 0, 0 })), 0.001f);
+    ASSERT_LE(fabs( -2.60345f - forward.getValue({ 0, 1 })), 0.001f);
+    ASSERT_LE(fabs( 51.04f    - forward.getValue({ 1, 0 })), 0.001f);
+    ASSERT_LE(fabs(-85.0583f  - forward.getValue({ 1, 1 })), 0.001f);
 
-    ASSERT_LE(fabs(1.0145f - backward.getValue({ 0, 0 })), 0.001f);
-    ASSERT_LE(fabs(-0.48795f - backward.getValue({ 0, 1 })), 0.001f);
-    ASSERT_LE(fabs(0.551f - backward.getValue({ 0, 2 })), 0.001f);
-    ASSERT_LE(fabs(-23.7976f - backward.getValue({ 1, 0 })), 0.001f);
-    ASSERT_LE(fabs(10.71966f - backward.getValue({ 1, 1 })), 0.001f);
-    ASSERT_LE(fabs(-27.5218f - backward.getValue({ 1, 2 })), 0.001f);
+    ASSERT_LE(fabs(  1.0145f  - backward.getValue({ 0, 0 })), 0.001f);
+    ASSERT_LE(fabs( -0.48795f - backward.getValue({ 0, 1 })), 0.001f);
+    ASSERT_LE(fabs(  0.551f   - backward.getValue({ 0, 2 })), 0.001f);
+    ASSERT_LE(fabs(-23.7976f  - backward.getValue({ 1, 0 })), 0.001f);
+    ASSERT_LE(fabs( 10.71966f - backward.getValue({ 1, 1 })), 0.001f);
+    ASSERT_LE(fabs(-27.5218f  - backward.getValue({ 1, 2 })), 0.001f);
 }

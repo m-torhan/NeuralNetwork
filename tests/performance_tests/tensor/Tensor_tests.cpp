@@ -149,6 +149,7 @@ static void BM_TensorSum(benchmark::State& state) {
 
     for (auto _ : state) {
         float b = a.sum();
+        (void)b;
     }
 }
 

@@ -17,8 +17,12 @@ static void BM_DenseLayerForwardPropagation(benchmark::State& state) {
 }
 
 static void BM_DenseLayerBackwardPropagation(benchmark::State& state) {
+    Tensor x = Tensor({ N, M }).applyFunction([](float) { return randNormalDistribution(); });
     Tensor dx = Tensor({ N, M }).applyFunction([](float) { return randNormalDistribution(); });
     DenseLayer layer = DenseLayer({ M }, M);
+    
+    layer.initCachedGradient();
+    layer.forwardPropagation(x);
 
     for (auto _ : state) {
         Tensor c = layer.backwardPropagation(dx);

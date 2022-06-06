@@ -129,6 +129,21 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 	return result;
 }
 
+void NeuralNetwork::summary() const {
+	Layer *layer{ _input_layer };
+	uint32_t total_params{ 0u };
+
+	while (1) {
+		layer->summary();
+		total_params += layer->getParamsCount();
+		if (layer == _output_layer) {
+			break;
+		}
+		layer = layer->getNextLayer();
+	}
+	printf("total params: %d\n", total_params);
+}
+
 float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
 	Tensor result = y * (y_hat + 1e-9f).applyFunction(logf) + (-y + 1.0f) * (-y_hat + 1.0f + 1e-9f).applyFunction(logf);
 	return result.sum() * (-1.0f / y.getSize());

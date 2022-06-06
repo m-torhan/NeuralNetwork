@@ -62,6 +62,299 @@ TEST(Tensor_test, SetValueShouldBeProperlyPlacedInData) {
     ASSERT_EQ(8.0f, tensor.getData()[7]);
 }
 
+TEST(Tensor_test, GetSubTensorTestOneAxis) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+
+    tensor.setValues({
+         1.0f,  2.0f,  3.0f,  4.0f,
+         5.0f,  6.0f,  7.0f,  8.0f,
+         9.0f, 10.0f, 11.0f, 12.0f,
+
+        13.0f, 14.0f, 15.0f, 16.0f,
+        17.0f, 18.0f, 19.0f, 20.0f,
+        21.0f, 22.0f, 23.0f, 23.0f
+    });
+
+    Tensor sub_tensor = tensor.getSubTensor({ 0, WHOLE_AXIS, 2 });
+    
+    ASSERT_EQ( 1u, sub_tensor.getDim());
+    ASSERT_EQ( 3u, sub_tensor.getShape()[0]);
+
+    ASSERT_EQ( 3.0f, sub_tensor.getValue({ 0 }));
+    ASSERT_EQ( 7.0f, sub_tensor.getValue({ 1 }));
+    ASSERT_EQ(11.0f, sub_tensor.getValue({ 2 }));
+}
+
+TEST(Tensor_test, GetSubTensorTestTwoAxes) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+
+    tensor.setValues({
+         1.0f,  2.0f,  3.0f,  4.0f,
+         5.0f,  6.0f,  7.0f,  8.0f,
+         9.0f, 10.0f, 11.0f, 12.0f,
+
+        13.0f, 14.0f, 15.0f, 16.0f,
+        17.0f, 18.0f, 19.0f, 20.0f,
+        21.0f, 22.0f, 23.0f, 23.0f
+    });
+
+    Tensor sub_tensor = tensor.getSubTensor({ WHOLE_AXIS, 1, WHOLE_AXIS });
+    
+    ASSERT_EQ( 2u, sub_tensor.getDim());
+    ASSERT_EQ( 2u, sub_tensor.getShape()[0]);
+    ASSERT_EQ( 4u, sub_tensor.getShape()[1]);
+
+    ASSERT_EQ( 5.0f, sub_tensor.getValue({ 0, 0 }));
+    ASSERT_EQ( 6.0f, sub_tensor.getValue({ 0, 1 }));
+    ASSERT_EQ( 7.0f, sub_tensor.getValue({ 0, 2 }));
+    ASSERT_EQ( 8.0f, sub_tensor.getValue({ 0, 3 }));
+    ASSERT_EQ(17.0f, sub_tensor.getValue({ 1, 0 }));
+    ASSERT_EQ(18.0f, sub_tensor.getValue({ 1, 1 }));
+    ASSERT_EQ(19.0f, sub_tensor.getValue({ 1, 2 }));
+    ASSERT_EQ(20.0f, sub_tensor.getValue({ 1, 3 }));
+}
+
+TEST(Tensor_test, GetSubTensorTestOneAxisWithRanges) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+
+    tensor.setValues({
+         1.0f,  2.0f,  3.0f,  4.0f,
+         5.0f,  6.0f,  7.0f,  8.0f,
+         9.0f, 10.0f, 11.0f, 12.0f,
+
+        13.0f, 14.0f, 15.0f, 16.0f,
+        17.0f, 18.0f, 19.0f, 20.0f,
+        21.0f, 22.0f, 23.0f, 23.0f
+    });
+
+    Tensor sub_tensor = tensor.getSubTensor({ {{ 0 }}, {}, {{ 2 }} });
+    
+    ASSERT_EQ( 1u, sub_tensor.getDim());
+    ASSERT_EQ( 3u, sub_tensor.getShape()[0]);
+
+    ASSERT_EQ( 3.0f, sub_tensor.getValue({ 0 }));
+    ASSERT_EQ( 7.0f, sub_tensor.getValue({ 1 }));
+    ASSERT_EQ(11.0f, sub_tensor.getValue({ 2 }));
+}
+
+TEST(Tensor_test, GetSubTensorTestTwoAxesWithRanges) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+
+    tensor.setValues({
+         1.0f,  2.0f,  3.0f,  4.0f,
+         5.0f,  6.0f,  7.0f,  8.0f,
+         9.0f, 10.0f, 11.0f, 12.0f,
+
+        13.0f, 14.0f, 15.0f, 16.0f,
+        17.0f, 18.0f, 19.0f, 20.0f,
+        21.0f, 22.0f, 23.0f, 23.0f
+    });
+
+    Tensor sub_tensor = tensor.getSubTensor({ { 0 }, {}, {1, 3} });
+    
+    ASSERT_EQ( 2u, sub_tensor.getDim());
+    ASSERT_EQ( 3u, sub_tensor.getShape()[0]);
+    ASSERT_EQ( 2u, sub_tensor.getShape()[1]);
+
+    ASSERT_EQ( 2.0f, sub_tensor.getValue({ 0, 0 }));
+    ASSERT_EQ( 3.0f, sub_tensor.getValue({ 0, 1 }));
+    ASSERT_EQ( 6.0f, sub_tensor.getValue({ 1, 0 }));
+    ASSERT_EQ( 7.0f, sub_tensor.getValue({ 1, 1 }));
+    ASSERT_EQ(10.0f, sub_tensor.getValue({ 2, 0 }));
+    ASSERT_EQ(11.0f, sub_tensor.getValue({ 2, 1 }));
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestOneAxis) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 3 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,
+    });
+
+    tensor.setValuesOfSubTensor({ 0, WHOLE_AXIS, 2 }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 0, 2 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 2, 2 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesFirstAxis) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 3, 4 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,  4.0f,
+        5.0f,  6.0f,  7.0f,  8.0f,
+        9.0f, 10.0f, 11.0f, 12.0f
+    });
+
+    tensor.setValuesOfSubTensor({ 0, WHOLE_AXIS, WHOLE_AXIS }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 0, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 0, 1 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 0, 2 }));
+    ASSERT_EQ( 4.0f, tensor.getValue({ 0, 0, 3 }));
+    ASSERT_EQ( 5.0f, tensor.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 6.0f, tensor.getValue({ 0, 1, 1 }));
+    ASSERT_EQ( 7.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 8.0f, tensor.getValue({ 0, 1, 3 }));
+    ASSERT_EQ( 9.0f, tensor.getValue({ 0, 2, 0 }));
+    ASSERT_EQ(10.0f, tensor.getValue({ 0, 2, 1 }));
+    ASSERT_EQ(11.0f, tensor.getValue({ 0, 2, 2 }));
+    ASSERT_EQ(12.0f, tensor.getValue({ 0, 2, 3 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesSecondAxis) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 2, 4 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,  4.0f,
+        5.0f,  6.0f,  7.0f,  8.0f
+    });
+
+    tensor.setValuesOfSubTensor({ WHOLE_AXIS, 1, WHOLE_AXIS }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 1 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 4.0f, tensor.getValue({ 0, 1, 3 }));
+    ASSERT_EQ( 5.0f, tensor.getValue({ 1, 1, 0 }));
+    ASSERT_EQ( 6.0f, tensor.getValue({ 1, 1, 1 }));
+    ASSERT_EQ( 7.0f, tensor.getValue({ 1, 1, 2 }));
+    ASSERT_EQ( 8.0f, tensor.getValue({ 1, 1, 3 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesFirstAxisWithRanges) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 1, 2, 3 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,
+        4.0f,  5.0f,  6.0f,
+    });
+
+    tensor.setValuesOfSubTensor({ {0, 1}, {1, 3}, {0, 3} }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 1 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 4.0f, tensor.getValue({ 0, 2, 0 }));
+    ASSERT_EQ( 5.0f, tensor.getValue({ 0, 2, 1 }));
+    ASSERT_EQ( 6.0f, tensor.getValue({ 0, 2, 2 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesFirstAxisWithRangesWithWholeAxis) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 1, 2, 4 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,  4.0f,
+        5.0f,  6.0f,  7.0f,  8.0f
+    });
+
+    tensor.setValuesOfSubTensor({ { 0, 1 }, { 1, 3 }, {} }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 1 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 4.0f, tensor.getValue({ 0, 1, 3 }));
+    ASSERT_EQ( 5.0f, tensor.getValue({ 0, 2, 0 }));
+    ASSERT_EQ( 6.0f, tensor.getValue({ 0, 2, 1 }));
+    ASSERT_EQ( 7.0f, tensor.getValue({ 0, 2, 2 }));
+    ASSERT_EQ( 8.0f, tensor.getValue({ 0, 2, 3 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesFirstAxisWithRangesWithSingleIndex) {
+    Tensor tensor = Tensor({ 2, 3, 4 });
+    Tensor sub_tensor = Tensor({ 2, 4 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f,  3.0f,  4.0f,
+        5.0f,  6.0f,  7.0f,  8.0f
+    });
+
+    tensor.setValuesOfSubTensor({ { 0 }, { 1, 3 }, {} }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 1 }));
+    ASSERT_EQ( 3.0f, tensor.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 4.0f, tensor.getValue({ 0, 1, 3 }));
+    ASSERT_EQ( 5.0f, tensor.getValue({ 0, 2, 0 }));
+    ASSERT_EQ( 6.0f, tensor.getValue({ 0, 2, 1 }));
+    ASSERT_EQ( 7.0f, tensor.getValue({ 0, 2, 2 }));
+    ASSERT_EQ( 8.0f, tensor.getValue({ 0, 2, 3 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, AddPaddingOneAxisLeftTest) {
+    Tensor tensor = Tensor({ 2, 3, 2 });
+
+    tensor.setValues({
+        1.0f, 2.0f,
+        3.0f, 4.0f,
+        5.0f, 6.0f,
+
+        7.0f, 8.0f,
+        9.0f, 10.0f,
+        11.0f, 12.0f
+        });
+    
+    Tensor result = tensor.addPadding({ 0 }, { Left }, { 2 });
+
+    ASSERT_EQ(4u, result.getShape()[0]);
+    ASSERT_EQ(3u, result.getShape()[1]);
+    ASSERT_EQ(2u, result.getShape()[2]);
+
+    ASSERT_EQ(result.sum(), tensor.sum());
+}
+
+TEST(Tensor_test, AddPaddingTwoAxesTest) {
+    Tensor tensor = Tensor({ 2, 3, 2 });
+
+    tensor.setValues({
+        1.0f, 2.0f,
+        3.0f, 4.0f,
+        5.0f, 6.0f,
+
+        7.0f, 8.0f,
+        9.0f, 10.0f,
+        11.0f, 12.0f
+        });
+    
+    Tensor result = tensor.addPadding({ 0, 2 }, { Left, Both }, { 2, 3 });
+
+    ASSERT_EQ(4u, result.getShape()[0]);
+    ASSERT_EQ(3u, result.getShape()[1]);
+    ASSERT_EQ(8u, result.getShape()[2]);
+
+    ASSERT_EQ(result.sum(), tensor.sum());
+}
+
 TEST(Tensor_test, WhenTensorPreceededByMinusEachValueShouldChangeSign) {
     Tensor tensor = Tensor({ 2, 2 });
 
@@ -370,6 +663,43 @@ TEST(Tensor_test, ApplyFunctionShouldApplyGivenFunctionToTensor) {
     ASSERT_EQ(4.0f, result.getValue({ 0, 1 }));
     ASSERT_EQ(6.0f, result.getValue({ 1, 0 }));
     ASSERT_EQ(8.0f, result.getValue({ 1, 1 }));
+}
+
+TEST(Tensor_test, TensorConv2DTest) {
+    Tensor tensor_a = Tensor({ 5, 5, 2 });
+    Tensor tensor_b = Tensor({ 3, 3, 2, 3 });
+
+    tensor_a.setValues({
+         1.0f,  2.0f,   3.0f,  4.0f,   5.0f,  6.0f,   7.0f,  8.0f,   9.0f, 10.0f,
+        11.0f, 12.0f,  13.0f, 14.0f,  15.0f, 16.0f,  17.0f, 18.0f,  19.0f, 20.0f,
+        21.0f, 22.0f,  23.0f, 24.0f,  25.0f, 26.0f,  27.0f, 28.0f,  29.0f, 30.0f,
+        31.0f, 32.0f,  33.0f, 34.0f,  35.0f, 36.0f,  37.0f, 38.0f,  39.0f, 40.0f,
+        41.0f, 42.0f,  43.0f, 44.0f,  45.0f, 46.0f,  47.0f, 48.0f,  49.0f, 50.0f,
+    });
+
+    tensor_b.setValues({
+        1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,
+    });
+
+    Tensor result = tensor_a.Conv2D(tensor_b);
+
+    ASSERT_EQ(3u, result.getDim());
+
+    ASSERT_EQ(3u, result.getShape()[0]);
+    ASSERT_EQ(3u, result.getShape()[1]);
+    ASSERT_EQ(3u, result.getShape()[2]);
+
+    ASSERT_EQ( 39.0f, result.getValue({ 0, 0, 0 }));
+    ASSERT_EQ( 84.0f, result.getValue({ 0, 0, 1 }));
+    ASSERT_EQ(117.0f, result.getValue({ 0, 0, 2 }));
+    ASSERT_EQ( 45.0f, result.getValue({ 0, 1, 0 }));
+    ASSERT_EQ( 96.0f, result.getValue({ 0, 1, 1 }));
+    ASSERT_EQ(135.0f, result.getValue({ 0, 1, 2 }));
+    ASSERT_EQ( 51.0f, result.getValue({ 0, 2, 0 }));
+    ASSERT_EQ(108.0f, result.getValue({ 0, 2, 1 }));
+    ASSERT_EQ(153.0f, result.getValue({ 0, 2, 2 }));
 }
 
 TEST(Tensor_test, TensorSumTest) {

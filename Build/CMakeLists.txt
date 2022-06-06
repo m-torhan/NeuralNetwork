@@ -11,8 +11,8 @@ if(NOT WIN32)
     set(CMAKE_FIND_ROOT_PATH   /usr/i486-linux-gnu)
 endif(NOT WIN32)
 
-set(CMAKE_C_FLAGS -m32)
-set(CMAKE_CXX_FLAGS -m32)
+set(CMAKE_C_FLAGS "-m32")
+set(CMAKE_CXX_FLAGS "-O3 -Wall -m32")
 
 include(CPM.cmake)
 

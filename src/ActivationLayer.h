@@ -23,6 +23,8 @@ public:
 	virtual const Tensor backwardPropagation(const Tensor& dx);
 	virtual void updateWeights(float learning_step);
 	virtual void initCachedGradient();
+	virtual void summary() const;
+	virtual uint32_t getParamsCount() const;
 
 private:
 	void initActivationFun(const Tensor (*activation_fun)(const Tensor&), const Tensor (*activation_fun_d)(const Tensor&, const Tensor&));

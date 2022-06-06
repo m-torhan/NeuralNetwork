@@ -57,14 +57,14 @@ float Tensor::getValue(const std::vector<uint32_t>& idx) const {
 	uint32_t i = 0;
 
 	if (idx.size() != this->_shape.size()) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	for (i = 0; i < this->_shape.size(); ++i) {
 		subsize /= this->_shape[i];
 		subidx = idx[i];
 		if (subidx >= this->_shape[i]) {
-			// exception
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 		}
 		flat_idx += subsize * subidx;
 	}
@@ -74,7 +74,7 @@ float Tensor::getValue(const std::vector<uint32_t>& idx) const {
 
 void Tensor::setValue(float value, const std::vector<uint32_t>& idx) {
 	if (idx.size() != this->_shape.size()) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	uint32_t flat_idx = 0;
@@ -89,9 +89,338 @@ void Tensor::setValue(float value, const std::vector<uint32_t>& idx) {
 
 void Tensor::setValues(const std::vector<float>& values) {
 	if (this->_data.size() != values.size()) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	this->_data = values;
+}
+
+Tensor Tensor::getSubTensor(const std::vector<uint32_t>& axes) const {
+	if (axes.size() != this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	for (uint32_t i{ 0 }; i < axes.size(); ++i) {
+		if ((WHOLE_AXIS != axes[i]) && (this->_shape[i] <= axes[i])) {
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		}
+	}
+
+	std::vector<uint32_t> result_shape;
+	std::vector<uint32_t> index;
+
+	for (uint32_t i{ 0 }; i < this->_shape.size(); ++i) {
+		if (WHOLE_AXIS == axes[i]) {
+			result_shape.push_back(this->_shape[i]);
+			index.push_back(0);
+		}
+		else {
+			index.push_back(axes[i]);
+		}
+	}
+
+	Tensor result = Tensor(result_shape);
+
+	while (true) {
+		// set value
+		std::vector<uint32_t> sub_index;
+
+		for (uint32_t i{ 0 }; i < index.size(); ++i) {
+			if (WHOLE_AXIS == axes[i]) {
+				sub_index.push_back(index[i]);
+			}
+		}
+
+		result.setValue(this->getValue(index), sub_index);
+
+		// increment index
+		bool inc_next = false;
+		for (int32_t i{ static_cast<int32_t>(index.size() - 1) }; i >= 0; --i) {
+			if (WHOLE_AXIS == axes[i]) {
+				++index[i];
+				if (index[i] >= this->_shape[i]) {
+					// overflow
+					index[i] = 0;
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+		}
+
+		if (inc_next) {
+			break;
+		}
+	}
+
+	return result;
+}
+
+Tensor Tensor::getSubTensor(const std::vector<std::vector<uint32_t> >& ranges) const {
+	if (ranges.size() != this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
+		if ( ranges[i].size() > 2) {
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		}
+		if (2 == ranges.size()) {
+			if (ranges[i][0] >= ranges[i][1]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+			if (ranges[i][1] > this->_shape[i]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+		}
+		if (1 == ranges.size()) {
+			if (ranges[i][0] >= this->_shape[i]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+		}
+	}
+
+	std::vector<uint32_t> result_shape;
+	std::vector<uint32_t> index;
+
+	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
+		switch (ranges[i].size()) {
+			case 0:
+				result_shape.push_back(this->_shape[i]);
+				index.push_back(0);
+				break;
+			case 1:
+				index.push_back(ranges[i][0]);
+				break;
+			case 2:
+				result_shape.push_back(ranges[i][1] - ranges[i][0]);
+				index.push_back(ranges[i][0]);
+				break;
+		}
+	}
+
+	Tensor result = Tensor(result_shape);
+
+	while (true) {
+		// set value
+		std::vector<uint32_t> sub_index;
+
+		for (uint32_t i{ 0 }; i < index.size(); ++i) {
+			if (2 == ranges[i].size()) {
+				sub_index.push_back(index[i] - ranges[i][0]);
+			}
+			else if (0 == ranges[i].size()) {
+				sub_index.push_back(index[i]);
+			}
+		}
+		
+		result.setValue(this->getValue(index), sub_index);
+
+		// increment index
+		bool inc_next = false;
+		for (int32_t i{ static_cast<int32_t>(index.size() - 1) }; i >= 0; --i) {
+			if (1 != ranges[i].size()) {
+				++index[i];
+			}
+			if (0 == ranges[i].size()) {
+				if (index[i] >= this->_shape[i]) {
+					// overflow
+					index[i] = 0;
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+			else if (2 == ranges[i].size()) {
+				if (index[i] >= ranges[i][1]) {
+					// overfloww
+					index[i] = ranges[i][0];
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+		}
+
+		if (inc_next) {
+			break;
+		}
+	}
+
+	return result;
+}
+
+void Tensor::setValuesOfSubTensor(const std::vector<uint32_t>& axes, const Tensor& other) {
+	if (axes.size() != this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	for (uint32_t i{ 0 }; i < axes.size(); ++i) {
+		if ((WHOLE_AXIS != axes[i]) && (this->_shape[i] <= axes[i])) {
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		}
+	}
+
+	std::vector<uint32_t> index = axes;
+
+	for (uint32_t i{ 0 }; i < index.size(); ++i) {
+		if (WHOLE_AXIS == axes[i]) {
+			index[i] = 0;
+		}
+	}
+
+	while (true) {
+		// set value
+		std::vector<uint32_t> sub_index;
+
+		for (uint32_t i{ 0 }; i < index.size(); ++i) {
+			if (WHOLE_AXIS == axes[i]) {
+				sub_index.push_back(index[i]);
+			}
+		}
+
+		this->setValue(other.getValue(sub_index), index);
+
+		// increment index
+		bool inc_next = false;
+		for (int32_t i{ static_cast<int32_t>(index.size() - 1) }; i >= 0; --i) {
+			if (WHOLE_AXIS == axes[i]) {
+				++index[i];
+				if (index[i] >= this->_shape[i]) {
+					// overflow
+					index[i] = 0;
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+		}
+
+		if (inc_next) {
+			break;
+		}
+	}
+}
+
+void Tensor::setValuesOfSubTensor(const std::vector<std::vector<uint32_t> >& ranges, const Tensor& other) {
+	if (ranges.size() != this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
+		switch (ranges[i].size()) {
+			case 0:
+				break;
+			case 1:
+				if (ranges[i][0] >= this->_shape[i]) {
+					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				}
+				break;
+			case 2:
+				if (ranges[i][0] >= ranges[i][1]) {
+					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				}
+				if (ranges[i][1] > this->_shape[i]) {
+					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				}
+				break;
+			default:
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				break;
+		}
+	}
+
+	std::vector<uint32_t> index(this->_shape.size());
+
+	for (uint32_t i{ 0 }; i < index.size(); ++i) {
+		if (0 == ranges[i].size()) {
+			index[i] = 0;
+		}
+		else {
+			index[i] = ranges[i][0];
+		}
+	}
+
+	while (true) {
+		// set value
+		std::vector<uint32_t> sub_index;
+
+		for (uint32_t i{ 0 }; i < index.size(); ++i) {
+			if (2 == ranges[i].size()) {
+				sub_index.push_back(index[i] - ranges[i][0]);
+			}
+			else if (0 == ranges[i].size()) {
+				sub_index.push_back(index[i]);
+			}
+		}
+		
+		this->setValue(other.getValue(sub_index), index);
+
+		// increment index
+		bool inc_next = false;
+		for (int32_t i{ static_cast<int32_t>(index.size() - 1) }; i >= 0; --i) {
+			++index[i];
+			if (0 == ranges[i].size()) {
+				if (index[i] >= this->_shape[i]) {
+					// overflow
+					index[i] = 0;
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+			else if (2 == ranges[i].size()) {
+				if (index[i] >= ranges[i][1]) {
+					// overfloww
+					index[i] = ranges[i][0];
+					inc_next = true;
+				}
+				else {
+					inc_next = false;
+					break;
+				}
+			}
+		}
+
+		if (inc_next) {
+			break;
+		}
+	}
+}
+
+Tensor Tensor::addPadding(std::vector<uint32_t> axes, std::vector<Padding> paddings, std::vector<uint32_t> counts) const {
+	if (axes.size() != paddings.size() || axes.size() != counts.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+
+	if (axes.size() > this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+
+	std::vector<uint32_t> result_shape = this->_shape;
+
+	for (uint32_t i{ 0 }; i < axes.size(); ++i) {
+		result_shape[axes[i]] += counts[i] * (!!(paddings[i] & Left) + !!(paddings[i] & Right));
+	}
+
+	Tensor result = Tensor(result_shape);
+
+	result *= 0.0f;
+
+	std::vector<std::vector<uint32_t> > ranges(this->_shape.size());
+	for (uint32_t i{ 0 }; i < axes.size(); ++i) {
+		ranges[axes[i]].push_back(counts[i] * (!!(paddings[i] & Left)));
+		ranges[axes[i]].push_back(this->_shape[axes[i]] + counts[i] * !!(paddings[i] & Left));
+	}
+
+	result.setValuesOfSubTensor(ranges, *this);
+
+	return result;
 }
 
 const Tensor Tensor::operator-() const {
@@ -114,7 +443,7 @@ const Tensor Tensor::operator+(const Tensor& other) const {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_add(this->_size, this->_data.data(), other._size, other._data.data(), result._data.data());
 	} else {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	#endif
 
@@ -140,15 +469,14 @@ const Tensor Tensor::operator/(const Tensor& other) const {
 }
 
 Tensor& Tensor::operator+=(const Tensor& other) {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
+	if (((this->_shape.size() < other._shape.size()) ||
+		 (!this->validateShapeReversed(other))) &&
+		(1 != other._size)) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		this->_data[i] += other._data[i % other._size];
 	}
 	#else	// SSE
@@ -161,7 +489,7 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_add(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	#endif	// SSE
 
@@ -169,15 +497,14 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 }
 
 Tensor& Tensor::operator-=(const Tensor& other) {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
+	if (((this->_shape.size() < other._shape.size()) ||
+		 (!this->validateShape(other))) &&
+		(1 != other._size)) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		this->_data[i] -= other._data[i % other._size];
 	}
 	#else	// SSE
@@ -190,7 +517,7 @@ Tensor& Tensor::operator-=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_sub(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	#endif	// SSE
 
@@ -198,15 +525,14 @@ Tensor& Tensor::operator-=(const Tensor& other) {
 }
 
 Tensor& Tensor::operator*=(const Tensor& other) {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
+	if (((this->_shape.size() < other._shape.size()) ||
+		 (!this->validateShape(other))) &&
+		(1 != other._size)) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		this->_data[i] *= other._data[i % other._size];
 	}
 	#else	// SSE
@@ -219,7 +545,7 @@ Tensor& Tensor::operator*=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_mul(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	#endif	// SSE
 
@@ -227,15 +553,14 @@ Tensor& Tensor::operator*=(const Tensor& other) {
 }
 
 Tensor& Tensor::operator/=(const Tensor& other) {
-	uint32_t i = 0;
-
-	if (!this->validateDimGreater(other) ||
-		!this->validateShape(other)) {
-		// exception
+	if (((this->_shape.size() < other._shape.size()) ||
+		 (!this->validateShape(other))) &&
+		(1 != other._size)) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		this->_data[i] /= other._data[i % other._size];
 	}
 	#else	// SSE
@@ -248,7 +573,7 @@ Tensor& Tensor::operator/=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_div(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	#endif	// SSE
 
@@ -258,9 +583,9 @@ Tensor& Tensor::operator/=(const Tensor& other) {
 const Tensor Tensor::operator>(const Tensor& other) const {
 	uint32_t i = 0;
 
-	if (!this->validateDimGreater(other) ||
+	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	Tensor result = *this;
@@ -275,9 +600,9 @@ const Tensor Tensor::operator>(const Tensor& other) const {
 const Tensor Tensor::operator<(const Tensor& other) const {
 	uint32_t i = 0;
 
-	if (!this->validateDimGreater(other) ||
+	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	Tensor result = *this;
@@ -363,7 +688,7 @@ const Tensor operator/(float number, const Tensor& other) {
 	Tensor result = other;
 
 	#ifndef SSE
-	for (uint32_t i = 0; i < other._size; ++i) {
+	for (uint32_t i{ 0} ; i < other._size; ++i) {
 		result._data[i] = number / result._data[i];
 	}
 	#else	// SSE
@@ -374,10 +699,8 @@ const Tensor operator/(float number, const Tensor& other) {
 }
 
 Tensor& Tensor::operator+=(float number) {
-	uint32_t i = 0;
-
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0} ; i < this->_size; ++i) {
 		this->_data[i] += number;
 	}
 	#else	// SSE
@@ -388,10 +711,8 @@ Tensor& Tensor::operator+=(float number) {
 }
 
 Tensor& Tensor::operator-=(float number) {
-	uint32_t i = 0;
-
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		this->_data[i] -= number;
 	}
 	#else	// SSE
@@ -402,10 +723,8 @@ Tensor& Tensor::operator-=(float number) {
 }
 
 Tensor& Tensor::operator*=(float number) {
-	uint32_t i = 0;
-
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0} ; i < this->_size; ++i) {
 		this->_data[i] *= number;
 	}
 	#else	// SSE
@@ -415,10 +734,8 @@ Tensor& Tensor::operator*=(float number) {
 }
 
 Tensor& Tensor::operator/=(float number) {
-	uint32_t i = 0;
-
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0} ; i < this->_size; ++i) {
 		this->_data[i] /= number;
 	}
 	#else	// SSE
@@ -456,7 +773,7 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (this->_shape.size() == 1 && other._shape.size() == 1) {
 		// vector inner product
 		if (this->_shape[0] != other._shape[0]) {
-			// exception
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 		}
 		Tensor result = Tensor();
 
@@ -480,7 +797,7 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (this->_shape.size() == 2 && other._shape.size() == 2) {
 		// matrix multiplication
 		if (this->_shape[1] != other._shape[0]) {
-			// exception
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 		}
 		std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[1] };
 
@@ -510,7 +827,7 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (other._shape.size() == 1) {
 		// sum product over the last axis of this and other (vector)
 		if (this->_shape[this->_shape.size() - 1] != other._shape[0]) {
-			// exception
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 		}
 		std::vector<uint32_t> result_shape = this->_shape;
 		result_shape.pop_back();
@@ -531,7 +848,7 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	else {
 		// sum product over the last axis of this and the second-to-last axis of other
 		if (this->_shape[this->_shape.size()  - 1] != other._shape[other._shape.size()  - 2]) {
-			// exception
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 		}
 
 		Tensor result = Tensor();
@@ -546,12 +863,12 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 }
 
 const Tensor Tensor::dotProductTranspose(const Tensor& other) const {
-	if (this->_shape.size() != 2 || other._shape.size() != 2) {
-		// exception
+	if ((this->_shape.size() != 2) || (other._shape.size() != 2)) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	// matrix multiplication
-	if (this->_shape[1] != other._shape[0]) {
-		// exception
+	if (this->_shape[1] != other._shape[1]) {
+		printf("EXCEPTION %d %d %d\n", __LINE__, this->_shape[1], other._shape[1]); throw std::invalid_argument(""); // exception
 	}
 	std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[0] };
 
@@ -599,7 +916,7 @@ const Tensor Tensor::applyFunction(float (*function)(float)) const {
 
 const Tensor Tensor::flatten(uint32_t from_axis) const {
 	if (from_axis >= this->_shape.size() ) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	uint32_t subsize = 1;
@@ -621,9 +938,36 @@ const Tensor Tensor::flatten(uint32_t from_axis) const {
 	return result;
 }
 
+const Tensor Tensor::Conv2D(const Tensor& other) const {
+	if (this->_shape[2] != other._shape[2]) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+
+	std::vector<uint32_t> result_shape = {this->_shape[0] - (other._shape[0] - 1),
+										  this->_shape[1] - (other._shape[1] - 1),
+										  other._shape[3]};
+
+	Tensor result = Tensor(result_shape);
+
+	for (uint32_t i{ 0 }; i < result_shape[0]; ++i) {
+		for (uint32_t j{ 0 }; j < result_shape[1]; ++j) {
+			for (uint32_t k{ 0 }; k < result_shape[2]; ++k) {
+				Tensor sub_tensor_this = this->getSubTensor({ { i, i + other._shape[0] },
+										  					 { j, j + other._shape[1] },
+															 {} });
+				Tensor sub_tensor_other = other.getSubTensor({ WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS, k});
+
+				result.setValue((sub_tensor_this * sub_tensor_other).sum(), { i, j, k});
+			}
+		}
+	}
+
+	return result;
+}
+
 const Tensor Tensor::sum(uint32_t axis) const {
 	if (axis >= this->_shape.size() ) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	std::vector<uint32_t> result_shape;
@@ -666,11 +1010,10 @@ const Tensor Tensor::sum(uint32_t axis) const {
 }
 
 float Tensor::sum() const {
-	uint32_t i{ 0 };
 	float result{ 0.0f };
 	
 	#ifndef SSE
-	for (i = 0; i < this->_size; ++i) {
+	for (uint32_t i{ 0 }; i < this->_size; ++i) {
 		result += this->_data[i];
 	}
 	#else 	// SSE
@@ -682,7 +1025,7 @@ float Tensor::sum() const {
 
 const Tensor Tensor::transpose() const {
 	if (this->_shape.size()  != 2) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	std::vector<uint32_t> result_shape = { this->_shape[1], this->_shape[0] };
@@ -699,8 +1042,14 @@ const Tensor Tensor::transpose() const {
 }
 
 const Tensor Tensor::slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const {
-	if (start_idx <= end_idx || axis >= this->_shape.size() ) {
-		// exception
+	if (start_idx >= end_idx) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	if (axis >= this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	if (end_idx > this->_shape[axis]) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	std::vector<uint32_t> result_shape = this->_shape;
@@ -739,7 +1088,7 @@ const Tensor Tensor::shuffle() const {
 	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
 	if (!tmp) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 
 	srand(time(NULL));
@@ -774,11 +1123,11 @@ const Tensor Tensor::shuffle(uint32_t *pattern) const {
 	subsize = this->_size / this->_shape[axis];
 	tmp = (float*)malloc(sizeof(float) * subsize);
 	if (!tmp) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	shuffled = (uint32_t*)malloc(sizeof(uint32_t) * this->_shape[axis]);
 	if (!shuffled) {
-		// exception
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
 	memset(shuffled, 0, sizeof(uint32_t) * this->_shape[axis]);
 
@@ -804,23 +1153,23 @@ const Tensor Tensor::shuffle(uint32_t *pattern) const {
 	return result;
 }
 
-bool Tensor::validateDimGreater(const Tensor& other) const {
-	return this->_shape.size()  >= other._shape.size() ;
-}
-
-bool Tensor::validateDimEqual(const Tensor& other) const {
-	return this->_shape.size()  == other._shape.size() ;
+void Tensor::print() const {
+	printf("Tensor({ ");
+	for (uint32_t i{ 0 }; i < this->_shape.size(); ++i) {
+		printf("%d ", this->_shape[i]);
+	}
+	printf("})\n");
 }
 
 bool Tensor::validateShape(const Tensor& other) const {
 	uint32_t i = 0;
 	uint32_t min_dim = 0;
 
-	if (this->_shape.size()  < other._shape.size() ) {
-		min_dim = this->_shape.size() ;
+	if (this->_shape.size() < other._shape.size() ) {
+		min_dim = this->_shape.size();
 	}
 	else {
-		min_dim = other._shape.size() ;
+		min_dim = other._shape.size();
 	}
 	
 	for (i = 0; i < min_dim; ++i) {

@@ -67,6 +67,13 @@
 	}
 #endif
 
+#define WHOLE_AXIS (static_cast<uint32_t>(-1))
+
+enum Padding : uint8_t {
+	Left = 0x01,
+	Right = 0x02,
+	Both = 0x03,
+};
 
 class Tensor {
 public:
@@ -82,7 +89,12 @@ public:
 	std::vector<float> getData() const;
 	float getValue(const std::vector<uint32_t>& idx = { 0 }) const;
 	void setValue(float value, const std::vector<uint32_t>& idx = { 0 });
-	void setValues(	const std::vector<float>& values);
+	void setValues(const std::vector<float>& values);
+	Tensor getSubTensor(const std::vector<uint32_t>& axes) const;
+	Tensor getSubTensor(const std::vector<std::vector<uint32_t> >& ranges) const;
+	void setValuesOfSubTensor(const std::vector<uint32_t>& axes, const Tensor& other);
+	void setValuesOfSubTensor(const std::vector<std::vector<uint32_t> >& ranges, const Tensor& other);
+	Tensor addPadding(std::vector<uint32_t> axes, std::vector<Padding> paddings, std::vector<uint32_t> counts) const;
 	const Tensor operator-() const;
 	const Tensor operator+(const Tensor& other) const;
 	const Tensor operator-(const Tensor& other) const;
@@ -113,20 +125,20 @@ public:
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;
 	const Tensor flatten(uint32_t from_axis=0) const;
+	const Tensor Conv2D(const Tensor& other) const;
 	const Tensor sum(uint32_t axis) const;
 	float sum() const;
 	const Tensor transpose() const;
 	const Tensor slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
 	const Tensor shuffle() const;
 	const Tensor shuffle(uint32_t *pattern) const;
+	void print() const;
 
 private:
 	std::vector<uint32_t> _shape;
 	uint32_t _size;
 	std::vector<float> _data;
 
-	bool validateDimGreater(const Tensor& other) const;
-	bool validateDimEqual(const Tensor& other) const;
 	bool validateShape(const Tensor& other) const;
 	bool validateShapeReversed(const Tensor& other) const;
 };

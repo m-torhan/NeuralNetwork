@@ -74,6 +74,24 @@ void ActivationLayer::initCachedGradient() {
 
 }
 
+void ActivationLayer::summary() const {
+	printf("Activation Layer\n");
+	printf("  in shape:  (*");
+	for (uint32_t i{ 0u }; i < _input_shape.size(); ++i) {
+		printf(", %d", _input_shape[i]);
+	}
+	printf(")  ");
+	printf("  out shape: (*");
+	for (uint32_t i { 0u }; i < _output_shape.size(); ++i) {
+		printf(", %d", _output_shape[i]);
+	}
+	printf(")\n");
+}
+
+uint32_t ActivationLayer::getParamsCount() const {
+	return 0;
+}
+
 const Tensor ActivationLayer::ReLU_fun(const Tensor& x) {
 	return x * (x > 0.0f);
 }

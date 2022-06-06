@@ -26,6 +26,8 @@ public:
 	virtual const Tensor backwardPropagation(const Tensor& dx) = 0;
 	virtual void updateWeights(float learning_step) = 0;
 	virtual void initCachedGradient() = 0;
+	virtual void summary() const = 0;
+	virtual uint32_t getParamsCount() const = 0;
 
 protected:
 	Layer* _next_layer;

@@ -11,7 +11,6 @@ constexpr uint32_t M = 100;
 
 static void BM_NeuralNetworkPredict(benchmark::State& state) {
 	uint32_t i = 0;
-	uint32_t j = 0;
 
 	Tensor x_test = Tensor({ M, 2 });
 	Tensor y_test = Tensor({ M, 2 });
@@ -49,7 +48,6 @@ static void BM_NeuralNetworkPredict(benchmark::State& state) {
 
 static void BM_NeuralNetworkFit(benchmark::State& state) {
 	uint32_t i = 0;
-	uint32_t j = 0;
 
 	Tensor x_train = Tensor({ N, 2 });
 	Tensor y_train = Tensor({ N, 2 });
