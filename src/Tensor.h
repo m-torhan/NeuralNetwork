@@ -128,10 +128,14 @@ public:
 	const Tensor Conv2D(const Tensor& other) const;
 	const Tensor sum(uint32_t axis) const;
 	float sum() const;
+	float max() const;
+	float average() const;
 	const Tensor transpose() const;
 	const Tensor slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
 	const Tensor shuffle() const;
 	const Tensor shuffle(uint32_t *pattern) const;
+	const Tensor reshape(std::vector<uint32_t> new_shape) const;
+
 	void print() const;
 
 private:

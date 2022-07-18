@@ -12,7 +12,7 @@ if(NOT WIN32)
 endif(NOT WIN32)
 
 set(CMAKE_C_FLAGS "-m32")
-set(CMAKE_CXX_FLAGS "-O3 -Wall -m32")
+set(CMAKE_CXX_FLAGS "-g -O3 -Wall -m32")
 
 include(CPM.cmake)
 
@@ -36,7 +36,7 @@ else(WIN32)
     )
 endif(WIN32)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
@@ -53,6 +53,7 @@ endif()
 set(SOURCE_DIR ../src)
 set(UNIT_TEST_DIR ../tests/unit_tests)
 set(PERFORMANCE_TEST_DIR ../tests/performance_tests)
+set(APP_MNIST_DIR ../applications/mnist)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
 
@@ -61,3 +62,4 @@ add_subdirectory(${UNIT_TEST_DIR} ${UNIT_TEST_DIR}/Build/${OS})
 if(NOT WIN32)
     add_subdirectory(${PERFORMANCE_TEST_DIR} ${PERFORMANCE_TEST_DIR}/Build/${OS})
 endif(NOT WIN32)
+add_subdirectory(${APP_MNIST_DIR} ${APP_MNIST_DIR}/Build/${OS})

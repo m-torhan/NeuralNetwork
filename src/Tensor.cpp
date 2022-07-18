@@ -89,7 +89,7 @@ void Tensor::setValue(float value, const std::vector<uint32_t>& idx) {
 
 void Tensor::setValues(const std::vector<float>& values) {
 	if (this->_data.size() != values.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		printf("EXCEPTION %d: %d %d\n", __LINE__, this->_data.size(), values.size()); throw std::invalid_argument(""); // exception
 	}
 	this->_data = values;
 }
@@ -196,6 +196,13 @@ Tensor Tensor::getSubTensor(const std::vector<std::vector<uint32_t> >& ranges) c
 				index.push_back(ranges[i][0]);
 				break;
 		}
+	}
+	
+	if (result_shape.size() == 0) {
+		Tensor result = Tensor();
+		result.setValue(this->getValue(index));
+
+		return result;
 	}
 
 	Tensor result = Tensor(result_shape);
@@ -362,8 +369,8 @@ void Tensor::setValuesOfSubTensor(const std::vector<std::vector<uint32_t> >& ran
 		// increment index
 		bool inc_next = false;
 		for (int32_t i{ static_cast<int32_t>(index.size() - 1) }; i >= 0; --i) {
-			++index[i];
 			if (0 == ranges[i].size()) {
+				++index[i];
 				if (index[i] >= this->_shape[i]) {
 					// overflow
 					index[i] = 0;
@@ -375,6 +382,7 @@ void Tensor::setValuesOfSubTensor(const std::vector<std::vector<uint32_t> >& ran
 				}
 			}
 			else if (2 == ranges[i].size()) {
+				++index[i];
 				if (index[i] >= ranges[i][1]) {
 					// overfloww
 					index[i] = ranges[i][0];
@@ -1023,6 +1031,25 @@ float Tensor::sum() const {
 	return result;
 }
 
+float Tensor::max() const {
+	float result = _data[0];
+
+	for (auto value : _data) {
+		if (value > result) {
+			result = value;
+		}
+	}
+
+	return result;
+}
+
+float Tensor::average() const {
+	float sum = this->sum();
+
+	return sum/_size;
+
+}
+
 const Tensor Tensor::transpose() const {
 	if (this->_shape.size()  != 2) {
 		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
@@ -1098,6 +1125,9 @@ const Tensor Tensor::shuffle() const {
 	for (i = 0; i < shuffle_count; ++i) {
 		rand_a = rand() % this->_shape[axis];
 		rand_b = rand() % this->_shape[axis];
+		if (rand_a == rand_b) {
+			continue;
+		}
 
 		memcpy(tmp, &result._data[subsize * rand_a], sizeof(float) * subsize);
 		memcpy(&result._data[subsize * rand_a], &result._data[subsize * rand_b], sizeof(float) * subsize);
@@ -1137,7 +1167,7 @@ const Tensor Tensor::shuffle(uint32_t *pattern) const {
 			j = pattern[i];
 			do {
 				shuffled[j] = 1;
-
+				
 				memcpy(tmp, &result._data[subsize * j], sizeof(float) * subsize);
 				memcpy(&result._data[subsize * j], &result._data[subsize * pattern[j]], sizeof(float) * subsize);
 				memcpy(&result._data[subsize * pattern[j]], tmp, sizeof(float) * subsize);
@@ -1149,6 +1179,22 @@ const Tensor Tensor::shuffle(uint32_t *pattern) const {
 
 	free(tmp);
 	free(shuffled);
+
+	return result;
+}
+
+const Tensor Tensor::reshape(std::vector<uint32_t> new_shape) const {
+	uint32_t new_size = 1;
+	for (auto s : new_shape) {
+		new_size *= s;
+	}
+	if (new_size != this->_size) {
+		// exception
+	}
+
+	Tensor result{ *this };
+
+	result._shape = new_shape;
 
 	return result;
 }

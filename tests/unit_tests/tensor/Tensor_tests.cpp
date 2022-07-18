@@ -183,6 +183,24 @@ TEST(Tensor_test, SetValuesOfSubTensorTestOneAxis) {
     ASSERT_EQ(sub_tensor.sum(), tensor.sum());
 }
 
+TEST(Tensor_test, SetValuesOfSubTensorTestOneAxisLastDimOne) {
+    Tensor tensor = Tensor({ 2, 3, 1 });
+    Tensor sub_tensor = Tensor({ 2 });
+
+    tensor *= 0.0f;
+
+    sub_tensor.setValues({
+        1.0f,  2.0f
+    });
+
+    tensor.setValuesOfSubTensor({ {{ 0 }}, {{ 0, 2 }}, {{ 0 }} }, sub_tensor);
+
+    ASSERT_EQ( 1.0f, tensor.getValue({ 0, 0, 0 }));
+    ASSERT_EQ( 2.0f, tensor.getValue({ 0, 1, 0 }));
+
+    ASSERT_EQ(sub_tensor.sum(), tensor.sum());
+}
+
 TEST(Tensor_test, SetValuesOfSubTensorTestTwoAxesFirstAxis) {
     Tensor tensor = Tensor({ 2, 3, 4 });
     Tensor sub_tensor = Tensor({ 3, 4 });

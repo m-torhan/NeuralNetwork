@@ -89,6 +89,9 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 			while (layer != _input_layer) {
 				layer = layer->getPrevLayer();
+				std::vector<uint32_t> dx_new_shape = layer->getOutputShape();
+				dx_new_shape.insert(dx_new_shape.begin(), dx.getShape()[0]);
+				dx = dx.reshape(dx_new_shape);
 				dx = layer->backwardPropagation(dx);
 			}
 
@@ -104,6 +107,7 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 				printf(" ");
 				print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()) * (total - done) / done);
 				printf(" train cost: %f", train_cost / batch_count);
+				fflush(stdout);
 			}
 
 			updateLayersWeights(learning_step);

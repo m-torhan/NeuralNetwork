@@ -2,7 +2,13 @@
 
 Conv2DLayer::Conv2DLayer(std::vector<uint32_t> input_shape, uint32_t filters_count, uint32_t filter_size) : Layer() {
 	_input_shape = input_shape;
-	_output_shape = input_shape;
+	if (2 == _input_shape.size()) {
+		_input_shape.push_back(1);
+	}
+	else if (3 != _input_shape.size()) {
+		// exception
+	}
+	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;
 	_filters_count = filters_count;
 	_filter_size = filter_size;
@@ -11,6 +17,12 @@ Conv2DLayer::Conv2DLayer(std::vector<uint32_t> input_shape, uint32_t filters_cou
 
 Conv2DLayer::Conv2DLayer(Layer& prev_layer, uint32_t filters_count, uint32_t filter_size) : Layer() {
 	_input_shape = prev_layer.getOutputShape();
+	if (2 == _input_shape.size()) {
+		_input_shape.push_back(1);
+	}
+	else if (3 != _input_shape.size()) {
+		// exception
+	}
 	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;
 	_filters_count = filters_count;
