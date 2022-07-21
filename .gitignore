@@ -2,6 +2,8 @@
 src/Build/*
 tests/unit_tests/Build*
 tests/performance_tests/Build*
+applications/*/Build*
+applications/*/data*
 Build/_deps/*
 Build/cmake/*
 Build/CMakeFiles/*

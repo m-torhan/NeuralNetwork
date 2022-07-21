@@ -11,6 +11,7 @@
 #define TIME_DIFF_SEC(t_start, t_end) (float(t_end - t_start) / (CLOCKS_PER_SEC * 1000LL))
 
 struct FitHistory {
+	uint32_t length;
 	float* train_cost;
 	float* test_cost;
 };

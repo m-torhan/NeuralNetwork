@@ -46,8 +46,10 @@ const Tensor NeuralNetwork::predict(const Tensor& input) {
 FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, uint8_t verbose) {
 	FitHistory result;
 	Layer* layer;
-	uint32_t epoch = 0;
-	uint32_t batch_start = 0;
+	uint32_t epoch{ 0 };
+	uint32_t batch_start{ 0 };
+
+	result.length = epochs;
 
 	result.test_cost = (float*)malloc(sizeof(float) * epochs);
 	if (!result.test_cost) {
@@ -66,9 +68,9 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 		free(permutation);
 
-		float train_cost = 0;
-		float test_cost = 0;
-		uint32_t batch_count = 0;
+		float train_cost{ 0.0f };
+		float test_cost{ 0.0f };
+		uint32_t batch_count{ 0 };
 
 
 		double train_start = perf_counter_ns();
@@ -111,8 +113,18 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			}
 
 			updateLayersWeights(learning_step);
+
+		}
+		if (verbose >= 1) {
+			printf("\r%4d ", epoch + 1);
+			print_progress(1.0f);
+			printf(" ");
+			print_time(TIME_DIFF_SEC(train_start, perf_counter_ns()));
+			printf(" train cost: %f", train_cost / batch_count);
+			fflush(stdout);
 		}
 
+		result.train_cost[epoch] = train_cost / batch_count;
 
 		batch_count = 0;
 		uint32_t test_batch_size = batch_size < test_x.getShape()[0] ? batch_size : test_x.getShape()[0];
@@ -128,6 +140,8 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 		if (verbose >= 1) {
 			printf(" test cost: %f\n", test_cost / batch_count);
 		}
+
+		result.test_cost[epoch] = test_cost / batch_count;
 	}
 
 	return result;
