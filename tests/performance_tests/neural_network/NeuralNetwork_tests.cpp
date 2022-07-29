@@ -21,13 +21,13 @@ static void BM_NeuralNetworkPredict(benchmark::State& state) {
 		float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 		float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 
-		x_test.setValue(x, { i, 0 });
-		x_test.setValue(y, { i, 1 });
+		x_test[{ i, 0 }] = x;
+		x_test[{ i, 1 }] = y;
 
 		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
-		y_test.setValue(u, { i, 0 });
-		y_test.setValue(1 - u, { i, 1 });
+		y_test[{ i, 0 }] = u;
+		y_test[{ i, 1 }] = 1 - u;
 	}
 
 	auto layer_1 = DenseLayer({ 2 }, 16);
@@ -60,26 +60,26 @@ static void BM_NeuralNetworkFit(benchmark::State& state) {
 		float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 		float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 
-		x_train.setValue(x, { i, 0 });
-		x_train.setValue(y, { i, 1 });
+		x_train[{ i, 0 }] = x;
+		x_train[{ i, 1 }] = y;
 
 		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
-		y_train.setValue(u, { i, 0 });
-		y_train.setValue(1 - u, { i, 1 });
+		y_train[{ i, 0 }] = u;
+		y_train[{ i, 1 }] = 1 - u;
 	}
 
 	for (i = 0; i < x_test.getShape()[0]; ++i) {
 		float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 		float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 
-		x_test.setValue(x, { i, 0 });
-		x_test.setValue(y, { i, 1 });
+		x_test[{ i, 0 }] = x;
+		x_test[{ i, 1 }] = y;
 
 		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
-		y_test.setValue(u, { i, 0 });
-		y_test.setValue(1 - u, { i, 1 });
+		y_test[{ i, 0 }] = u;
+		y_test[{ i, 1 }] = 1 - u;
 	}
 
 	auto layer_1 = DenseLayer({ 2 }, 16);

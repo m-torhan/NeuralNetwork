@@ -22,31 +22,31 @@ int main() {
 
 	srand(time(NULL));
 	
-	// for (i = 0; i < x_train.getShape()[0]; ++i) {
-	// 	float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
-	// 	float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
+	for (i = 0; i < x_train.getShape()[0]; ++i) {
+		float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
+		float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 
-	// 	x_train.setValue(x, { i, 0 });
-	// 	x_train.setValue(y, { i, 1 });
+		x_train[{ i, 0 }] = x;
+		x_train[{ i, 1 }] = y;
 
-	// 	float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
+		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
-	// 	y_train.setValue(u, { i, 0 });
-	// 	y_train.setValue(1 - u, { i, 1 });
-	// }
+		y_train[{ i, 0 }] = u;
+		y_train[{ i, 1 }] = 1 - u;
+	}
 
-	// for (i = 0; i < x_test.getShape()[0]; ++i) {
-	// 	float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
-	// 	float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
+	for (i = 0; i < x_test.getShape()[0]; ++i) {
+		float x = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
+		float y = (static_cast<float>(rand()) / RAND_MAX) * 2 - 1;
 
-	// 	x_test.setValue(x, { i, 0 });
-	// 	x_test.setValue(y, { i, 1 });
+		x_test[{ i, 0 }] = x;
+		x_test[{ i, 1 }] = y;
 
-	// 	float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
+		float u = (x * x + y * y < (2.0f / 3.1415f)) ? 1.0f : 0.0f;
 
-	// 	y_test.setValue(u, { i, 0 });
-	// 	y_test.setValue(1 - u, { i, 1 });
-	// }
+		y_test[{ i, 0 }] = u;
+		y_test[{ i, 1 }] = 1 - u;
+	}
 
 	printf("Network init\n");
 
@@ -72,8 +72,10 @@ int main() {
 
 	float correct_1 = 0;
 	for (i = 0; i < y_test.getShape()[0]; ++i) {
-		if ((y_test.getValue({ i, 0 }) > y_test.getValue({ i, 1 }) && y_hat.getValue({ i, 0 }) > y_hat.getValue({ i, 1 })) ||
-			(y_test.getValue({ i, 0 }) < y_test.getValue({ i, 1 }) && y_hat.getValue({ i, 0 }) < y_hat.getValue({ i, 1 }))) {
+		if ((const_cast<const Tensor&>(y_test)[{ i, 0 }] > const_cast<const Tensor&>(y_test)[{ i, 1 }] &&
+		     const_cast<const Tensor&>(y_hat)[{ i, 0 }] > const_cast<const Tensor&>(y_hat)[{ i, 1 }]) ||
+			(const_cast<const Tensor&>(y_test)[{ i, 0 }] < const_cast<const Tensor&>(y_test)[{ i, 1 }] &&
+			 const_cast<const Tensor&>(y_hat)[{ i, 0 }] < const_cast<const Tensor&>(y_hat)[{ i, 1 }])) {
 			correct_1 += 1.0f;
 		}
 	}
@@ -86,8 +88,10 @@ int main() {
 
 	float correct_2 = 0;
 	for (i = 0; i < y_test.getShape()[0]; ++i) {
-		if ((y_test.getValue({ i, 0 }) > y_test.getValue({ i, 1 }) && y_hat.getValue({ i, 0 }) > y_hat.getValue({ i, 1 })) ||
-			(y_test.getValue({ i, 0 }) < y_test.getValue({ i, 1 }) && y_hat.getValue({ i, 0 }) < y_hat.getValue({ i, 1 }))) {
+		if ((const_cast<const Tensor&>(y_test)[{ i, 0 }] > const_cast<const Tensor&>(y_test)[{ i, 1 }] &&
+		     const_cast<const Tensor&>(y_hat)[{ i, 0 }] > const_cast<const Tensor&>(y_hat)[{ i, 1 }]) ||
+			(const_cast<const Tensor&>(y_test)[{ i, 0 }] < const_cast<const Tensor&>(y_test)[{ i, 1 }] &&
+			 const_cast<const Tensor&>(y_hat)[{ i, 0 }] < const_cast<const Tensor&>(y_hat)[{ i, 1 }])) {
 			correct_2 += 1.0f;
 		}
 	}

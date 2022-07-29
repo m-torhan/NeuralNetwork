@@ -13,7 +13,7 @@ endif(NOT WIN32)
 
 set(CMAKE_C_FLAGS "-m32")
 if("Release" STREQUAL ${CMAKE_BUILD_TYPE})
-    set(CMAKE_CXX_FLAGS "-g -O3 -Wall -m32")
+    set(CMAKE_CXX_FLAGS "-g -O0 -Wall -m32")
 else()
     set(CMAKE_CXX_FLAGS "-g -O0 -Wall -m32")
 endif()

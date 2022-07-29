@@ -65,7 +65,7 @@ int main(int argc , char** argv) {
 
     // dense model
 
-    auto layer_dense_1 = DenseLayer({ 28, 28, 1 }, 64);
+    auto layer_dense_1 = DenseLayer({ 28, 28, 1 }, 128);
 	auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
     auto layer_dense_2 = DenseLayer(layer_relu_1, 64);
 	auto layer_relu_2 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
@@ -104,78 +104,48 @@ int main(int argc , char** argv) {
 
     nn.summary();
 
-    auto history = nn.fit(
+    nn.fit(
         train_data, train_labels,
         test_data, test_labels,
         256,
-        32,
+        8,
         0.01f);
 
-    float min_val = 100000.0f;;
-    float max_val = 0.0f;
-
-    for (uint32_t i{ 0 }; i < history.length; ++i) {
-        if (history.train_cost[i] < min_val) {
-            min_val = history.train_cost[i];
-        }
-        if (history.test_cost[i] < min_val) {
-            min_val = history.test_cost[i];
-        }
-        if (history.train_cost[i] > max_val) {
-            max_val = history.train_cost[i];
-        }
-        if (history.test_cost[i] > max_val) {
-            max_val = history.test_cost[i];
-        }
-    }
-
-    float val_range = max_val - min_val;
-
-    min_val -= val_range*0.1f;
-    max_val += val_range*0.1f;
-
-    constexpr uint32_t graph_height{ 32 };
-    char graph[graph_height][history.length + 1];
-
-    for (uint32_t x{ 0 }; x < history.length; ++x) {
-        for (uint32_t y{ 0 }; y < graph_height; ++y) {
-            graph[y][x] = ' ';
-        }
-    }
-    for (uint32_t y{ 0 }; y < graph_height; ++y) {
-        graph[y][history.length] = 0;
-    }
-    
-    for (uint32_t x{ 0 }; x < history.length; ++x) {
-        graph[static_cast<int>(graph_height*(1 - (history.test_cost[x] - min_val)/(max_val - min_val)))][x] = 'x';
-        graph[static_cast<int>(graph_height*(1 - (history.train_cost[x] - min_val)/(max_val - min_val)))][x] = 'y';
-    }
-
-    for (uint32_t y{ 0 }; y < graph_height; ++y) {
-        printf("%s\n", graph[y]);
-    }
-    
     uint32_t valid_cnt{ 0 };
 
     constexpr uint32_t batch_size{ 256 };
 
     for (uint32_t i{ 0 }; (i + 1) <= (test_data.getShape()[0]/batch_size); ++i) {
-        Tensor batch_x = test_data.slice(0, i*batch_size, (i + 1)*batch_size);
-        Tensor batch_y = test_labels.slice(0, i*batch_size, (i + 1)*batch_size);
+        std::vector<std::vector<uint32_t>> slice_vector_x;
+        for (uint32_t i{ 0 }; i < test_data.getDim(); ++i) {
+            slice_vector_x.push_back({});
+        }
+        slice_vector_x[0].push_back(i*batch_size);
+        slice_vector_x[0].push_back((i + 1)*batch_size);
+        
+        std::vector<std::vector<uint32_t>> slice_vectory;
+        for (uint32_t i{ 0 }; i < test_labels.getDim(); ++i) {
+            slice_vectory.push_back({});
+        }
+        slice_vectory[0].push_back(i*batch_size);
+        slice_vectory[0].push_back((i + 1)*batch_size);
 
-        Tensor pred_label = nn.predict(batch_x);
+        const Tensor batch_x = const_cast<const Tensor&>(test_data)[slice_vector_x];
+        const Tensor batch_y = const_cast<const Tensor&>(test_labels)[slice_vectory];
+
+        const Tensor pred_label = nn.predict(batch_x);
 
         for (uint32_t j{ 0 }; j < batch_size; ++j) {
             float max_val{ -1.0f };
             uint32_t max_idx{ 0 };
             for (uint32_t k{ 0 }; k < pred_label.getShape()[1]; ++k)
             {
-                if (max_val < 0 || max_val < pred_label.getValue({ j, k })) {
-                    max_val = pred_label.getValue({ j, k });
+                if (max_val < 0 || max_val < pred_label[{ j, k }]) {
+                    max_val = pred_label[{ j, k }];
                     max_idx = k;
                 }
             }
-            if (batch_y.getValue({ j, max_idx }) > 0.0f) {
+            if (batch_y[{ j, max_idx }] > 0.0f) {
                 ++valid_cnt;
             }
         }
@@ -200,11 +170,11 @@ int read_data(const char* file_name, Tensor& data, Tensor& labels) {
                 auto numbers = std::vector<uint32_t>(std::istream_iterator<uint32_t>(is),
                                                         std::istream_iterator<uint32_t>());
                 
-                labels.setValue(1.0f, { i, numbers[0] });
+                labels[{ i, numbers[0] }] = 1.0f;
 
                 for (uint32_t x = 0; x < image_size; ++x) {
                     for (uint32_t y = 0; y < image_size; ++y) {
-                        data.setValue(static_cast<float>(numbers[1 + x*image_size + y])/255.0f, { i, x, y, 0 });
+                        data[{ i, x, y, 0 }] = static_cast<float>(numbers[1 + x*image_size + y])/255.0f;
                     }
                 }
             }

@@ -18,7 +18,7 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageForwardPropagation) {
          8.0f, 14.0f, 15.0f, -3.0f
         });
 
-    Tensor result = layer.forwardPropagation(tensor);
+    const Tensor result = layer.forwardPropagation(tensor);
     
     ASSERT_EQ( 4, result.getDim());
     ASSERT_EQ( 2, result.getShape()[0]);
@@ -26,14 +26,14 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageForwardPropagation) {
     ASSERT_EQ( 2, result.getShape()[2]);
     ASSERT_EQ( 1, result.getShape()[3]);
 
-    ASSERT_EQ(   3.5f, result.getValue({ 0, 0, 0, 0 }));
-    ASSERT_EQ(   5.5f, result.getValue({ 0, 0, 1, 0 }));
-    ASSERT_EQ(  11.5f, result.getValue({ 0, 1, 0, 0 }));
-    ASSERT_EQ(  13.5f, result.getValue({ 0, 1, 1, 0 }));
-    ASSERT_EQ(   4.5f, result.getValue({ 1, 0, 0, 0 }));
-    ASSERT_EQ( 12.25f, result.getValue({ 1, 0, 1, 0 }));
-    ASSERT_EQ(  10.5f, result.getValue({ 1, 1, 0, 0 }));
-    ASSERT_EQ(  7.25f, result.getValue({ 1, 1, 1, 0 }));
+    ASSERT_EQ(   3.5f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ(   5.5f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ(  11.5f, (result[{ 0, 1, 0, 0 }]));
+    ASSERT_EQ(  13.5f, (result[{ 0, 1, 1, 0 }]));
+    ASSERT_EQ(   4.5f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ( 12.25f, (result[{ 1, 0, 1, 0 }]));
+    ASSERT_EQ(  10.5f, (result[{ 1, 1, 0, 0 }]));
+    ASSERT_EQ(  7.25f, (result[{ 1, 1, 1, 0 }]));
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerAverageBackwardPropagation) {
@@ -62,7 +62,7 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageBackwardPropagation) {
     });
 
     layer.forwardPropagation(tensor);
-    Tensor result = layer.backwardPropagation(tensor_d);
+    const Tensor result = layer.backwardPropagation(tensor_d);
     
     ASSERT_EQ( 4, result.getDim());
     ASSERT_EQ( 2, result.getShape()[0]);
@@ -70,18 +70,18 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageBackwardPropagation) {
     ASSERT_EQ( 4, result.getShape()[2]);
     ASSERT_EQ( 1, result.getShape()[3]);
     
-    ASSERT_EQ_EPS(     2.0f, result.getValue({ 0, 0, 0, 0 }));
-    ASSERT_EQ_EPS(     4.0f, result.getValue({ 0, 0, 1, 0 }));
-    ASSERT_EQ_EPS(     6.0f, result.getValue({ 0, 0, 2, 0 }));
-    ASSERT_EQ_EPS(     8.0f, result.getValue({ 0, 0, 3, 0 }));
-    ASSERT_EQ_EPS( -1.7778f, result.getValue({ 1, 0, 0, 0 }));
-    ASSERT_EQ_EPS(     0.0f, result.getValue({ 1, 0, 1, 0 }));
-    ASSERT_EQ_EPS(  3.8775f, result.getValue({ 1, 0, 2, 0 }));
-    ASSERT_EQ_EPS(  4.0816f, result.getValue({ 1, 0, 3, 0 }));
-    ASSERT_EQ_EPS(  7.6191f, result.getValue({ 1, 3, 0, 0 }));
-    ASSERT_EQ_EPS( 13.3333f, result.getValue({ 1, 3, 1, 0 }));
-    ASSERT_EQ_EPS( -6.2069f, result.getValue({ 1, 3, 2, 0 }));
-    ASSERT_EQ_EPS(  1.2414f, result.getValue({ 1, 3, 3, 0 }));
+    ASSERT_EQ_EPS(     2.0f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(     4.0f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ_EPS(     6.0f, (result[{ 0, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(     8.0f, (result[{ 0, 0, 3, 0 }]));
+    ASSERT_EQ_EPS( -1.7778f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(     0.0f, (result[{ 1, 0, 1, 0 }]));
+    ASSERT_EQ_EPS(  3.8775f, (result[{ 1, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(  4.0816f, (result[{ 1, 0, 3, 0 }]));
+    ASSERT_EQ_EPS(  7.6191f, (result[{ 1, 3, 0, 0 }]));
+    ASSERT_EQ_EPS( 13.3333f, (result[{ 1, 3, 1, 0 }]));
+    ASSERT_EQ_EPS( -6.2069f, (result[{ 1, 3, 2, 0 }]));
+    ASSERT_EQ_EPS(  1.2414f, (result[{ 1, 3, 3, 0 }]));
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagation) {
@@ -100,7 +100,7 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagation) {
          8.0f, 14.0f, 15.0f, -3.0f
         });
 
-    Tensor result = layer.forwardPropagation(tensor);
+    const Tensor result = layer.forwardPropagation(tensor);
 
     ASSERT_EQ( 4, result.getDim());
     ASSERT_EQ( 2, result.getShape()[0]);
@@ -108,14 +108,14 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagation) {
     ASSERT_EQ( 2, result.getShape()[2]);
     ASSERT_EQ( 1, result.getShape()[3]);
 
-    ASSERT_EQ(  6.0f, result.getValue({ 0, 0, 0, 0 }));
-    ASSERT_EQ(  8.0f, result.getValue({ 0, 0, 1, 0 }));
-    ASSERT_EQ( 14.0f, result.getValue({ 0, 1, 0, 0 }));
-    ASSERT_EQ( 16.0f, result.getValue({ 0, 1, 1, 0 }));
-    ASSERT_EQ( 21.0f, result.getValue({ 1, 0, 0, 0 }));
-    ASSERT_EQ( 20.0f, result.getValue({ 1, 0, 1, 0 }));
-    ASSERT_EQ( 14.0f, result.getValue({ 1, 1, 0, 0 }));
-    ASSERT_EQ( 16.0f, result.getValue({ 1, 1, 1, 0 }));
+    ASSERT_EQ(  6.0f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ(  8.0f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ( 14.0f, (result[{ 0, 1, 0, 0 }]));
+    ASSERT_EQ( 16.0f, (result[{ 0, 1, 1, 0 }]));
+    ASSERT_EQ( 21.0f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ( 20.0f, (result[{ 1, 0, 1, 0 }]));
+    ASSERT_EQ( 14.0f, (result[{ 1, 1, 0, 0 }]));
+    ASSERT_EQ( 16.0f, (result[{ 1, 1, 1, 0 }]));
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerMaxBackwardPropagation) {
@@ -144,7 +144,7 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxBackwardPropagation) {
     });
 
     layer.forwardPropagation(tensor);
-    Tensor result = layer.backwardPropagation(tensor_d);
+    const Tensor result = layer.backwardPropagation(tensor_d);
     
     ASSERT_EQ( 4, result.getDim());
     ASSERT_EQ( 2, result.getShape()[0]);
@@ -152,18 +152,18 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxBackwardPropagation) {
     ASSERT_EQ( 4, result.getShape()[2]);
     ASSERT_EQ( 1, result.getShape()[3]);
 
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 0, 0, 0, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 0, 0, 1, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 0, 0, 2, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 0, 0, 3, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 0, 0, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 0, 1, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 0, 2, 0 }));
-    ASSERT_EQ_EPS(  2.5f, result.getValue({ 1, 0, 3, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 3, 0, 0 }));
-    ASSERT_EQ_EPS( 10.0f, result.getValue({ 1, 3, 1, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 3, 2, 0 }));
-    ASSERT_EQ_EPS(  0.0f, result.getValue({ 1, 3, 3, 0 }));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 0, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 0, 0, 3, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 0, 1, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(  2.5f, (result[{ 1, 0, 3, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 3, 0, 0 }]));
+    ASSERT_EQ_EPS( 10.0f, (result[{ 1, 3, 1, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 3, 2, 0 }]));
+    ASSERT_EQ_EPS(  0.0f, (result[{ 1, 3, 3, 0 }]));
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagationTensorWithChannels) {
@@ -182,7 +182,7 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagationTensorWithChannels) {
          8.0f, 14.0f,   15.0f, -3.0f,   15.0f, -3.0f,    7.0f,  1.0f
         });
 
-    Tensor result = layer.forwardPropagation(tensor);
+    const Tensor result = layer.forwardPropagation(tensor);
 
     ASSERT_EQ( 4, result.getDim());
     ASSERT_EQ( 2, result.getShape()[0]);
@@ -190,20 +190,20 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagationTensorWithChannels) {
     ASSERT_EQ( 2, result.getShape()[2]);
     ASSERT_EQ( 2, result.getShape()[3]);
 
-    ASSERT_EQ( 11.0f, result.getValue({ 0, 0, 0, 0 }));
-    ASSERT_EQ( 12.0f, result.getValue({ 0, 0, 0, 1 }));
-    ASSERT_EQ( 15.0f, result.getValue({ 0, 0, 1, 0 }));
-    ASSERT_EQ( 16.0f, result.getValue({ 0, 0, 1, 1 }));
-    ASSERT_EQ( 11.0f, result.getValue({ 0, 1, 0, 0 }));
-    ASSERT_EQ( 12.0f, result.getValue({ 0, 1, 0, 1 }));
-    ASSERT_EQ( 15.0f, result.getValue({ 0, 1, 1, 0 }));
-    ASSERT_EQ( 16.0f, result.getValue({ 0, 1, 1, 1 }));
-    ASSERT_EQ( 21.0f, result.getValue({ 1, 0, 0, 0 }));
-    ASSERT_EQ( 20.0f, result.getValue({ 1, 0, 0, 1 }));
-    ASSERT_EQ( 21.0f, result.getValue({ 1, 0, 1, 0 }));
-    ASSERT_EQ( 20.0f, result.getValue({ 1, 0, 1, 1 }));
-    ASSERT_EQ( 15.0f, result.getValue({ 1, 1, 0, 0 }));
-    ASSERT_EQ( 16.0f, result.getValue({ 1, 1, 0, 1 }));
-    ASSERT_EQ( 19.0f, result.getValue({ 1, 1, 1, 0 }));
-    ASSERT_EQ( 20.0f, result.getValue({ 1, 1, 1, 1 }));
+    ASSERT_EQ( 11.0f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ( 12.0f, (result[{ 0, 0, 0, 1 }]));
+    ASSERT_EQ( 15.0f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ( 16.0f, (result[{ 0, 0, 1, 1 }]));
+    ASSERT_EQ( 11.0f, (result[{ 0, 1, 0, 0 }]));
+    ASSERT_EQ( 12.0f, (result[{ 0, 1, 0, 1 }]));
+    ASSERT_EQ( 15.0f, (result[{ 0, 1, 1, 0 }]));
+    ASSERT_EQ( 16.0f, (result[{ 0, 1, 1, 1 }]));
+    ASSERT_EQ( 21.0f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ( 20.0f, (result[{ 1, 0, 0, 1 }]));
+    ASSERT_EQ( 21.0f, (result[{ 1, 0, 1, 0 }]));
+    ASSERT_EQ( 20.0f, (result[{ 1, 0, 1, 1 }]));
+    ASSERT_EQ( 15.0f, (result[{ 1, 1, 0, 0 }]));
+    ASSERT_EQ( 16.0f, (result[{ 1, 1, 0, 1 }]));
+    ASSERT_EQ( 19.0f, (result[{ 1, 1, 1, 0 }]));
+    ASSERT_EQ( 20.0f, (result[{ 1, 1, 1, 1 }]));
 }

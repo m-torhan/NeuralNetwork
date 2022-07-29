@@ -84,65 +84,64 @@ void Conv2DLayer::updateWeights(float learning_step) {
 }
 
 const Tensor Conv2DLayer::forwardPropagation(const Tensor& x) {
-	_cached_input = Tensor(x);
+	_cached_input = x;
 
 	std::vector<uint32_t> x_next_shape = _output_shape;
 	x_next_shape.insert(x_next_shape.begin(), x.getShape()[0]);
 
-	Tensor x_next = Tensor(x_next_shape);
+	Tensor x_next(x_next_shape);
 
 	for (uint32_t i{ 0 }; i < x.getShape()[0]; ++i) {
-		Tensor sub_tensor_x = x.getSubTensor({ i, WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS });
-    	Tensor sub_tensor_x_next = sub_tensor_x.addPadding({ 0, 1 }, { Both, Both }, { (_filter_size - 1) / 2, (_filter_size - 1) / 2 }).Conv2D(_weights) + _biases;
-		x_next.setValuesOfSubTensor({i, WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS }, sub_tensor_x_next);
+		Tensor sub_tensor_x = x[{ {{ i }}, {}, {}, {} }];
+    	Tensor sub_tensor_x_next = sub_tensor_x.addPadding(
+			{ 0, 1 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 }).conv2D(_weights) + _biases;
+		x_next[{ {{ i }}, {}, {}, {} }] = sub_tensor_x_next;
 	}
 
-	_cached_output = Tensor(x_next);
+	_cached_output = x_next;
 
 	return x_next;
 }
 
 const Tensor Conv2DLayer::backwardPropagation(const Tensor& dx) {
-	Tensor dx_prev = Tensor(_cached_input);
+	Tensor dx_prev(_cached_input);
 	dx_prev *= 0.0f;
 
 	_samples += _cached_input.getShape()[0];
 
-	Tensor weights_d = Tensor(_weights.getShape());
+	Tensor weights_d(_weights.getShape());
 	weights_d *= 0.0f;
-	Tensor biases_d = Tensor(_biases.getShape());
+	Tensor biases_d(_biases.getShape());
 	biases_d *= 0.0f;
 
-	uint32_t padding_size = (_filter_size - 1) / 2;
+	uint32_t padding_size = (_filter_size - 1) >> 1;
 
 	for (uint32_t i{ 0 }; i < dx.getShape()[0]; ++i) {
-		Tensor cached_input_pad = _cached_input.getSubTensor({ i, WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS })
-											   .addPadding({ 0, 1 }, { Both, Both }, { padding_size, padding_size });
-		Tensor dx_prev_pad = dx_prev.getSubTensor({i, WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS})
-									.addPadding({ 0, 1 }, { Both, Both }, { padding_size, padding_size });
+		const Tensor cached_input_pad = const_cast<const Tensor&>(_cached_input)[{ {{ i }}, {}, {}, {} }].addPadding(
+			{ 0, 1 }, { Both, Both }, { padding_size, padding_size });
+		Tensor dx_prev_pad = const_cast<const Tensor&>(dx_prev)[{ {{ i }}, {}, {}, {} }].addPadding(
+			{ 0, 1 }, { Both, Both }, { padding_size, padding_size });
 
 		for (uint32_t h{ 0 }; h < dx.getShape()[1]; ++h) {
 			for (uint32_t w{ 0 }; w < dx.getShape()[2]; ++w) {
 				for (uint32_t c{ 0 }; c < dx.getShape()[3]; ++c) {
-					Tensor sub_tensor = dx_prev_pad.getSubTensor({ { h, h + _filter_size }, { w, w + _filter_size }, {} });
-					sub_tensor += _weights.getSubTensor({ WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS, c }) * dx.getValue({ i, h, w, c });
-					dx_prev_pad.setValuesOfSubTensor({ { h, h + _filter_size }, { w, w + _filter_size }, {} }, sub_tensor);
+					Tensor sub_tensor = const_cast<const Tensor&>(dx_prev_pad)[{ { h, h + _filter_size }, { w, w + _filter_size }, {} }];
+					sub_tensor += const_cast<const Tensor&>(_weights)[{ {}, {}, {}, {{c}} }]*dx[{ i, h, w, c }];
+					dx_prev_pad[{ { h, h + _filter_size }, { w, w + _filter_size }, {} }] = sub_tensor;
 
-					sub_tensor = weights_d.getSubTensor({ WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS, c });
-					sub_tensor += cached_input_pad.getSubTensor({ { h, h + _filter_size }, { w, w + _filter_size }, {} }) * dx.getValue({ i, h, w, c });
-					weights_d.setValuesOfSubTensor({ WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS, c }, sub_tensor);
+					sub_tensor = const_cast<const Tensor&>(weights_d)[{ {}, {}, {}, {{c}} }];
+					sub_tensor += cached_input_pad[{ { h, h + _filter_size }, { w, w + _filter_size }, {} }]*dx[{ i, h, w, c }];
+					weights_d[{ {}, {}, {}, {{c}} }] = sub_tensor;
 
-					float bias_c = biases_d.getValue({ c });
-					bias_c += dx.getValue({ i, h, w, c });
-					biases_d.setValue(bias_c, { c });
+					biases_d[std::vector<uint32_t>({ c })] = const_cast<const Tensor&>(biases_d)[{ c }] + dx[{ i, h, w, c }];
 				}
 			}
 		}
 
-		dx_prev.setValuesOfSubTensor({ i, WHOLE_AXIS, WHOLE_AXIS, WHOLE_AXIS },
-									 dx_prev_pad.getSubTensor({ { (_filter_size - 1) / 2, dx_prev_pad.getShape()[0] - (_filter_size - 1) / 2 },
-									 							{ (_filter_size - 1) / 2, dx_prev_pad.getShape()[1] - (_filter_size - 1) / 2 },
-																{} }));
+		dx_prev[{ {{i}}, {}, {}, {}}] = const_cast<const Tensor&>(dx_prev_pad)[{
+			{ (_filter_size - 1) / 2, dx_prev_pad.getShape()[0] - (_filter_size - 1) / 2 },
+			{ (_filter_size - 1) / 2, dx_prev_pad.getShape()[1] - (_filter_size - 1) / 2 },
+			{} }];
 	}
 
 	_cached_weights_d += weights_d;

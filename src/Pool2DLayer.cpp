@@ -28,8 +28,8 @@ Pool2DLayer::Pool2DLayer(std::vector<uint32_t> input_shape, int32_t pool_size, P
             _pool_function_d = pool_max_d;
             break;
         case PoolMode::Average:
-            _pool_function = pool_average;
-            _pool_function_d = pool_average_d;
+            _pool_function = pool_mean;
+            _pool_function_d = pool_mean_d;
             break;
     }
 }
@@ -65,8 +65,8 @@ Pool2DLayer::Pool2DLayer(Layer& prev_layer, int32_t pool_size, PoolMode pool_mod
             _pool_function_d = pool_max_d;
             break;
         case PoolMode::Average:
-            _pool_function = pool_average;
-            _pool_function_d = pool_average_d;
+            _pool_function = pool_mean;
+            _pool_function_d = pool_mean_d;
             break;
     }
 }
@@ -85,7 +85,7 @@ const Tensor Pool2DLayer::forwardPropagation(const Tensor& x) {
         new_shape[0] *= x_shape[i];
     }
 
-    Tensor reshaped_x = x.reshape(new_shape);
+    const Tensor reshaped_x = x.reshape(new_shape);
 
     std::vector<uint32_t> reshaped_result_shape = new_shape;
     reshaped_result_shape[1] /= _pool_size;
@@ -96,13 +96,12 @@ const Tensor Pool2DLayer::forwardPropagation(const Tensor& x) {
         for (uint32_t x = 0; x < reshaped_result_shape[1]; ++x) {
             for (uint32_t y = 0; y < reshaped_result_shape[2]; ++y) {
                 for (uint32_t c = 0; c < reshaped_result_shape[3]; ++c) {
-                    reshaped_result.setValue(
-                        _pool_function(reshaped_x.getSubTensor(
+                    reshaped_result[{ i, x, y, c }] =
+                        _pool_function(reshaped_x[
                             { { i },
                             { _pool_size*x, _pool_size*(x + 1) },
                             { _pool_size*y, _pool_size*(y + 1) },
-                            { c }})).getValue(),
-                        { i, x, y, c });
+                            { c }}]);
                 }
             }
         }
@@ -134,29 +133,25 @@ const Tensor Pool2DLayer::backwardPropagation(const Tensor& dx) {
     reshaped_result_shape[2] /= _pool_size;
     Tensor reshaped_result = Tensor(new_shape);
 
-    Tensor reshaped_cached_input = _cached_input.reshape(new_shape);
-    Tensor reshaped_dx = dx.reshape(reshaped_result_shape);
+    const Tensor reshaped_cached_input = _cached_input.reshape(new_shape);
+    const Tensor reshaped_dx = dx.reshape(reshaped_result_shape);
     
     for (uint32_t i = 0; i < reshaped_result_shape[0]; ++i) {
         for (uint32_t x = 0; x < reshaped_result_shape[1]; ++x) {
             for (uint32_t y = 0; y < reshaped_result_shape[2]; ++y) {
                 for (uint32_t c = 0; c < reshaped_result_shape[3]; ++c) {
-                    reshaped_result.setValuesOfSubTensor(
+                    reshaped_result[
                         { { i },
                           { _pool_size*x, _pool_size*(x + 1) },
                           { _pool_size*y, _pool_size*(y + 1) },
-                          { c }},
+                          { c }}] =
                         _pool_function_d(
-                            reshaped_cached_input.getSubTensor(
+                            reshaped_cached_input[
                                 { { i },
                                   { _pool_size*x, _pool_size*(x + 1) },
                                   { _pool_size*y, _pool_size*(y + 1) },
-                                  { c }}),
-                            reshaped_dx.getSubTensor(
-                                { {{ i }},
-                                  {{ x }},
-                                  {{ y }},
-                                  {{ c }} })));
+                                  { c }}],
+                            reshaped_dx[{ i, x, y, c }]);
                 }
             }
         }
@@ -193,21 +188,18 @@ uint32_t Pool2DLayer::getParamsCount() const {
     return 0;
 }
 
-const Tensor Pool2DLayer::pool_max(const Tensor& x) {
-    Tensor result = Tensor();
-    result.setValue(x.max());
-    return result;
+float Pool2DLayer::pool_max(const Tensor& x) {
+    return x.max();
 }
 
-const Tensor Pool2DLayer::pool_max_d(const Tensor& x, const Tensor& dx) {
+const Tensor Pool2DLayer::pool_max_d(const Tensor& x, float dx) {
     float max = x.max();
     Tensor result = x;
 
-    std::vector x_data = x.getData();
-    float dx_value = dx.getValue();
+    std::vector<float> x_data = x.getData();
 
     std::transform(x_data.begin(), x_data.end(), x_data.begin(),
-        [max, dx_value] (float x) {return x == max ? dx_value : 0.0f;});
+        [max, dx] (float x) {return x == max ? dx : 0.0f;});
 
     float c = 0.0f;
     for (auto v : x_data) {
@@ -226,12 +218,10 @@ const Tensor Pool2DLayer::pool_max_d(const Tensor& x, const Tensor& dx) {
     return result;
 }
 
-const Tensor Pool2DLayer::pool_average(const Tensor& x) {
-    Tensor result = Tensor();
-    result.setValue(x.average());
-    return result;
+float Pool2DLayer::pool_mean(const Tensor& x) {
+    return x.mean();
 }
 
-const Tensor Pool2DLayer::pool_average_d(const Tensor& x, const Tensor& dx) {
-    return (x/x.average())*dx.getValue();
+const Tensor Pool2DLayer::pool_mean_d(const Tensor& x, float dx) {
+    return (x/x.mean())*dx;
 }

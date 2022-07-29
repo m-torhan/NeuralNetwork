@@ -2,6 +2,7 @@
 #include "src/NeuralNetwork.h"
 #include "src/ActivationLayer.h"
 #include "src/DenseLayer.h"
+#include "tests/unit_tests/UnitTestsUtils.h"
 
 TEST(NeuralNetwork_test, BinaryCrossentropyTest) {
     Tensor y = Tensor({ 2, 2 });
@@ -18,7 +19,7 @@ TEST(NeuralNetwork_test, BinaryCrossentropyTest) {
         });
 
     float result = NeuralNetwork::binary_crossentropy(y_hat, y);
-    Tensor result_d = NeuralNetwork::binary_crossentropy_d(y_hat, y);
+    const Tensor result_d = NeuralNetwork::binary_crossentropy_d(y_hat, y);
 
     ASSERT_TRUE(fabs(0.83766f - result) < 0.001f);
 
@@ -26,10 +27,10 @@ TEST(NeuralNetwork_test, BinaryCrossentropyTest) {
     ASSERT_EQ(2, (int)result_d.getShape()[0]);
     ASSERT_EQ(2, (int)result_d.getShape()[1]);
 
-    ASSERT_TRUE(fabs(-4.99999f - result_d.getValue({ 0, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.0f - result_d.getValue({ 0, 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(1.03199f - result_d.getValue({ 1, 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(-0.59185f - result_d.getValue({ 1, 1 })) < 0.001f);
+    ASSERT_EQ_EPS(-4.99999f, (result_d[{ 0, 0 }]));
+    ASSERT_EQ_EPS(0.0f,      (result_d[{ 0, 1 }]));
+    ASSERT_EQ_EPS(1.03199f,  (result_d[{ 1, 0 }]));
+    ASSERT_EQ_EPS(-0.59185f, (result_d[{ 1, 1 }]));
 }
 
 TEST(NeuralNetwork_test, PredictShouldReturnTensor) {
@@ -47,16 +48,16 @@ TEST(NeuralNetwork_test, PredictShouldReturnTensor) {
 
     NeuralNetwork nn = NeuralNetwork(layer_1, layer_3, nullptr, nullptr);
 
-    Tensor result = nn.predict(tensor);
+    const Tensor result = nn.predict(tensor);
 
     ASSERT_EQ(2, (int)result.getDim());
     ASSERT_EQ(2, (int)result.getShape()[0]);
     ASSERT_EQ(2, (int)result.getShape()[1]);
 
-    ASSERT_EQ(   1.0f, result.getValue({ 0, 0 }));
-    ASSERT_EQ( 256.0f, result.getValue({ 0, 1 }));
-    ASSERT_EQ(6561.0f, result.getValue({ 1, 0 }));
-    ASSERT_EQ(   1.0f, result.getValue({ 1, 1 }));
+    ASSERT_EQ(   1.0f, (result[{ 0, 0 }]));
+    ASSERT_EQ( 256.0f, (result[{ 0, 1 }]));
+    ASSERT_EQ(6561.0f, (result[{ 1, 0 }]));
+    ASSERT_EQ(   1.0f, (result[{ 1, 1 }]));
 }
 
 TEST(NeuralNetwork_test, FitShouldDecreaseCost) {
@@ -71,25 +72,25 @@ TEST(NeuralNetwork_test, FitShouldDecreaseCost) {
         float x = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
         float y = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
 
-        x_train.setValue(x, { i, 0 });
-        x_train.setValue(y, { i, 1 });
+        x_train[{ i, 0 }] = x;
+        x_train[{ i, 1 }] = y;
 
         float u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
 
-        y_train.setValue(u, { i, 0 });
-        y_train.setValue(1.0f - u, { i, 1 });
+        y_train[{ i, 0 }] = u;
+        y_train[{ i, 1 }] = 1.0f - u;
     }
     for (uint32_t i = 0; i < x_test.getShape()[0]; ++i) {
         float x = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
         float y = static_cast<float>(rand() % 256) / 128.0f - 1.0f;
 
-        x_test.setValue(x, { i, 0 });
-        x_test.setValue(y, { i, 1 });
+        x_test[{ i, 0 }] = x;
+        x_test[{ i, 1 }] = y;
 
         float u = (x * x + y * y < 0.798f * 0.798f) ? 1.0f : 0.0f;
 
-        y_test.setValue(u, { i, 0 });
-        y_test.setValue(1.0f - u, { i, 1 });
+        y_test[{ i, 0 }] = u;
+        y_test[{ i, 1 }] = 1.0f - u;
     }
 
     auto layer_1 = ActivationLayer({ 2 }, ActivationFun::ReLU);

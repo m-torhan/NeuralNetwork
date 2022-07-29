@@ -25,11 +25,11 @@ public:
 
 private:
 	uint32_t _pool_size;
-	const Tensor (*_pool_function)(const Tensor& x);
-	const Tensor (*_pool_function_d)(const Tensor& x, const Tensor& dx);
+	float (*_pool_function)(const Tensor& x);
+	const Tensor (*_pool_function_d)(const Tensor& x, float dx);
 
-	static const Tensor pool_max(const Tensor& x);
-	static const Tensor pool_max_d(const Tensor& x, const Tensor& dx);
-	static const Tensor pool_average(const Tensor& x);
-	static const Tensor pool_average_d(const Tensor& x, const Tensor& dx);
+	static float pool_max(const Tensor& x);
+	static const Tensor pool_max_d(const Tensor& x, float dx);
+	static float pool_mean(const Tensor& x);
+	static const Tensor pool_mean_d(const Tensor& x, float dx);
 };

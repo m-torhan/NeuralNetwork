@@ -43,7 +43,7 @@
 
 		void SSE_vector_add(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_add(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
-		void SSE_tensor_add_scalar(const uint32_t n1, const float* v, const float* s, float* r);
+		void SSE_tensor_add_scalar(const uint32_t n, const float* v, const float* s, float* r);
 		
 		void SSE_vector_sub(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_sub(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
@@ -52,7 +52,7 @@
 
 		void SSE_vector_mul(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_mul(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
-		void SSE_tensor_mul_scalar(const uint32_t n1, const float* v, const float* s, float* r);
+		void SSE_tensor_mul_scalar(const uint32_t n, const float* v, const float* s, float* r);
 
 		void SSE_vector_div(const uint32_t n, const float* v1, const float* v2, float* r);
 		void SSE_tensor_div(const uint32_t n1, const float* v1, const uint32_t n2, const float* v2, float* r);
@@ -67,69 +67,124 @@
 	}
 #endif
 
-#define WHOLE_AXIS (static_cast<uint32_t>(-1))
-
 enum Padding : uint8_t {
 	Left = 0x01,
 	Right = 0x02,
 	Both = 0x03,
 };
 
+class Tensor;
+
+class TensorSlice {
+public:
+	const Tensor& operator=(const Tensor& other);
+
+private:
+	TensorSlice();
+	TensorSlice(Tensor& tensor, std::vector<std::vector<uint32_t> > slice_ranges) :
+		_tensor(tensor), _slice_ranges(slice_ranges) {}
+
+	Tensor& _tensor;
+	std::vector<std::vector<uint32_t> > _slice_ranges;
+	
+	friend class Tensor;
+};
+
+class TensorCell {
+public:
+	float operator=(float value);
+
+private:
+	TensorCell();
+	TensorCell(Tensor& tensor, std::vector<uint32_t> cell_index) :
+		_tensor(tensor), _cell_index(cell_index) {}
+
+	Tensor& _tensor;
+	std::vector<uint32_t> _cell_index;
+
+	friend class Tensor;
+};
+
 class Tensor {
 public:
 	Tensor(const std::vector<uint32_t>& shape);
 	Tensor(const Tensor& other);
-	Tensor& operator=(const Tensor& other);
+	const Tensor& operator=(const Tensor& other);
+	const Tensor& operator=(const Tensor&& other);
 	Tensor();
 	~Tensor();
+
+	const Tensor operator[](const std::vector<std::vector<uint32_t> >& ranges) const;
+	TensorSlice operator[](const std::vector<std::vector<uint32_t> >& ranges);
+	const float operator[](const std::vector<uint32_t>& index) const;
+	const float operator[](const std::initializer_list<uint32_t>& ini) const
+	{
+		return operator[](std::vector<uint32_t>(ini));
+	}
+	TensorCell operator[](const std::vector<uint32_t>& index);
+	TensorCell operator[](const std::initializer_list<uint32_t>& ini)
+	{
+		return operator[](std::vector<uint32_t>(ini));
+	}
 
 	std::vector<uint32_t> getShape() const;
 	uint32_t getDim() const;
 	uint32_t getSize() const;
 	std::vector<float> getData() const;
-	float getValue(const std::vector<uint32_t>& idx = { 0 }) const;
-	void setValue(float value, const std::vector<uint32_t>& idx = { 0 });
+
 	void setValues(const std::vector<float>& values);
-	Tensor getSubTensor(const std::vector<uint32_t>& axes) const;
-	Tensor getSubTensor(const std::vector<std::vector<uint32_t> >& ranges) const;
-	void setValuesOfSubTensor(const std::vector<uint32_t>& axes, const Tensor& other);
-	void setValuesOfSubTensor(const std::vector<std::vector<uint32_t> >& ranges, const Tensor& other);
-	Tensor addPadding(std::vector<uint32_t> axes, std::vector<Padding> paddings, std::vector<uint32_t> counts) const;
+
 	const Tensor operator-() const;
-	const Tensor operator+(const Tensor& other) const;
-	const Tensor operator-(const Tensor& other) const;
-	const Tensor operator*(const Tensor& other) const;
-	const Tensor operator/(const Tensor& other) const;
+
 	Tensor& operator+=(const Tensor& other);
-	Tensor& operator-=(const Tensor& other);
-	Tensor& operator*=(const Tensor& other);
-	Tensor& operator/=(const Tensor& other);
-	const Tensor operator>(const Tensor& other) const;
-	const Tensor operator<(const Tensor& other) const;
+	const Tensor operator+(const Tensor& other) const;
+	Tensor& operator+=(float number);
 	const Tensor operator+(float number) const;
 	friend const Tensor operator+(float number, const Tensor& other);
+
+	Tensor& operator-=(const Tensor& other);
+	const Tensor operator-(const Tensor& other) const;
+	Tensor& operator-=(float number);
 	const Tensor operator-(float number) const;
 	friend const Tensor operator-(float number, const Tensor& other);
+
+	Tensor& operator*=(const Tensor& other);
+	const Tensor operator*(const Tensor& other) const;
+	Tensor& operator*=(float number);
 	const Tensor operator*(float number) const;
 	friend const Tensor operator*(float number, const Tensor& other);
+
+	Tensor& operator/=(const Tensor& other);
+	const Tensor operator/(const Tensor& other) const;
+	Tensor& operator/=(float number);
 	const Tensor operator/(float number) const;
 	friend const Tensor operator/(float number, const Tensor& other);
-	Tensor& operator+=(float number);
-	Tensor& operator-=(float number);
-	Tensor& operator*=(float number);
-	Tensor& operator/=(float number);
+
+	const Tensor operator==(const Tensor& other) const;
+	const Tensor operator!=(const Tensor& other) const;
+	const Tensor operator>(const Tensor& other) const;
+	const Tensor operator>=(const Tensor& other) const;
+	const Tensor operator<(const Tensor& other) const;
+	const Tensor operator<=(const Tensor& other) const;
+	
+	const Tensor operator==(float other) const;
+	const Tensor operator!=(float other) const;
 	const Tensor operator>(float other) const;
+	const Tensor operator>=(float other) const;
 	const Tensor operator<(float other) const;
+	const Tensor operator<=(float other) const;
+	
+	const Tensor addPadding(const std::vector<uint32_t>& axes, const std::vector<Padding>& paddings, const std::vector<uint32_t>& counts) const;
 	const Tensor dotProduct(const Tensor& other) const;
 	const Tensor dotProductTranspose(const Tensor& other) const;
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;
 	const Tensor flatten(uint32_t from_axis=0) const;
-	const Tensor Conv2D(const Tensor& other) const;
+	const Tensor conv2D(const Tensor& other) const;
 	const Tensor sum(uint32_t axis) const;
 	float sum() const;
 	float max() const;
-	float average() const;
+	float mean() const;
 	const Tensor transpose() const;
 	const Tensor slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
 	const Tensor shuffle() const;
@@ -145,4 +200,7 @@ private:
 
 	bool validateShape(const Tensor& other) const;
 	bool validateShapeReversed(const Tensor& other) const;
+
+	friend class TensorSlice;
+	friend class TensorCell;
 };

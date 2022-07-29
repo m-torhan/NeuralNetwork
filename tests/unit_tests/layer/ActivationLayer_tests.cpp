@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "src/ActivationLayer.h"
+#include "tests/unit_tests/UnitTestsUtils.h"
 
 TEST(ActivationLayer_test, ActivationLayerShouldApplyGivenFunctionWhenPrograpateForward) {
     Tensor tensor = Tensor({ 2, 2 });
@@ -12,10 +13,10 @@ TEST(ActivationLayer_test, ActivationLayerShouldApplyGivenFunctionWhenPrograpate
 
     Tensor result = layer.forwardPropagation(tensor);
 
-    ASSERT_EQ( 1.0f, result.getValue({ 0, 0 }));
-    ASSERT_EQ( 4.0f, result.getValue({ 0, 1 }));
-    ASSERT_EQ( 9.0f, result.getValue({ 1, 0 }));
-    ASSERT_EQ(16.0f, result.getValue({ 1, 1 }));
+    ASSERT_EQ( 1.0f, (const_cast<const Tensor&>(result)[{ 0, 0 }]));
+    ASSERT_EQ( 4.0f, (const_cast<const Tensor&>(result)[{ 0, 1 }]));
+    ASSERT_EQ( 9.0f, (const_cast<const Tensor&>(result)[{ 1, 0 }]));
+    ASSERT_EQ(16.0f, (const_cast<const Tensor&>(result)[{ 1, 1 }]));
 }
 
 TEST(ActivationLayer_test, ActivationLayerShouldApplyGivenFunctionDerivativeWhenPrograpateBackward) {
@@ -30,10 +31,10 @@ TEST(ActivationLayer_test, ActivationLayerShouldApplyGivenFunctionDerivativeWhen
     layer.forwardPropagation(tensor);
     Tensor result = layer.backwardPropagation(tensor);
 
-    ASSERT_EQ( 2.0f, result.getValue({ 0, 0 }));
-    ASSERT_EQ( 8.0f, result.getValue({ 0, 1 }));
-    ASSERT_EQ(18.0f, result.getValue({ 1, 0 }));
-    ASSERT_EQ(32.0f, result.getValue({ 1, 1 }));
+    ASSERT_EQ( 2.0f, (const_cast<const Tensor&>(result)[{ 0, 0 }]));
+    ASSERT_EQ( 8.0f, (const_cast<const Tensor&>(result)[{ 0, 1 }]));
+    ASSERT_EQ(18.0f, (const_cast<const Tensor&>(result)[{ 1, 0 }]));
+    ASSERT_EQ(32.0f, (const_cast<const Tensor&>(result)[{ 1, 1 }]));
 }
 
 TEST(ActivationLayer_test, SigmoidActivationValuesTest) {
@@ -49,16 +50,16 @@ TEST(ActivationLayer_test, SigmoidActivationValuesTest) {
         0.25f, 0.4f, -1.5f
         });
 
-    Tensor forward = layer.forwardPropagation(tensor);
-    Tensor backward = layer.backwardPropagation(tensor_back);
+    const Tensor forward = layer.forwardPropagation(tensor);
+    const Tensor backward = layer.backwardPropagation(tensor_back);
 
-    ASSERT_TRUE(fabs(0.26894f - forward.getValue({ 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.5f - forward.getValue({ 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.73106f - forward.getValue({ 2 })) < 0.001f);
+    ASSERT_EQ_EPS(0.26894f, forward[{ 0 }]);
+    ASSERT_EQ_EPS(0.5f,     forward[{ 1 }]);
+    ASSERT_EQ_EPS(0.73106f, forward[{ 2 }]);
 
-    ASSERT_TRUE(fabs(0.04915f - backward.getValue({ 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.1f - backward.getValue({ 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(-0.29491f - backward.getValue({ 2 })) < 0.001f);
+    ASSERT_EQ_EPS(0.04915f, backward[{ 0 }]);
+    ASSERT_EQ_EPS(0.1f,     backward[{ 1 }]);
+    ASSERT_EQ_EPS(-0.2949f, backward[{ 2 }]);
 }
 
 TEST(ActivationLayer_test, ReLUActivationValuesTest) {
@@ -77,11 +78,11 @@ TEST(ActivationLayer_test, ReLUActivationValuesTest) {
     Tensor forward = layer.forwardPropagation(tensor);
     Tensor backward = layer.backwardPropagation(tensor_d);
 
-    ASSERT_TRUE(fabs(0.0f - forward.getValue({ 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.25f - forward.getValue({ 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(1.0f - forward.getValue({ 2 })) < 0.001f);
+    ASSERT_EQ_EPS(0.0f,  const_cast<const Tensor&>(forward)[{ 0 }]);
+    ASSERT_EQ_EPS(0.25f, const_cast<const Tensor&>(forward)[{ 1 }]);
+    ASSERT_EQ_EPS(1.0f,  const_cast<const Tensor&>(forward)[{ 2 }]);
 
-    ASSERT_TRUE(fabs(0.0f - backward.getValue({ 0 })) < 0.001f);
-    ASSERT_TRUE(fabs(0.4f - backward.getValue({ 1 })) < 0.001f);
-    ASSERT_TRUE(fabs(-1.5f - backward.getValue({ 2 })) < 0.001f);
+    ASSERT_EQ_EPS(0.0f,  const_cast<const Tensor&>(backward)[{ 0 }]);
+    ASSERT_EQ_EPS(0.4f,  const_cast<const Tensor&>(backward)[{ 1 }]);
+    ASSERT_EQ_EPS(-1.5f, const_cast<const Tensor&>(backward)[{ 2 }]);
 }

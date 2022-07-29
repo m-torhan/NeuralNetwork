@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "src/DenseLayer.h"
+#include "tests/unit_tests/UnitTestsUtils.h"
 
 TEST(DenseLayer_test, DenseLayerForwardPropagationOutputShapeTest) {
     Tensor tensor = Tensor({ 2, 3, 4 });
@@ -51,18 +52,18 @@ TEST(DenseLayer_test, DenseLayerForwardAndBackwardPropagationReturnValuesTest) {
         0.0f, -0.5f
         });
 
-    Tensor forward = layer.forwardPropagation(tensor);
-    Tensor backward = layer.backwardPropagation(tensor_d);
+    const Tensor forward = layer.forwardPropagation(tensor);
+    const Tensor backward = layer.backwardPropagation(tensor_d);
 
-    ASSERT_LE(fabs(  0.6845f  - forward.getValue({ 0, 0 })), 0.001f);
-    ASSERT_LE(fabs( -2.60345f - forward.getValue({ 0, 1 })), 0.001f);
-    ASSERT_LE(fabs( 51.04f    - forward.getValue({ 1, 0 })), 0.001f);
-    ASSERT_LE(fabs(-85.0583f  - forward.getValue({ 1, 1 })), 0.001f);
+    ASSERT_EQ_EPS(  0.6845f,  (forward[{ 0, 0 }]));
+    ASSERT_EQ_EPS( -2.60345f, (forward[{ 0, 1 }]));
+    ASSERT_EQ_EPS( 51.04f,    (forward[{ 1, 0 }]));
+    ASSERT_EQ_EPS(-85.0583f,  (forward[{ 1, 1 }]));
 
-    ASSERT_LE(fabs(  1.0145f  - backward.getValue({ 0, 0 })), 0.001f);
-    ASSERT_LE(fabs( -0.48795f - backward.getValue({ 0, 1 })), 0.001f);
-    ASSERT_LE(fabs(  0.551f   - backward.getValue({ 0, 2 })), 0.001f);
-    ASSERT_LE(fabs(-23.7976f  - backward.getValue({ 1, 0 })), 0.001f);
-    ASSERT_LE(fabs( 10.71966f - backward.getValue({ 1, 1 })), 0.001f);
-    ASSERT_LE(fabs(-27.5218f  - backward.getValue({ 1, 2 })), 0.001f);
+    ASSERT_EQ_EPS(  1.0145f,  (backward[{ 0, 0 }]));
+    ASSERT_EQ_EPS( -0.48795f, (backward[{ 0, 1 }]));
+    ASSERT_EQ_EPS(  0.551f,   (backward[{ 0, 2 }]));
+    ASSERT_EQ_EPS(-23.7976f,  (backward[{ 1, 0 }]));
+    ASSERT_EQ_EPS( 10.71966f, (backward[{ 1, 1 }]));
+    ASSERT_EQ_EPS(-27.5218f,  (backward[{ 1, 2 }]));
 }
