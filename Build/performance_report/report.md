@@ -4,6 +4,8 @@
 ![BM_ActivationLayerReLUForwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_ActivationLayerReLUForwardPropagation.png)
 ![BM_ActivationLayerSigmoidBackwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_ActivationLayerSigmoidBackwardPropagation.png)
 ![BM_ActivationLayerSigmoidForwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_ActivationLayerSigmoidForwardPropagation.png)
+![BM_Conv2DLayerBackwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_Conv2DLayerBackwardPropagation.png)
+![BM_Conv2DLayerForwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_Conv2DLayerForwardPropagation.png)
 ![BM_DenseLayerBackwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_DenseLayerBackwardPropagation.png)
 ![BM_DenseLayerForwardPropagation](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_DenseLayerForwardPropagation.png)
 ![BM_NeuralNetworkFit](https://github.com/maciek97x/NeuralNetwork/blob/master/Build/./performance_report/plots//BM_NeuralNetworkFit.png)
