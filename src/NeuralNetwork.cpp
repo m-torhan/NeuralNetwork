@@ -77,22 +77,8 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 		for (batch_start = 0; batch_start + batch_size <= train_x.getShape()[0]; batch_start += batch_size) {
 			initLayersCachedGradient();
 
-			std::vector<std::vector<uint32_t>> slice_vector_x;
-			for (uint32_t i{ 0 }; i < train_x_shuffled.getDim(); ++i) {
-				slice_vector_x.push_back({});
-			}
-			slice_vector_x[0].push_back(batch_start);
-			slice_vector_x[0].push_back(batch_start + batch_size);
-
-			std::vector<std::vector<uint32_t>> slice_vector_y;
-			for (uint32_t i{ 0 }; i < train_y_shuffled.getDim(); ++i) {
-				slice_vector_y.push_back({});
-			}
-			slice_vector_y[0].push_back(batch_start);
-			slice_vector_y[0].push_back(batch_start + batch_size);
-
-			Tensor batch_x = train_x_shuffled[slice_vector_x];
-			Tensor batch_y = train_y_shuffled[slice_vector_y];
+			Tensor batch_x = train_x_shuffled[Tensor::Range({{ batch_start, batch_start + batch_size }})];
+			Tensor batch_y = train_y_shuffled[Tensor::Range({{ batch_start, batch_start + batch_size }})];
 
 			Tensor y_hat = predict(batch_x);
 
@@ -143,22 +129,8 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 		batch_count = 0;
 		uint32_t test_batch_size = batch_size < test_x.getShape()[0] ? batch_size : test_x.getShape()[0];
 		for (batch_start = 0; batch_start + test_batch_size <= test_x.getShape()[0]; batch_start += test_batch_size) {
-			std::vector<std::vector<uint32_t>> slice_vector_x;
-			for (uint32_t i{ 0 }; i < test_x.getDim(); ++i) {
-				slice_vector_x.push_back({});
-			}
-			slice_vector_x[0].push_back(batch_start);
-			slice_vector_x[0].push_back(batch_start + batch_size);
-			
-			std::vector<std::vector<uint32_t>> slice_vector_y;
-			for (uint32_t i{ 0 }; i < test_y.getDim(); ++i) {
-				slice_vector_y.push_back({});
-			}
-			slice_vector_y[0].push_back(batch_start);
-			slice_vector_y[0].push_back(batch_start + batch_size);
-
-			Tensor batch_x = test_x[slice_vector_x];
-			Tensor batch_y = test_y[slice_vector_y];
+			Tensor batch_x = test_x[Tensor::Range({{ batch_start, batch_start + batch_size }})];
+			Tensor batch_y = test_y[Tensor::Range({{ batch_start, batch_start + batch_size }})];
 
 			float batch_cost = _cost_function(predict(batch_x), batch_y);
 

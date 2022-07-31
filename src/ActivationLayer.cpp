@@ -75,7 +75,7 @@ void ActivationLayer::initCachedGradient() {
 }
 
 void ActivationLayer::summary() const {
-	printf("Activation Layer\n");
+	printf("Activation Layer    ");
 	printf("  in shape:  (*");
 	for (uint32_t i{ 0u }; i < _input_shape.size(); ++i) {
 		printf(", %d", _input_shape[i]);

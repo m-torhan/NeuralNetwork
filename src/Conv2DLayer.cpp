@@ -61,7 +61,7 @@ void Conv2DLayer::initCachedGradient() {
 }
 
 void Conv2DLayer::summary() const {
-	printf("Conv2D Layer\n");
+	printf("Conv2D Layer        ");
 	printf("  in shape:  (*");
 	for (uint32_t i{ 0u }; i < _input_shape.size(); ++i) {
 		printf(", %d", _input_shape[i]);

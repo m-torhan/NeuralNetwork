@@ -22,7 +22,7 @@ enum class CostFun {
 
 class NeuralNetwork {
 public:
-	NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), const Tensor(*_cost_function)(const Tensor&, const Tensor&));
+	NeuralNetwork(Layer& input_layer, Layer& output_layer, float(*cost_function)(const Tensor&, const Tensor&), const Tensor(*cost_function_d)(const Tensor&, const Tensor&));
 	NeuralNetwork(Layer& input_layer, Layer& output_layer, CostFun cost_fun);
 
 	float(*getCostFun())(const Tensor&, const Tensor&);

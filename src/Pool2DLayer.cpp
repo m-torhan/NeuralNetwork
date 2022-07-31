@@ -171,7 +171,7 @@ void Pool2DLayer::initCachedGradient() {
 }
 
 void Pool2DLayer::summary() const {
-	printf("Pool2D Layer\n");
+	printf("Pool2D Layer       ");
 	printf("  in shape:  (*");
 	for (uint32_t i{ 0u }; i < _input_shape.size(); ++i) {
 		printf(", %d", _input_shape[i]);

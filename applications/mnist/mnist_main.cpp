@@ -21,7 +21,7 @@ constexpr uint32_t train_data_len{ 60000u };
 constexpr uint32_t test_data_len{ 10000u };
 constexpr uint32_t image_size{ 28u };
 
-int read_data(const char* file_name, Tensor& data, Tensor& labels);
+static int read_data(const char* file_name, Tensor& data, Tensor& labels);
 
 int main(int argc , char** argv) {
     // get this file dir
@@ -65,34 +65,38 @@ int main(int argc , char** argv) {
 
     // dense model
 
-    auto layer_dense_1 = DenseLayer({ 28, 28, 1 }, 128);
-	auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
-    auto layer_dense_2 = DenseLayer(layer_relu_1, 64);
-	auto layer_relu_2 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
-    auto layer_dense_3 = DenseLayer(layer_relu_2, 32);
-	auto layer_relu_3 = ActivationLayer(layer_dense_3, ActivationFun::LeakyReLU);
-    auto layer_dense_4 = DenseLayer(layer_relu_3, 16);
-	auto layer_relu_4 = ActivationLayer(layer_dense_4, ActivationFun::LeakyReLU);
+    printf("Using dense model.\n");
+
+    auto layer_dense_1 = DenseLayer({ 28, 28, 1 }, 512);
+    auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
+    auto layer_dense_2 = DenseLayer(layer_relu_1, 512);
+    auto layer_relu_2 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
+    auto layer_dense_3 = DenseLayer(layer_relu_2, 256);
+    auto layer_relu_3 = ActivationLayer(layer_dense_3, ActivationFun::LeakyReLU);
+    auto layer_dense_4 = DenseLayer(layer_relu_3, 256);
+    auto layer_relu_4 = ActivationLayer(layer_dense_4, ActivationFun::LeakyReLU);
     auto layer_dense_5 = DenseLayer(layer_relu_4, 10);
-	auto layer_sigmoid = ActivationLayer(layer_dense_5, ActivationFun::Sigmoid);
+    auto layer_sigmoid = ActivationLayer(layer_dense_5, ActivationFun::Sigmoid);
 
     auto nn = NeuralNetwork(layer_dense_1, layer_sigmoid, CostFun::BinaryCrossentropy);
 
     // conv model
 
+    // printf("Using conv model.");
+
     // // 28x28 -> 14x14
-	// auto layer_conv2d_1 = Conv2DLayer({ 28, 28, 1 }, 4, 3);
-	// auto layer_relu_1 = ActivationLayer(layer_conv2d_1, ActivationFun::LeakyReLU);
-	// auto layer_pool2d_1 = Pool2DLayer(layer_relu_1, 2, PoolMode::Max);
+    // auto layer_conv2d_1 = Conv2DLayer({ 28, 28, 1 }, 4, 3);
+    // auto layer_relu_1 = ActivationLayer(layer_conv2d_1, ActivationFun::LeakyReLU);
+    // auto layer_pool2d_1 = Pool2DLayer(layer_relu_1, 2, PoolMode::Max);
 
     // // 14x14 -> 7x7
-	// auto layer_conv2d_2 = Conv2DLayer(layer_pool2d_1, 4, 3);
-	// auto layer_relu_2 = ActivationLayer(layer_conv2d_2, ActivationFun::LeakyReLU);
-	// auto layer_pool2d_2 = Pool2DLayer(layer_relu_2, 2, PoolMode::Max);
+    // auto layer_conv2d_2 = Conv2DLayer(layer_pool2d_1, 4, 3);
+    // auto layer_relu_2 = ActivationLayer(layer_conv2d_2, ActivationFun::LeakyReLU);
+    // auto layer_pool2d_2 = Pool2DLayer(layer_relu_2, 2, PoolMode::Max);
     
     // // 7x7 -> 7x7
-	// auto layer_conv2d_3 = Conv2DLayer(layer_pool2d_2, 4, 3);
-	// auto layer_relu_3 = ActivationLayer(layer_conv2d_3, ActivationFun::LeakyReLU);
+    // auto layer_conv2d_3 = Conv2DLayer(layer_pool2d_2, 4, 3);
+    // auto layer_relu_3 = ActivationLayer(layer_conv2d_3, ActivationFun::LeakyReLU);
 
     // // dense
     // auto layer_dense_1 = DenseLayer(layer_relu_3, 32);
@@ -108,7 +112,7 @@ int main(int argc , char** argv) {
         train_data, train_labels,
         test_data, test_labels,
         256,
-        8,
+        16,
         0.01f);
 
     uint32_t valid_cnt{ 0 };
@@ -116,22 +120,8 @@ int main(int argc , char** argv) {
     constexpr uint32_t batch_size{ 256 };
 
     for (uint32_t i{ 0 }; (i + 1) <= (test_data.getShape()[0]/batch_size); ++i) {
-        std::vector<std::vector<uint32_t>> slice_vector_x;
-        for (uint32_t i{ 0 }; i < test_data.getDim(); ++i) {
-            slice_vector_x.push_back({});
-        }
-        slice_vector_x[0].push_back(i*batch_size);
-        slice_vector_x[0].push_back((i + 1)*batch_size);
-        
-        std::vector<std::vector<uint32_t>> slice_vectory;
-        for (uint32_t i{ 0 }; i < test_labels.getDim(); ++i) {
-            slice_vectory.push_back({});
-        }
-        slice_vectory[0].push_back(i*batch_size);
-        slice_vectory[0].push_back((i + 1)*batch_size);
-
-        const Tensor batch_x = const_cast<const Tensor&>(test_data)[slice_vector_x];
-        const Tensor batch_y = const_cast<const Tensor&>(test_labels)[slice_vectory];
+        const Tensor batch_x = const_cast<const Tensor&>(test_data)[Tensor::Range({{ i*batch_size, (i + 1)*batch_size }})];
+        const Tensor batch_y = const_cast<const Tensor&>(test_labels)[Tensor::Range({{ i*batch_size, (i + 1)*batch_size }})];
 
         const Tensor pred_label = nn.predict(batch_x);
 

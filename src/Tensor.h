@@ -107,6 +107,9 @@ private:
 
 class Tensor {
 public:
+	typedef std::vector<uint32_t> Index;
+	typedef std::vector<std::vector<uint32_t>> Range;
+	
 	Tensor(const std::vector<uint32_t>& shape);
 	Tensor(const Tensor& other);
 	const Tensor& operator=(const Tensor& other);
@@ -114,8 +117,8 @@ public:
 	Tensor();
 	~Tensor();
 
-	const Tensor operator[](const std::vector<std::vector<uint32_t> >& ranges) const;
-	TensorSlice operator[](const std::vector<std::vector<uint32_t> >& ranges);
+	const Tensor operator[](std::vector<std::vector<uint32_t> > ranges) const;
+	TensorSlice operator[](std::vector<std::vector<uint32_t> > ranges);
 	const float operator[](const std::vector<uint32_t>& index) const;
 	const float operator[](const std::initializer_list<uint32_t>& ini) const
 	{
@@ -180,13 +183,12 @@ public:
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;
 	const Tensor flatten(uint32_t from_axis=0) const;
-	const Tensor conv2D(const Tensor& other) const;
+	const Tensor conv2D(const Tensor& kernel) const;
 	const Tensor sum(uint32_t axis) const;
 	float sum() const;
 	float max() const;
 	float mean() const;
 	const Tensor transpose() const;
-	const Tensor slice(uint32_t axis, uint32_t start_idx, uint32_t end_idx) const;
 	const Tensor shuffle() const;
 	const Tensor shuffle(uint32_t *pattern) const;
 	const Tensor reshape(std::vector<uint32_t> new_shape) const;

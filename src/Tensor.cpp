@@ -43,9 +43,12 @@ const Tensor& Tensor::operator=(const Tensor&& other) {
 Tensor::~Tensor() {
 }
 
-const Tensor Tensor::operator[](const std::vector<std::vector<uint32_t> >& ranges) const {
-	if (ranges.size() != this->_shape.size()) {
+const Tensor Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) const {
+	if (ranges.size() > this->_shape.size()) {
 		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	while (ranges.size() < this->_shape.size()) {
+		ranges.push_back(std::vector<uint32_t>{});
 	}
 	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
 		if (ranges[i].size() > 2) {
@@ -167,11 +170,46 @@ const float Tensor::operator[](const std::vector<uint32_t>& index) const {
 	return this->_data[flat_index];
 }
 
-TensorSlice Tensor::operator[](const std::vector<std::vector<uint32_t> >& ranges) {
+TensorSlice Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) {
+	if (ranges.size() > this->_shape.size()) {
+		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	}
+	while (ranges.size() < this->_shape.size()) {
+		ranges.push_back(std::vector<uint32_t>{});
+	}
+	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
+		if (ranges[i].size() > 2) {
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		}
+		if (2 == ranges[i].size()) {
+			if (ranges[i][0] >= ranges[i][1]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+			if (ranges[i][1] > this->_shape[i]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+		}
+		if (1 == ranges[i].size()) {
+			if (ranges[i][0] >= this->_shape[i]) {
+				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			}
+		}
+	}
+
 	return TensorSlice(*this, ranges);
 }
 
 TensorCell Tensor::operator[](const std::vector<uint32_t>& index) {
+	if (index.size() != this->_shape.size()) {
+		printf("Exception in %s at line %d\n", __FILE__, __LINE__); throw std::invalid_argument("");
+	}
+
+	for (uint32_t i{ 0 }; i < this->_shape.size(); ++i) {
+		if (index[i]  >= this->_shape[i]) {
+			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		}
+	}
+
 	return TensorCell(*this, index);
 }
 
