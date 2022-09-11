@@ -86,39 +86,27 @@ void Conv2DLayer::updateWeights(float learning_step) {
 const Tensor Conv2DLayer::forwardPropagation(const Tensor& x) {
 	_cached_input = x;
 
-	std::vector<uint32_t> x_next_pad_shape = _output_shape;
-	x_next_pad_shape.insert(x_next_pad_shape.begin(), x.getShape()[0]);
+	const Tensor x_pad = x.addPadding({ 1, 2 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 });
 
-	// padding
-	x_next_pad_shape[1] += _filter_size - 1;
-	x_next_pad_shape[2] += _filter_size - 1;
+	uint32_t batch_size = x.getShape()[0];
+	uint32_t height = x.getShape()[1];
+	uint32_t width = x.getShape()[2];
+	uint32_t channels = x.getShape()[3];
 
-	Tensor x_next_pad(x_next_pad_shape);
-	x_next_pad *= 0.0f;
-	
-	for (uint32_t i{ 0 }; i < _filter_size; ++i) {
-		for (uint32_t j{ 0 }; j < _filter_size; ++j) {
-			for (uint32_t f{ 0 }; f < _filters_count; ++f) {
-				x_next_pad[{{},
-							{ i, i + x.getShape()[1] },
-							{ j, j + x.getShape()[2] },
-							{ f }}] = const_cast<const Tensor&>(x_next_pad)[{{},
-																			 { i, i + x.getShape()[1]},
-																			 { j, j + x.getShape()[2]},
-																			 { f }}] +
-									  (x * const_cast<const Tensor&>(_weights)[{{ _filter_size - i - 1 },
-									  											{ _filter_size - j - 1 },
-																				{ 0, _weights.getShape()[2] },
-																				{ f }}]).sum(3);
+	Tensor x_next = Tensor({ batch_size, height, width, _filters_count });
+	Tensor rects = Tensor({height * width, _filter_size * _filter_size * channels });
+	Tensor filters_reshaped = _weights.reshape({ _filter_size * _filter_size * channels, _filters_count }).transpose();
+
+	for (uint32_t i{ 0 }; i < batch_size; ++i) {
+		for (uint32_t j{ 0 }; j < height; ++j) {
+			for (uint32_t k{ 0 }; k < width; ++k) {
+				rects[{ { j * width + k }, { 0, _filter_size * _filter_size * channels }}] =
+					x_pad[{{ i }, { j, j + _filter_size }, { k, k + _filter_size }, { 0, channels } }].reshape({ _filter_size * _filter_size * channels });
 			}
 		}
-	}
 
-	// remove padding
-	Tensor x_next = const_cast<const Tensor&>(x_next_pad)[{ {},
-													 		{_filter_size >> 1, x.getShape()[1] + (_filter_size >> 1)},
-													 		{_filter_size >> 1, x.getShape()[2] + (_filter_size >> 1)},
-													 		{} }];
+		x_next[{ { i }, { 0, height }, { 0, width }, { 0, _filters_count } }] = rects.dotProductTranspose(filters_reshaped).reshape({ height, width, _filters_count });
+	}
 
 	x_next += _biases;
 
