@@ -17,7 +17,9 @@ struct FitHistory {
 };
 
 enum class CostFun {
-	BinaryCrossentropy
+	BinaryCrossentropy,
+	CategoricalCrossentropy,
+	MSE
 };
 
 class NeuralNetwork {
@@ -33,6 +35,10 @@ public:
 
 	static float binary_crossentropy(const Tensor& y_hat, const Tensor& y);
 	static const Tensor binary_crossentropy_d(const Tensor& y_hat, const Tensor& y);
+	static float categorical_crossentropy(const Tensor& y_hat, const Tensor& y);
+	static const Tensor categorical_crossentropy_d(const Tensor& y_hat, const Tensor& y);
+	static float mse(const Tensor& y_hat, const Tensor& y);
+	static const Tensor mse_d(const Tensor& y_hat, const Tensor& y);
 
 private:
 	Layer* _input_layer;

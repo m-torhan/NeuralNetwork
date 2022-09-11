@@ -17,6 +17,14 @@ NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, CostFun co
 		_cost_function = binary_crossentropy;
 		_cost_function_d = binary_crossentropy_d;
 		break;
+	case CostFun::CategoricalCrossentropy:
+		_cost_function = categorical_crossentropy;
+		_cost_function_d = categorical_crossentropy_d;
+		break;
+	case CostFun::MSE:
+		_cost_function = mse;
+		_cost_function_d = mse_d;
+		break;
 	default:
 		_cost_function = nullptr;
 		_cost_function_d = nullptr;
@@ -170,6 +178,25 @@ float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
 const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
 	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
 	return -result;
+}
+
+float NeuralNetwork::categorical_crossentropy(const Tensor& y_hat, const Tensor& y) {
+	Tensor result = - y * (y_hat + 1e-9f).applyFunction(logf);
+	return result.sum() * (-1.0f / y.getSize());
+}
+
+const Tensor NeuralNetwork::categorical_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
+	Tensor result = (y / (y_hat + 1e-9f));
+	return -result;
+}
+
+float NeuralNetwork::mse(const Tensor& y_hat, const Tensor& y) {
+	Tensor d = y_hat - y;
+	return (d * d).mean();
+}
+
+const Tensor NeuralNetwork::mse_d(const Tensor& y_hat, const Tensor& y) {
+	return -2*(y - y_hat);
 }
 
 void NeuralNetwork::updateLayersWeights(float learning_step) {

@@ -33,7 +33,7 @@ TEST(Conv2DLayer_test, Conv2DLayerBackwardPropagationOutputShapeTest) {
     ASSERT_EQ(5, (int)result.getShape()[3]);
 }
 
-TEST(Conv2DLayer_test, Conv2DLayerForwardPropagationReturnValuesTest) {
+TEST(Conv2DLayer_test, Conv2DLayerForwardAndBackwardPropagationReturnValuesTest) {
     Tensor tensor = Tensor({ 1, 3, 4, 2 });
     Tensor tensor_d = Tensor({ 1, 3, 4, 3 });
     Conv2DLayer layer = Conv2DLayer({ 3, 4, 2 }, 3, 3);
@@ -52,7 +52,7 @@ TEST(Conv2DLayer_test, Conv2DLayerForwardPropagationReturnValuesTest) {
         -4.0f, -3.0f, -2.0f,  -1.0f,  0.0f,  0.5f,   0.0f,  5.0f,  0.5f,   0.0f,  0.0f,  1.0f
     });
 
-     layer.setWeights({ 
+    layer.setWeights({ 
          1.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,     0.0f,  0.0f,  0.0f,  0.0f,  2.0f,  0.0f,     0.0f,  0.0f, -3.0f,   0.0f,  0.0f, -1.0f,
          0.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,     1.0f,  0.0f, -3.0f,  0.0f,  2.0f, -1.0f,     0.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,
          0.0f,  0.0f, -3.0f,   0.0f,  0.0f, -1.0f,     0.0f,  0.0f,  0.0f,  0.0f,  2.0f,  0.0f,     1.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f

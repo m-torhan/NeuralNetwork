@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "Utils.h"
+
 #ifdef SSE
 	#ifndef WIN
 		#define SSE_vector_inner_product 			_SSE_vector_inner_product
@@ -117,6 +119,8 @@ public:
 	Tensor();
 	~Tensor();
 
+	static Tensor RandomNormal(const std::vector<uint32_t>& shape);
+
 	const Tensor operator[](std::vector<std::vector<uint32_t> > ranges) const;
 	TensorSlice operator[](std::vector<std::vector<uint32_t> > ranges);
 	const float operator[](const std::vector<uint32_t>& index) const;
@@ -183,7 +187,6 @@ public:
 	const Tensor tensorProduct(const Tensor& other) const;
 	const Tensor applyFunction(float (*function)(float)) const;
 	const Tensor flatten(uint32_t from_axis=0) const;
-	const Tensor conv2D(const Tensor& kernel) const;
 	const Tensor sum(uint32_t axis) const;
 	float sum() const;
 	float max() const;

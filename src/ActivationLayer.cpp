@@ -35,10 +35,6 @@ void ActivationLayer::initActivationFun(const Tensor (*activation_fun)(const Ten
 
 void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 	switch (activation_fun) {
-	case ActivationFun::Sigmoid:
-		_activation_fun = Sigmoid_fun;
-		_activation_fun_d = Sigmoid_fun_d;
-		break;
 	case ActivationFun::ReLU:
 		_activation_fun = ReLU_fun;
 		_activation_fun_d = ReLU_fun_d;
@@ -46,6 +42,14 @@ void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 	case ActivationFun::LeakyReLU:
 		_activation_fun = LeakyReLU_fun;
 		_activation_fun_d = LeakyReLU_fun_d;
+		break;
+	case ActivationFun::Sigmoid:
+		_activation_fun = Sigmoid_fun;
+		_activation_fun_d = Sigmoid_fun_d;
+		break;
+	case ActivationFun::Tanh:
+		_activation_fun = Tanh_fun;
+		_activation_fun_d = Tanh_fun_d;
 		break;
 	default:
 		_activation_fun = nullptr;
@@ -115,4 +119,13 @@ const Tensor ActivationLayer::Sigmoid_fun(const Tensor& x) {
 const Tensor ActivationLayer::Sigmoid_fun_d(const Tensor& x, const Tensor& dx) {
 	Tensor sig = Sigmoid_fun(x);
 	return dx * (sig * (1.0f - sig));
+}
+
+const Tensor ActivationLayer::Tanh_fun(const Tensor& x) {
+	return x.applyFunction(tanhf);
+}
+
+const Tensor ActivationLayer::Tanh_fun_d(const Tensor& x, const Tensor& dx) {
+	Tensor t = std::move(x.applyFunction(tanhf));
+	return dx * (1 - (t * t));
 }

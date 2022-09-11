@@ -683,43 +683,6 @@ TEST(Tensor_test, ApplyFunctionShouldApplyGivenFunctionToTensor) {
     ASSERT_EQ(8.0f, (result[{ 1, 1 }]));
 }
 
-TEST(Tensor_test, TensorConv2DTest) {
-    Tensor tensor_a = Tensor({ 5, 5, 2 });
-    Tensor tensor_b = Tensor({ 3, 3, 2, 3 });
-
-    tensor_a.setValues({
-         1.0f,  2.0f,   3.0f,  4.0f,   5.0f,  6.0f,   7.0f,  8.0f,   9.0f, 10.0f,
-        11.0f, 12.0f,  13.0f, 14.0f,  15.0f, 16.0f,  17.0f, 18.0f,  19.0f, 20.0f,
-        21.0f, 22.0f,  23.0f, 24.0f,  25.0f, 26.0f,  27.0f, 28.0f,  29.0f, 30.0f,
-        31.0f, 32.0f,  33.0f, 34.0f,  35.0f, 36.0f,  37.0f, 38.0f,  39.0f, 40.0f,
-        41.0f, 42.0f,  43.0f, 44.0f,  45.0f, 46.0f,  47.0f, 48.0f,  49.0f, 50.0f,
-    });
-
-    tensor_b.setValues({
-        1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 3.0f,  0.0f, 2.0f, 0.0f,
-    });
-
-    const Tensor result = tensor_a.conv2D(tensor_b);
-
-    ASSERT_EQ(3u, result.getDim());
-
-    ASSERT_EQ(3u, result.getShape()[0]);
-    ASSERT_EQ(3u, result.getShape()[1]);
-    ASSERT_EQ(3u, result.getShape()[2]);
-
-    ASSERT_EQ( 39.0f, (result[{ 0, 0, 0 }]));
-    ASSERT_EQ( 84.0f, (result[{ 0, 0, 1 }]));
-    ASSERT_EQ(117.0f, (result[{ 0, 0, 2 }]));
-    ASSERT_EQ( 45.0f, (result[{ 0, 1, 0 }]));
-    ASSERT_EQ( 96.0f, (result[{ 0, 1, 1 }]));
-    ASSERT_EQ(135.0f, (result[{ 0, 1, 2 }]));
-    ASSERT_EQ( 51.0f, (result[{ 0, 2, 0 }]));
-    ASSERT_EQ(108.0f, (result[{ 0, 2, 1 }]));
-    ASSERT_EQ(153.0f, (result[{ 0, 2, 2 }]));
-}
-
 TEST(Tensor_test, TensorSumTest) {
     Tensor tensor = Tensor({ 2, 3, 2 });
 

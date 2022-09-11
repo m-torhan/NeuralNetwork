@@ -86,17 +86,41 @@ void Conv2DLayer::updateWeights(float learning_step) {
 const Tensor Conv2DLayer::forwardPropagation(const Tensor& x) {
 	_cached_input = x;
 
-	std::vector<uint32_t> x_next_shape = _output_shape;
-	x_next_shape.insert(x_next_shape.begin(), x.getShape()[0]);
+	std::vector<uint32_t> x_next_pad_shape = _output_shape;
+	x_next_pad_shape.insert(x_next_pad_shape.begin(), x.getShape()[0]);
 
-	Tensor x_next(x_next_shape);
+	// padding
+	x_next_pad_shape[1] += _filter_size - 1;
+	x_next_pad_shape[2] += _filter_size - 1;
 
-	for (uint32_t i{ 0 }; i < x.getShape()[0]; ++i) {
-		Tensor sub_tensor_x = x[{ {{ i }}, {}, {}, {} }];
-    	Tensor sub_tensor_x_next = sub_tensor_x.addPadding(
-			{ 0, 1 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 }).conv2D(_weights) + _biases;
-		x_next[{ {{ i }}, {}, {}, {} }] = sub_tensor_x_next;
+	Tensor x_next_pad(x_next_pad_shape);
+	x_next_pad *= 0.0f;
+	
+	for (uint32_t i{ 0 }; i < _filter_size; ++i) {
+		for (uint32_t j{ 0 }; j < _filter_size; ++j) {
+			for (uint32_t f{ 0 }; f < _filters_count; ++f) {
+				x_next_pad[{{},
+							{ i, i + x.getShape()[1] },
+							{ j, j + x.getShape()[2] },
+							{ f }}] = const_cast<const Tensor&>(x_next_pad)[{{},
+																			 { i, i + x.getShape()[1]},
+																			 { j, j + x.getShape()[2]},
+																			 { f }}] +
+									  (x * const_cast<const Tensor&>(_weights)[{{ _filter_size - i - 1 },
+									  											{ _filter_size - j - 1 },
+																				{ 0, _weights.getShape()[2] },
+																				{ f }}]).sum(3);
+			}
+		}
 	}
+
+	// remove padding
+	Tensor x_next = const_cast<const Tensor&>(x_next_pad)[{ {},
+													 		{_filter_size >> 1, x.getShape()[1] + (_filter_size >> 1)},
+													 		{_filter_size >> 1, x.getShape()[2] + (_filter_size >> 1)},
+													 		{} }];
+
+	x_next += _biases;
 
 	_cached_output = x_next;
 

@@ -43,6 +43,16 @@ const Tensor& Tensor::operator=(const Tensor&& other) {
 Tensor::~Tensor() {
 }
 
+Tensor Tensor::RandomNormal(const std::vector<uint32_t>& shape) {
+	Tensor ret(shape);
+
+	for (uint32_t i{ 0 }; i < ret._size; ++i) {
+		ret._data[i] = randNormalDistribution();
+	}
+
+	return ret;
+}
+
 const Tensor Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) const {
 	if (ranges.size() > this->_shape.size()) {
 		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
@@ -359,7 +369,7 @@ const Tensor operator-(float number, const Tensor& other) {
 
 Tensor& Tensor::operator*=(const Tensor& other) {
 	if (((this->_shape.size() < other._shape.size()) ||
-		 (!this->validateShape(other))) &&
+		 (!this->validateShapeReversed(other))) &&
 		(1 != other._size)) {
 		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 	}
@@ -828,33 +838,6 @@ const Tensor Tensor::flatten(uint32_t start_axis) const {
 	Tensor result(result_shape);
 
 	std::copy(this->_data.begin(), this->_data.end(), result._data.begin());
-
-	return result;
-}
-
-const Tensor Tensor::conv2D(const Tensor& other) const {
-	if (this->_shape[2] != other._shape[2]) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
-	}
-
-	std::vector<uint32_t> result_shape = {this->_shape[0] - (other._shape[0] - 1),
-										  this->_shape[1] - (other._shape[1] - 1),
-										  other._shape[3]};
-
-	Tensor result(result_shape);
-
-	for (uint32_t i{ 0 }; i < result_shape[0]; ++i) {
-		for (uint32_t j{ 0 }; j < result_shape[1]; ++j) {
-			for (uint32_t k{ 0 }; k < result_shape[2]; ++k) {
-				Tensor sub_tensor_this = (*this)[{ { i, i + other._shape[0] },
-										  		   { j, j + other._shape[1] },
-												   {} }];
-				Tensor sub_tensor_other = other[{ {}, {}, {}, {{ k }} }];
-
-				result[{ i, j, k}] = (sub_tensor_this * sub_tensor_other).sum();
-			}
-		}
-	}
 
 	return result;
 }
