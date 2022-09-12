@@ -69,7 +69,7 @@ const Tensor Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) cons
 				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 			}
 			if (ranges[i][1] > this->_shape[i]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				printf("EXCEPTION %d > %d line %d\n", ranges[i][1], this->_shape[i], __LINE__); throw std::invalid_argument(""); // exception
 			}
 		}
 		if (1 == ranges[i].size()) {
