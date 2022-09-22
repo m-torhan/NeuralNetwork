@@ -19,7 +19,7 @@ TEST(DenseLayer_test, DenseLayerBackwardPropagationOutputShapeTest) {
     DenseLayer layer = DenseLayer({ 3, 4 }, 4);
 
     layer.initCachedGradient();
-    layer.forwardPropagation(tensor);
+    layer.forwardPropagation(tensor, false);
     Tensor result = layer.backwardPropagation(tensor_d);
 
     ASSERT_EQ(2, (int)result.getDim());
@@ -52,7 +52,7 @@ TEST(DenseLayer_test, DenseLayerForwardAndBackwardPropagationReturnValuesTest) {
         0.0f, -0.5f
         });
 
-    const Tensor forward = layer.forwardPropagation(tensor);
+    const Tensor forward = layer.forwardPropagation(tensor, false);
     const Tensor backward = layer.backwardPropagation(tensor_d);
 
     ASSERT_EQ_EPS(  0.6845f,  (forward[{ 0, 0 }]));

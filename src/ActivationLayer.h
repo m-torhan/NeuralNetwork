@@ -10,7 +10,8 @@ enum class ActivationFun {
 	Sigmoid,
 	ReLU,
 	LeakyReLU,
-	Tanh
+	Tanh,
+	Softmax
 };
 
 class ActivationLayer : public Layer {
@@ -20,10 +21,10 @@ public:
 	ActivationLayer(Layer& prev_layer, const Tensor (*activation_fun)(const Tensor&), const Tensor (*activation_fun_d)(const Tensor&, const Tensor&));
 	ActivationLayer(Layer& prev_layer, ActivationFun activation_fun);
 
-	virtual const Tensor forwardPropagation(const Tensor& x);
+	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true);
 	virtual const Tensor backwardPropagation(const Tensor& dx);
-	virtual void updateWeights(float learning_step);
-	virtual void initCachedGradient();
+	virtual void updateWeights(float learning_step, float momentum) { };
+	virtual void initCachedGradient() { };
 	virtual void summary() const;
 	virtual uint32_t getParamsCount() const;
 

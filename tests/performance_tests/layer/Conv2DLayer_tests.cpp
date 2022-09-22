@@ -22,7 +22,7 @@ static void BM_Conv2DLayerBackwardPropagation(benchmark::State& state) {
     Conv2DLayer layer = Conv2DLayer({ M, M, 3 }, 5, 3);
     
     layer.initCachedGradient();
-    layer.forwardPropagation(x);
+    layer.forwardPropagation(x, false);
 
     for (auto _ : state) {
         Tensor c = layer.backwardPropagation(dx);

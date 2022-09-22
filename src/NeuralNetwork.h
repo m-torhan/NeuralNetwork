@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <chrono>
 #include <cmath>
+#include <thread>
 
 #include "Layer.h"
 #include "Utils.h"
@@ -28,8 +29,8 @@ public:
 	NeuralNetwork(Layer& input_layer, Layer& output_layer, CostFun cost_fun);
 
 	float(*getCostFun())(const Tensor&, const Tensor&);
-	const Tensor predict(const Tensor& input);
-	FitHistory fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, uint8_t verbose=1u);
+	const Tensor predict(const Tensor& input, bool inference=true);
+	FitHistory fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, float momentum, uint8_t verbose=1u);
 
 	void summary() const;
 
@@ -46,7 +47,7 @@ private:
 	float(*_cost_function)(const Tensor& y_hat, const Tensor& y);
 	const Tensor (*_cost_function_d)(const Tensor& y_hat, const Tensor& y);
 
-	void updateLayersWeights(float learning_step);
+	void updateLayersWeights(float learning_step, float momentum);
 	void initLayersCachedGradient();
 
 	static void print_progress(float percent);

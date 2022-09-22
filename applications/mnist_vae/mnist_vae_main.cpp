@@ -19,8 +19,8 @@
 #include <string>
 #include <unistd.h>
 
-constexpr uint32_t train_data_len{ 60'000u };
-constexpr uint32_t test_data_len{ 10'000u };
+constexpr uint32_t train_data_len{ 6'000u };
+constexpr uint32_t test_data_len{ 1'000u };
 constexpr uint32_t image_size{ 28u };
 
 static int read_data(const char* file_name, Tensor& data, Tensor& labels);
@@ -78,9 +78,9 @@ int main(int argc , char** argv) {
 
     // encoder
     auto enc_layer_dense_1 = DenseLayer({ 28, 28, 1 }, 1024);
-    auto enc_layer_relu_1 = ActivationLayer(enc_layer_dense_1, ActivationFun::LeakyReLU);
-    auto enc_layer_dense_2 = DenseLayer(enc_layer_relu_1, 1024);
-    auto enc_layer_relu_2 = ActivationLayer(enc_layer_dense_2, ActivationFun::LeakyReLU);
+    // auto enc_layer_relu_1 = ActivationLayer(enc_layer_dense_1, ActivationFun::LeakyReLU);
+    // auto enc_layer_dense_2 = DenseLayer(enc_layer_relu_1, 1024);
+    auto enc_layer_relu_2 = ActivationLayer(enc_layer_dense_1, ActivationFun::LeakyReLU);
     auto enc_layer_dense_3 = DenseLayer(enc_layer_relu_2, 512);
     auto enc_layer_relu_3 = ActivationLayer(enc_layer_dense_3, ActivationFun::LeakyReLU);
     auto enc_layer_dense_4 = DenseLayer(enc_layer_relu_3, 256);
@@ -103,9 +103,9 @@ int main(int argc , char** argv) {
     auto dec_layer_relu_3 = ActivationLayer(dec_layer_dense_3, ActivationFun::LeakyReLU);
     auto dec_layer_dense_4 = DenseLayer(dec_layer_relu_3, 1024);
     auto dec_layer_relu_4 = ActivationLayer(dec_layer_dense_4, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_5 = DenseLayer(dec_layer_relu_4, 1024);
-    auto dec_layer_relu_5 = ActivationLayer(dec_layer_dense_5, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_6 = DenseLayer(dec_layer_relu_5, 784);
+    // auto dec_layer_dense_5 = DenseLayer(dec_layer_relu_4, 1024);
+    // auto dec_layer_relu_5 = ActivationLayer(dec_layer_dense_5, ActivationFun::LeakyReLU);
+    auto dec_layer_dense_6 = DenseLayer(dec_layer_relu_4, 784);
 
     auto dec_layer_sigmoid = ActivationLayer(dec_layer_dense_6, ActivationFun::Sigmoid);
     auto dec_layer_reshape = ReshapeLayer(dec_layer_sigmoid, { 28, 28, 1});
@@ -148,7 +148,8 @@ int main(int argc , char** argv) {
         test_data, test_data,
         256,
         8,
-        0.005f);
+        0.005f,
+        0.8f);
 
     Tensor random_tensor = Tensor::RandomNormal({ 10, latent_dim });
 

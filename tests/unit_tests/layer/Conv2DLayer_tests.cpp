@@ -22,7 +22,7 @@ TEST(Conv2DLayer_test, Conv2DLayerBackwardPropagationOutputShapeTest) {
     Conv2DLayer layer = Conv2DLayer({ 3, 4, 5 }, 6, 3);
 
     layer.initCachedGradient();
-    layer.forwardPropagation(tensor);
+    layer.forwardPropagation(tensor, false);
     Tensor result = layer.backwardPropagation(tensor_d);
 
     ASSERT_EQ(4, (int)result.getDim());
@@ -62,7 +62,7 @@ TEST(Conv2DLayer_test, Conv2DLayerForwardAndBackwardPropagationReturnValuesTest)
         0.0f, 1.0f, -2.0f
     });
 
-    const Tensor forward = layer.forwardPropagation(tensor);
+    const Tensor forward = layer.forwardPropagation(tensor, false);
     const Tensor backward = layer.backwardPropagation(tensor_d);
 
     ASSERT_EQ_EPS(  12.0f, (forward[{ 0, 0, 0, 0 }]));

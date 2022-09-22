@@ -61,7 +61,7 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageBackwardPropagation) {
         10.0f, -3.0f,
     });
 
-    layer.forwardPropagation(tensor);
+    layer.forwardPropagation(tensor, false);
     const Tensor result = layer.backwardPropagation(tensor_d);
     
     ASSERT_EQ( 4, result.getDim());
@@ -70,18 +70,18 @@ TEST(Pool2DLayer_test, Pool2DLayerAverageBackwardPropagation) {
     ASSERT_EQ( 4, result.getShape()[2]);
     ASSERT_EQ( 1, result.getShape()[3]);
     
-    ASSERT_EQ_EPS(     2.0f, (result[{ 0, 0, 0, 0 }]));
-    ASSERT_EQ_EPS(     4.0f, (result[{ 0, 0, 1, 0 }]));
-    ASSERT_EQ_EPS(     6.0f, (result[{ 0, 0, 2, 0 }]));
-    ASSERT_EQ_EPS(     8.0f, (result[{ 0, 0, 3, 0 }]));
-    ASSERT_EQ_EPS( -1.7778f, (result[{ 1, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(    1.75f, (result[{ 0, 0, 0, 0 }]));
+    ASSERT_EQ_EPS(     3.5f, (result[{ 0, 0, 1, 0 }]));
+    ASSERT_EQ_EPS(    8.25f, (result[{ 0, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(    11.0f, (result[{ 0, 0, 3, 0 }]));
+    ASSERT_EQ_EPS(    -2.0f, (result[{ 1, 0, 0, 0 }]));
     ASSERT_EQ_EPS(     0.0f, (result[{ 1, 0, 1, 0 }]));
-    ASSERT_EQ_EPS(  3.8775f, (result[{ 1, 0, 2, 0 }]));
-    ASSERT_EQ_EPS(  4.0816f, (result[{ 1, 0, 3, 0 }]));
-    ASSERT_EQ_EPS(  7.6191f, (result[{ 1, 3, 0, 0 }]));
-    ASSERT_EQ_EPS( 13.3333f, (result[{ 1, 3, 1, 0 }]));
-    ASSERT_EQ_EPS( -6.2069f, (result[{ 1, 3, 2, 0 }]));
-    ASSERT_EQ_EPS(  1.2414f, (result[{ 1, 3, 3, 0 }]));
+    ASSERT_EQ_EPS(  11.875f, (result[{ 1, 0, 2, 0 }]));
+    ASSERT_EQ_EPS(    12.5f, (result[{ 1, 0, 3, 0 }]));
+    ASSERT_EQ_EPS(    20.0f, (result[{ 1, 3, 0, 0 }]));
+    ASSERT_EQ_EPS(    35.0f, (result[{ 1, 3, 1, 0 }]));
+    ASSERT_EQ_EPS(  -11.25f, (result[{ 1, 3, 2, 0 }]));
+    ASSERT_EQ_EPS(    2.25f, (result[{ 1, 3, 3, 0 }]));
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagation) {
@@ -116,6 +116,8 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxForwardPropagation) {
     ASSERT_EQ( 20.0f, (result[{ 1, 0, 1, 0 }]));
     ASSERT_EQ( 14.0f, (result[{ 1, 1, 0, 0 }]));
     ASSERT_EQ( 16.0f, (result[{ 1, 1, 1, 0 }]));
+
+    ASSERT_EQ( 115.0f, result.sum());
 }
 
 TEST(Pool2DLayer_test, Pool2DLayerMaxBackwardPropagation) {
@@ -143,7 +145,7 @@ TEST(Pool2DLayer_test, Pool2DLayerMaxBackwardPropagation) {
         10.0f, -3.0f,
     });
 
-    layer.forwardPropagation(tensor);
+    layer.forwardPropagation(tensor, false);
     const Tensor result = layer.backwardPropagation(tensor_d);
     
     ASSERT_EQ( 4, result.getDim());

@@ -22,9 +22,9 @@ public:
 	Layer* getNextLayer() const;
 	Tensor getCachedOutput() const;
 
-	virtual const Tensor forwardPropagation(const Tensor& x) = 0;
+	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true) = 0;
 	virtual const Tensor backwardPropagation(const Tensor& dx) = 0;
-	virtual void updateWeights(float learning_step) = 0;
+	virtual void updateWeights(float learning_step, float momentum) = 0;
 	virtual void initCachedGradient() = 0;
 	virtual void summary() const = 0;
 	virtual uint32_t getParamsCount() const = 0;

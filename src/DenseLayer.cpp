@@ -44,6 +44,9 @@ void DenseLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t neurons
 
 	_biases = Tensor(shape);
 	_biases *= 0.0f;
+
+	_cached_weights_d_velocity = Tensor(_weights.getShape());
+	_cached_biases_d_velocity = Tensor(_biases.getShape());
 }
 
 void DenseLayer::initCachedGradient() {
@@ -72,22 +75,27 @@ uint32_t DenseLayer::getParamsCount() const {
 	return _weights.getSize() + _biases.getSize();
 }
 
-void DenseLayer::updateWeights(float learning_step) {
-	_weights -= _cached_weights_d * learning_step / _samples;
-	_biases -= _cached_biases_d * learning_step / _samples;
+void DenseLayer::updateWeights(float learning_step, float momentum) {
+	_cached_weights_d_velocity = (_cached_weights_d * learning_step / _samples) + momentum * _cached_weights_d_velocity;
+	_cached_biases_d_velocity = (_cached_biases_d * learning_step / _samples) + momentum * _cached_biases_d_velocity;
+
+	_weights -= _cached_weights_d_velocity;
+	_biases -= _cached_biases_d_velocity;
 }
 
-const Tensor DenseLayer::forwardPropagation(const Tensor& x) {
-	Tensor x_next;
+const Tensor DenseLayer::forwardPropagation(const Tensor& x, bool inference) {
+	Tensor x_flatten;
 	if (x.getDim() > 2) {
-		x_next = x.flatten(1);
+		x_flatten = x.flatten(1);
 	}
 	else {
-		x_next = Tensor(x);
+		x_flatten = x;
 	}
-	_cached_input = Tensor(x_next);
-	x_next = _weights.dotProductTranspose(x_next).transpose() + _biases;
-	_cached_output = Tensor(x_next);
+	Tensor x_next = _weights.dotProductTranspose(x_flatten).transpose() + _biases;
+	if (!inference) {
+		_cached_input = x;
+		_cached_output = x_next;
+	}
 	return x_next;
 }
 

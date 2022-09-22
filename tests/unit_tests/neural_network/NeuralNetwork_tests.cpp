@@ -107,7 +107,7 @@ TEST(NeuralNetwork_test, FitShouldDecreaseCost) {
 
     float cost_1 = nn.getCostFun()(y_hat, y_test);
 
-    nn.fit(x_train, y_train, x_test, y_test, 32, 10, 0.01f, 0);
+    nn.fit(x_train, y_train, x_test, y_test, 32, 10, 0.01f, 0.8f, 0);
 
     y_hat = nn.predict(x_test);
 

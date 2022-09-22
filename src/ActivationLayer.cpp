@@ -51,31 +51,29 @@ void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 		_activation_fun = Tanh_fun;
 		_activation_fun_d = Tanh_fun_d;
 		break;
+	case ActivationFun::Softmax:
+		_activation_fun = Softmax_fun;
+		_activation_fun_d = Softmax_fun_d;
+		break;
 	default:
 		_activation_fun = nullptr;
 		_activation_fun_d = nullptr;
-		// exception
+		throw std::invalid_argument(format_string("Provided activation function in invalid. Provided valu: {}", activation_fun));
 	}
 }
 
-const Tensor ActivationLayer::forwardPropagation(const Tensor& x) {
-	_cached_input = Tensor(x);
+const Tensor ActivationLayer::forwardPropagation(const Tensor& x, bool inference) {
 	Tensor result = _activation_fun(x);
-	_cached_output = Tensor(result);
+	if (!inference) {
+		_cached_input = x;
+		_cached_output = result;
+	}
 	return result;
 }
 
 const Tensor ActivationLayer::backwardPropagation(const Tensor& dx) {
 	Tensor result = _activation_fun_d(_cached_input, dx);
 	return result;
-}
-
-void ActivationLayer::updateWeights(float learning_step) {
-
-}
-
-void ActivationLayer::initCachedGradient() {
-
 }
 
 void ActivationLayer::summary() const {
@@ -128,4 +126,35 @@ const Tensor ActivationLayer::Tanh_fun(const Tensor& x) {
 const Tensor ActivationLayer::Tanh_fun_d(const Tensor& x, const Tensor& dx) {
 	Tensor t = std::move(x.applyFunction(tanhf));
 	return dx * (1 - (t * t));
+}
+
+const Tensor ActivationLayer::Softmax_fun(const Tensor& x) {
+	Tensor x_next(x.getShape());
+	
+	for (uint32_t i{ 0 }; i < x.getShape()[0]; ++i) {
+		Tensor x_row = x[{ { i }, { 0, x.getShape()[1] }}];
+		Tensor exp_x_row = (x_row - x_row.max()).applyFunction(expf);
+		x_next[{ { i }, { 0, x.getShape()[1] }}] = exp_x_row / exp_x_row.sum();
+	}
+	
+	return x_next;
+}
+
+const Tensor ActivationLayer::Softmax_fun_d(const Tensor& x, const Tensor& dx) {
+	Tensor dx_prev(x.getShape());
+
+	for (uint32_t i{ 0 }; i < x.getShape()[0]; ++i) {
+		for (uint32_t j{ 0 }; j < x.getShape()[1]; ++j) {
+			for (uint32_t k{ 0 }; k < x.getShape()[1]; ++k) {
+				if (j == k) {
+					dx_prev[{{ i }, { j }}] = dx[{{ i }, { j }}] * (1.0f - dx[{{ i }, { k }}]);
+				}
+				else {
+					dx_prev[{{ i }, { j }}] = - dx[{{ i }, { j }}] * dx[{{ i }, { k }}];
+				}
+			}
+		}
+	}
+
+	return dx_prev;
 }

@@ -16,10 +16,10 @@ public:
 	Pool2DLayer(std::vector<uint32_t> input_shape, int32_t pool_size, PoolMode pool_mode);
 	Pool2DLayer(Layer& prev_layer, int32_t pool_size, PoolMode pool_mode);
 	
-	virtual const Tensor forwardPropagation(const Tensor& x);
+	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true);
 	virtual const Tensor backwardPropagation(const Tensor& dx);
-	virtual void updateWeights(float learning_step);
-	virtual void initCachedGradient();
+	virtual void updateWeights(float learning_step, float momentum) { };
+	virtual void initCachedGradient() { };
 	virtual void summary() const;
 	virtual uint32_t getParamsCount() const;
 

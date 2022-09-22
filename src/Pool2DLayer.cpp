@@ -6,14 +6,14 @@ Pool2DLayer::Pool2DLayer(std::vector<uint32_t> input_shape, int32_t pool_size, P
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		// exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
 	}
 
-    if ((_input_shape[_input_shape.size() - 2] % pool_size) != 0) {
-        // exception
+    if ((_input_shape[0] % pool_size) != 0) {
+		throw std::invalid_argument(format_string("Invalid input shape. First dimension should be divisible by pool_size, but shape[0]={}, and pool_size={}", _input_shape[0], pool_size));
     }
-    if ((_input_shape[_input_shape.size() - 3] % pool_size) != 0) {
-        // exception
+    if ((_input_shape[1] % pool_size) != 0) {
+		throw std::invalid_argument(format_string("Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]={}, and pool_size={}", _input_shape[1], pool_size));
     }
 
 	_output_shape = _input_shape;
@@ -40,14 +40,14 @@ Pool2DLayer::Pool2DLayer(Layer& prev_layer, int32_t pool_size, PoolMode pool_mod
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		// exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
 	}
 
     if ((_input_shape[_input_shape.size() - 2] % pool_size) != 0) {
-        // exception
+		throw std::invalid_argument(format_string("Invalid input shape. First dimension should be divisible by pool_size, but shape[0]={}, and pool_size={}", _input_shape[0], pool_size));
     }
     if ((_input_shape[_input_shape.size() - 3] % pool_size) != 0) {
-        // exception
+		throw std::invalid_argument(format_string("Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]={}, and pool_size={}", _input_shape[1], pool_size));
     }
 
 	_output_shape = _input_shape;
@@ -71,9 +71,7 @@ Pool2DLayer::Pool2DLayer(Layer& prev_layer, int32_t pool_size, PoolMode pool_mod
     }
 }
 
-const Tensor Pool2DLayer::forwardPropagation(const Tensor& x) {
-    _cached_input = x;
-
+const Tensor Pool2DLayer::forwardPropagation(const Tensor& x, bool inference) {
     std::vector<uint32_t> x_shape = x.getShape();
     std::vector<uint32_t> new_shape = {
         1,
@@ -112,7 +110,11 @@ const Tensor Pool2DLayer::forwardPropagation(const Tensor& x) {
 
     Tensor result = reshaped_result.reshape(result_shape);
 
-    _cached_output = result;
+    if (!inference)
+    {
+        _cached_input = x;
+        _cached_output = result;
+    }
     return result;
 }
 
@@ -133,8 +135,8 @@ const Tensor Pool2DLayer::backwardPropagation(const Tensor& dx) {
     reshaped_result_shape[2] /= _pool_size;
     Tensor reshaped_result = Tensor(new_shape);
 
-    const Tensor reshaped_cached_input = _cached_input.reshape(new_shape);
-    const Tensor reshaped_dx = dx.reshape(reshaped_result_shape);
+    const Tensor reshaped_cached_input = std::move(_cached_input.reshape(new_shape));
+    const Tensor reshaped_dx = std::move(dx.reshape(reshaped_result_shape));
     
     for (uint32_t i = 0; i < reshaped_result_shape[0]; ++i) {
         for (uint32_t x = 0; x < reshaped_result_shape[1]; ++x) {
@@ -144,30 +146,22 @@ const Tensor Pool2DLayer::backwardPropagation(const Tensor& dx) {
                         { { i },
                           { _pool_size*x, _pool_size*(x + 1) },
                           { _pool_size*y, _pool_size*(y + 1) },
-                          { c }}] =
+                          { c } }] =
                         _pool_function_d(
                             reshaped_cached_input[
                                 { { i },
                                   { _pool_size*x, _pool_size*(x + 1) },
                                   { _pool_size*y, _pool_size*(y + 1) },
-                                  { c }}],
+                                  { c } }],
                             reshaped_dx[{ i, x, y, c }]);
                 }
             }
         }
     }
     
-    Tensor result = reshaped_result.reshape(x_shape);
+    Tensor result = std::move(reshaped_result.reshape(x_shape));
 
     return result;
-}
-
-void Pool2DLayer::updateWeights(float learning_step) {
-    
-}
-
-void Pool2DLayer::initCachedGradient() {
-
 }
 
 void Pool2DLayer::summary() const {
@@ -181,7 +175,7 @@ void Pool2DLayer::summary() const {
 	for (uint32_t i { 0u }; i < _output_shape.size(); ++i) {
 		printf(", %d", _output_shape[i]);
 	}
-	printf(")  total params: %d\n", getParamsCount());
+	printf(")\n");
 }
 
 uint32_t Pool2DLayer::getParamsCount() const {
@@ -223,5 +217,5 @@ float Pool2DLayer::pool_mean(const Tensor& x) {
 }
 
 const Tensor Pool2DLayer::pool_mean_d(const Tensor& x, float dx) {
-    return (x/x.mean())*dx;
+    return (x/x.getSize())*dx;
 }

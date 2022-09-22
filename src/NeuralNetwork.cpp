@@ -28,7 +28,7 @@ NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, CostFun co
 	default:
 		_cost_function = nullptr;
 		_cost_function_d = nullptr;
-		// exception
+		throw std::invalid_argument(format_string("Provided cost function in invalid. Provided valu: {}", cost_fun));
 	}
 }
 
@@ -36,7 +36,7 @@ float(*NeuralNetwork::getCostFun())(const Tensor&, const Tensor&) {
 	return _cost_function;
 }
 
-const Tensor NeuralNetwork::predict(const Tensor& input) {
+const Tensor NeuralNetwork::predict(const Tensor& input, bool inference) {
 	Layer* layer;
 	Tensor output;
 
@@ -45,13 +45,13 @@ const Tensor NeuralNetwork::predict(const Tensor& input) {
 
 	while (layer != _output_layer) {
 		layer = layer->getNextLayer();
-		output = layer->forwardPropagation(output);
+		output = layer->forwardPropagation(output, inference);
 	}
 
 	return output;
 }
 
-FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, uint8_t verbose) {
+FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, const Tensor& test_x, const Tensor& test_y, uint32_t batch_size, uint32_t epochs, float learning_step, float momentum, uint8_t verbose) {
 	FitHistory result;
 	Layer* layer;
 	uint32_t epoch{ 0 };
@@ -59,14 +59,8 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 	result.length = epochs;
 
-	result.test_cost = (float*)malloc(sizeof(float) * epochs);
-	if (!result.test_cost) {
-		// exception
-	}
-	result.train_cost = (float*)malloc(sizeof(float) * epochs);
-	if (!result.train_cost) {
-		// exception
-	}
+	result.test_cost = new float[epochs];
+	result.train_cost = new float[epochs];
 
 	for (epoch = 0; epoch < epochs; ++epoch) {
 		uint32_t* permutation = genPermutation(train_x.getShape()[0]);
@@ -88,7 +82,7 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 			Tensor batch_x = train_x_shuffled[Tensor::Range({{ batch_start, batch_start + batch_size }})];
 			Tensor batch_y = train_y_shuffled[Tensor::Range({{ batch_start, batch_start + batch_size }})];
 
-			Tensor y_hat = predict(batch_x);
+			Tensor y_hat = predict(batch_x, false);
 
 			float batch_cost = _cost_function(y_hat, batch_y);
 
@@ -120,7 +114,7 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 				fflush(stdout);
 			}
 
-			updateLayersWeights(learning_step);
+			updateLayersWeights(learning_step, momentum);
 
 		}
 		if (verbose >= 1) {
@@ -182,7 +176,7 @@ const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Ten
 
 float NeuralNetwork::categorical_crossentropy(const Tensor& y_hat, const Tensor& y) {
 	Tensor result = - y * (y_hat + 1e-9f).applyFunction(logf);
-	return result.sum() * (-1.0f / y.getSize());
+	return result.sum();
 }
 
 const Tensor NeuralNetwork::categorical_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
@@ -199,15 +193,15 @@ const Tensor NeuralNetwork::mse_d(const Tensor& y_hat, const Tensor& y) {
 	return -2*(y - y_hat);
 }
 
-void NeuralNetwork::updateLayersWeights(float learning_step) {
+void NeuralNetwork::updateLayersWeights(float learning_step, float momentum) {
 	Layer* layer;
 
 	layer = _input_layer;
-	layer->updateWeights(learning_step);
+	layer->updateWeights(learning_step, momentum);
 
 	while (layer != _output_layer) {
 		layer = layer->getNextLayer();
-		layer->updateWeights(learning_step);
+		layer->updateWeights(learning_step, momentum);
 	}
 }
 

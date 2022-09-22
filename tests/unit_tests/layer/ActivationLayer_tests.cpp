@@ -28,7 +28,7 @@ TEST(ActivationLayer_test, ActivationLayerShouldApplyGivenFunctionDerivativeWhen
         3.0f, 4.0f
         });
 
-    layer.forwardPropagation(tensor);
+    layer.forwardPropagation(tensor, false);
     Tensor result = layer.backwardPropagation(tensor);
 
     ASSERT_EQ( 2.0f, (const_cast<const Tensor&>(result)[{ 0, 0 }]));
@@ -50,7 +50,7 @@ TEST(ActivationLayer_test, SigmoidActivationValuesTest) {
         0.25f, 0.4f, -1.5f
         });
 
-    const Tensor forward = layer.forwardPropagation(tensor);
+    const Tensor forward = layer.forwardPropagation(tensor, false);
     const Tensor backward = layer.backwardPropagation(tensor_back);
 
     ASSERT_EQ_EPS(0.26894f, forward[{ 0 }]);
@@ -75,7 +75,7 @@ TEST(ActivationLayer_test, ReLUActivationValuesTest) {
         0.25f, 0.4f, -1.5f
         });
 
-    Tensor forward = layer.forwardPropagation(tensor);
+    Tensor forward = layer.forwardPropagation(tensor, false);
     Tensor backward = layer.backwardPropagation(tensor_d);
 
     ASSERT_EQ_EPS(0.0f,  const_cast<const Tensor&>(forward)[{ 0 }]);

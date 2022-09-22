@@ -6,7 +6,7 @@ Conv2DLayer::Conv2DLayer(std::vector<uint32_t> input_shape, uint32_t filters_cou
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		// exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
 	}
 	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;
@@ -21,7 +21,7 @@ Conv2DLayer::Conv2DLayer(Layer& prev_layer, uint32_t filters_count, uint32_t fil
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		// exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
 	}
 	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;
@@ -45,11 +45,17 @@ void Conv2DLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t filter
 
 	_weights = Tensor({ filter_size, filter_size, input_shape[2], filters_count });
 
-    _weights.applyFunction([](float value) {return randUniform(-1.0f, 1.0f) * sqrtf(6.0f); });
+	_weights.applyFunction([](float value) {return randNormalDistribution(); });
+	_weights /=  filter_size * filter_size;
+    //_weights.applyFunction([](float value) {return randUniform(-1.0f, 1.0f) * sqrtf(6.0f); });
 
 	_biases = Tensor({ filters_count });
+	_biases *= 0.0f;
 
-    _biases.applyFunction([](float value) {return randUniform(-1.0f, 1.0f) * sqrtf(6.0f); });
+    //_biases.applyFunction([](float value) {return randUniform(-1.0f, 1.0f) * sqrtf(6.0f); });
+	
+	_cached_weights_d_velocity = Tensor(_weights.getShape());
+	_cached_biases_d_velocity = Tensor(_biases.getShape());
 }
 
 void Conv2DLayer::initCachedGradient() {
@@ -78,13 +84,15 @@ uint32_t Conv2DLayer::getParamsCount() const {
 	return _weights.getSize() + _biases.getSize();
 }
 
-void Conv2DLayer::updateWeights(float learning_step) {
-	_weights -= _cached_weights_d * learning_step / _samples;
-	_biases -= _cached_biases_d * learning_step / _samples;
+void Conv2DLayer::updateWeights(float learning_step, float momentum) {
+	_cached_weights_d_velocity = (_cached_weights_d * learning_step / _samples) + momentum * _cached_weights_d_velocity;
+	_cached_biases_d_velocity = (_cached_biases_d * learning_step / _samples) + momentum * _cached_biases_d_velocity;
+
+	_weights -= _cached_weights_d_velocity;
+	_biases -= _cached_biases_d_velocity;
 }
 
-const Tensor Conv2DLayer::forwardPropagation(const Tensor& x) {
-	_cached_input = x;
+const Tensor Conv2DLayer::forwardPropagation(const Tensor& x, bool inference) {
 
 	const Tensor x_pad = x.addPadding({ 1, 2 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 });
 
@@ -109,7 +117,12 @@ const Tensor Conv2DLayer::forwardPropagation(const Tensor& x) {
 
 	x_next += _biases;
 
-	_cached_output = x_next;
+	if (!inference)
+	{
+		_cached_input = x;
+		_cached_output = x_next;
+		_cached_rects = rects;
+	}
 
 	return x_next;
 }
@@ -125,15 +138,20 @@ const Tensor Conv2DLayer::backwardPropagation(const Tensor& dx) {
 	const Tensor x_pad = _cached_input.addPadding({ 1, 2 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 });
 	const Tensor dx_pad = dx.addPadding({ 1, 2 }, { Both, Both }, { (_filter_size - 1) >> 1, (_filter_size - 1) >> 1 });
 
-	Tensor x_rects = Tensor({ batch_size * height * width, _filter_size * _filter_size * channels });
+	Tensor x_rects = _cached_rects;
 	Tensor dx_rects = Tensor({ batch_size * height * width, _filter_size * _filter_size * _filters_count });
 	
 	for (uint32_t i{ 0 }; i < batch_size; ++i) {
 		for (uint32_t j{ 0 }; j < height; ++j) {
 			for (uint32_t k{ 0 }; k < width; ++k) {
-				x_rects[{ { i * width * height + j * width + k }, { 0, _filter_size * _filter_size * channels }}] =
-					x_pad[{{ i }, { j, j + _filter_size }, { k, k + _filter_size }, { 0, channels } }].reshape({ _filter_size * _filter_size * channels });
-
+				// for (uint32_t i_x{ 0 }; i_x < _filter_size; ++i_x) {
+				// 	for (uint32_t i_y{ 0 }; i_y < _filter_size; ++i_y) {
+				// 		for (uint32_t i_c{ 0 }; i_c < _filters_count; ++i_c) {
+				// 			dx_rects[{ { i * width * height + j * width + k }, { i_x * _filter_size * _filters_count + i_y * _filters_count + i_c }}] =
+				// 				dx_pad[{{ i }, { j + (_filter_size - 1 - i_x) }, { k + (_filter_size - 1 - i_y) }, { i_c } }];
+				// 		}
+				// 	}
+				// }
 				dx_rects[{ { i * width * height + j * width + k }, { 0, _filter_size * _filter_size * _filters_count }}] =
 					dx_pad[{{ i }, { j, j + _filter_size }, { k, k + _filter_size }, { 0, _filters_count } }].reshape({ _filter_size * _filter_size * _filters_count });
 			}

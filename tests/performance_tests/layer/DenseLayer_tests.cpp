@@ -22,7 +22,7 @@ static void BM_DenseLayerBackwardPropagation(benchmark::State& state) {
     DenseLayer layer = DenseLayer({ M }, M);
     
     layer.initCachedGradient();
-    layer.forwardPropagation(x);
+    layer.forwardPropagation(x, false);
 
     for (auto _ : state) {
         Tensor c = layer.backwardPropagation(dx);

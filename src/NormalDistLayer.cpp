@@ -2,17 +2,18 @@
 
 NormalDistLayer::NormalDistLayer(std::vector<uint32_t> input_shape) {
     if (input_shape.size() != 1) {
-        // exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 1, but is {}.", _input_shape.size()));
     }
     _input_shape = input_shape;
-    input_shape[input_shape.size() - 1] = 1;
+    input_shape[input_shape.size() - 1] = 2;
     _output_shape = input_shape;
+    input_shape[input_shape.size() - 1] = 1;
 }
 
 NormalDistLayer::NormalDistLayer(Layer& prev_layer) {
     std::vector<uint32_t> prev_output_shape = prev_layer.getOutputShape();
     if (prev_output_shape.size() != 1) {
-        // exception
+		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 1, but is {}.", _input_shape.size()));
     }
     _input_shape = prev_output_shape;
     prev_output_shape[prev_output_shape.size() - 1] = 1;
@@ -22,11 +23,10 @@ NormalDistLayer::NormalDistLayer(Layer& prev_layer) {
 	prev_layer.setNextLayer(this);
 }
 
-const Tensor NormalDistLayer::forwardPropagation(const Tensor& x) {
-    _cached_input = x;
+const Tensor NormalDistLayer::forwardPropagation(const Tensor& x, bool inference) {
 
 	std::vector<uint32_t> random_tensor_shape = x.getShape();
-    random_tensor_shape.pop_back();
+    random_tensor_shape.pop_back(); // [...]
 
     Tensor random_tensor = Tensor::RandomNormal(random_tensor_shape);
 
@@ -38,20 +38,27 @@ const Tensor NormalDistLayer::forwardPropagation(const Tensor& x) {
         var_slice.push_back({0, random_tensor_shape[i]});
     }
 
-    mu_slice.push_back({ 0 });
-    var_slice.push_back({ 1 });
+    mu_slice.push_back({ 0 }); //  [..., 0]
+    var_slice.push_back({ 1 }); // [..., 1]
 
-    Tensor x_next = (x[mu_slice] + random_tensor*x[var_slice]).reshape({ x.getShape()[0], 1 });
+    std::vector<uint32_t> x_next_shape = x.getShape();
+    // [..., 1]
+    x_next_shape[x_next_shape.size() - 1] = 1;
 
-    _cached_random_tensor = random_tensor;
-    _cached_output = x_next;
+    Tensor x_next = (x[mu_slice] + random_tensor*((0.5f * x[var_slice]).applyFunction(expf))).reshape(x_next_shape);
+
+    if (!inference)
+    {
+        _cached_input = x;
+        _cached_random_tensor = random_tensor;
+        _cached_output = x_next;
+    }
     return x_next;
 }
 
 const Tensor NormalDistLayer::backwardPropagation(const Tensor& dx) {
     std::vector<uint32_t> dx_prev_shape = dx.getShape();
-    dx_prev_shape.pop_back();
-    dx_prev_shape.push_back(2);
+    dx_prev_shape[dx_prev_shape.size() - 1] = 2;
 
     Tensor dx_prev(dx_prev_shape);
 
@@ -66,15 +73,14 @@ const Tensor NormalDistLayer::backwardPropagation(const Tensor& dx) {
     mu_slice.push_back({ 0, 1 });
     var_slice.push_back({ 1, 2 });
 
-    dx_prev[mu_slice] = dx;
-    dx_prev[var_slice] = const_cast<const Tensor&>(_cached_input)[{var_slice}]*dx;
+    const Tensor input_var = const_cast<const Tensor&>(_cached_input)[{var_slice}];
+    const Tensor input_mu = const_cast<const Tensor&>(_cached_input)[{mu_slice}];
+
+    dx_prev[mu_slice] = dx - input_mu;
+    dx_prev[var_slice] = input_var*dx + 0.5f*(1 - input_var.applyFunction(expf));
 
     return dx_prev;
 }
-
-void NormalDistLayer::updateWeights(float learning_step) {}
-
-void NormalDistLayer::initCachedGradient() {}
 
 void NormalDistLayer::summary() const {
 	printf("NormDistLayer Layer ");

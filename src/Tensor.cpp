@@ -55,26 +55,29 @@ Tensor Tensor::RandomNormal(const std::vector<uint32_t>& shape) {
 
 const Tensor Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) const {
 	if (ranges.size() > this->_shape.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Ranges exceed tensor shape. Ranges dim={}, tensor dim={}.", ranges.size(), this->_shape.size()));
 	}
 	while (ranges.size() < this->_shape.size()) {
 		ranges.push_back(std::vector<uint32_t>{});
 	}
 	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
 		if (ranges[i].size() > 2) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Range at {} has wrong format. There should be max 2 numbers but are {}.", ranges[i].size()));
 		}
 		if (2 == ranges[i].size()) {
 			if (ranges[i][0] >= ranges[i][1]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} has wrong format. First number greater or equal to second. {} >= {}.", i, ranges[i][0], ranges[i][1]));
+			}
+			if (ranges[i][0] >= this->_shape[i]) {
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][0]={}, tensor shape[]={}.", i, i, ranges[i][0], this->_shape[i]));
 			}
 			if (ranges[i][1] > this->_shape[i]) {
-				printf("EXCEPTION %d > %d line %d\n", ranges[i][1], this->_shape[i], __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][1]={}, tensor shape[]={}.", i, i, ranges[i][1], this->_shape[i]));
 			}
 		}
 		if (1 == ranges[i].size()) {
 			if (ranges[i][0] >= this->_shape[i]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][0]={}, tensor shape[]={}.", i, i, ranges[i][0], this->_shape[i]));
 			}
 		}
 	}
@@ -165,14 +168,16 @@ const float Tensor::operator[](const std::vector<uint32_t>& index) const {
 	uint32_t sub_size{ this->_size };
 
 	if (index.size() != this->_shape.size()) {
-		printf("Exception in %s at line %d\n", __FILE__, __LINE__); throw std::invalid_argument("");
+		throw std::invalid_argument(format_string("Indices dim is different than tensor dim. Indices dim={}, tensor dim={}.",
+			index.size(), this->_shape.size()));
 	}
 
 	for (uint32_t i{ 0 }; i < this->_shape.size(); ++i) {
 		sub_size /= this->_shape[i];
 		uint32_t sub_index{ index[i] };
 		if (sub_index >= this->_shape[i]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Index at {} exceeds tensor dimension. INdex[{}]={}, tensor shape[]={}.",
+				i, i, index[i], this->_shape[i]));
 		}
 		flat_index += sub_size * sub_index;
 	}
@@ -182,26 +187,35 @@ const float Tensor::operator[](const std::vector<uint32_t>& index) const {
 
 TensorSlice Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) {
 	if (ranges.size() > this->_shape.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Ranges exceed tensor shape. Ranges dim={}, tensor dim={}.",
+			ranges.size(), this->_shape.size()));
 	}
 	while (ranges.size() < this->_shape.size()) {
 		ranges.push_back(std::vector<uint32_t>{});
 	}
 	for (uint32_t i{ 0 }; i < ranges.size(); ++i) {
 		if (ranges[i].size() > 2) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Range at {} has wrong format. There should be max 2 numbers but are {}.",
+				ranges[i].size()));
 		}
 		if (2 == ranges[i].size()) {
 			if (ranges[i][0] >= ranges[i][1]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} has wrong format. First number greater or equal to second. {} >= {}.",
+					i, ranges[i][0], ranges[i][1]));
+			}
+			if (ranges[i][0] >= this->_shape[i]) {
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][0]={}, tensor shape[]={}.",
+					i, i, ranges[i][0], this->_shape[i]));
 			}
 			if (ranges[i][1] > this->_shape[i]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][1]={}, tensor shape[]={}.",
+					i, i, ranges[i][1], this->_shape[i]));
 			}
 		}
 		if (1 == ranges[i].size()) {
 			if (ranges[i][0] >= this->_shape[i]) {
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][0]={}, tensor shape[]={}.",
+					i, i, ranges[i][0], this->_shape[i]));
 			}
 		}
 	}
@@ -211,12 +225,14 @@ TensorSlice Tensor::operator[](std::vector<std::vector<uint32_t> > ranges) {
 
 TensorCell Tensor::operator[](const std::vector<uint32_t>& index) {
 	if (index.size() != this->_shape.size()) {
-		printf("Exception in %s at line %d\n", __FILE__, __LINE__); throw std::invalid_argument("");
+		throw std::invalid_argument(format_string("Indices dim is different than tensor dim. Indices dim={}, tensor dim={}.",
+			index.size(), this->_shape.size()));
 	}
 
 	for (uint32_t i{ 0 }; i < this->_shape.size(); ++i) {
 		if (index[i]  >= this->_shape[i]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Index at {} exceeds tensor dimension. INdex[{}]={}, tensor shape[]={}.",
+				i, i, index[i], this->_shape[i]));
 		}
 	}
 
@@ -241,7 +257,8 @@ std::vector<float> Tensor::getData() const {
 
 void Tensor::setValues(const std::vector<float>& values) {
 	if (this->_data.size() != values.size()) {
-		printf("EXCEPTION %d: %d %d\n", __LINE__, this->_data.size(), values.size()); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided values vector has wrong size. Values size={}, tensor size={}.",
+			values.size(), this->_data.size()));
 	}
 	this->_data = values;
 }
@@ -255,7 +272,8 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 	if (((this->_shape.size() < other._shape.size()) ||
 		 (!this->validateShapeReversed(other))) &&
 		(1 != other._size)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	#ifndef SSE
@@ -272,7 +290,8 @@ Tensor& Tensor::operator+=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_add(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	#endif	// SSE
 
@@ -313,7 +332,8 @@ Tensor& Tensor::operator-=(const Tensor& other) {
 	if (((this->_shape.size() < other._shape.size()) ||
 		 (!this->validateShape(other))) &&
 		(1 != other._size)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	#ifndef SSE
@@ -330,7 +350,8 @@ Tensor& Tensor::operator-=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_sub(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	#endif	// SSE
 
@@ -371,7 +392,8 @@ Tensor& Tensor::operator*=(const Tensor& other) {
 	if (((this->_shape.size() < other._shape.size()) ||
 		 (!this->validateShapeReversed(other))) &&
 		(1 != other._size)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	#ifndef SSE
@@ -388,7 +410,8 @@ Tensor& Tensor::operator*=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_mul(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	#endif	// SSE
 
@@ -430,7 +453,8 @@ Tensor& Tensor::operator/=(const Tensor& other) {
 	if (((this->_shape.size() < other._shape.size()) ||
 		 (!this->validateShape(other))) &&
 		(1 != other._size)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	#ifndef SSE
@@ -447,7 +471,8 @@ Tensor& Tensor::operator/=(const Tensor& other) {
 	else if (this->validateShapeReversed(other)) {
 		SSE_tensor_div(this->_size, this->_data.data(), other._size, other._data.data(), this->_data.data());
 	} else {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	#endif	// SSE
 
@@ -495,7 +520,8 @@ const Tensor operator/(float number, const Tensor& other) {
 const Tensor Tensor::operator==(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -510,7 +536,8 @@ const Tensor Tensor::operator==(const Tensor& other) const {
 const Tensor Tensor::operator!=(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -525,7 +552,8 @@ const Tensor Tensor::operator!=(const Tensor& other) const {
 const Tensor Tensor::operator>(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -540,7 +568,8 @@ const Tensor Tensor::operator>(const Tensor& other) const {
 const Tensor Tensor::operator>=(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -555,7 +584,8 @@ const Tensor Tensor::operator>=(const Tensor& other) const {
 const Tensor Tensor::operator<(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -570,7 +600,8 @@ const Tensor Tensor::operator<(const Tensor& other) const {
 const Tensor Tensor::operator<=(const Tensor& other) const {
 	if ((this->_shape.size() < other._shape.size()) ||
 		!this->validateShape(other)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 
 	Tensor result{ *this };
@@ -644,11 +675,13 @@ const Tensor Tensor::operator<=(float number) const {
 
 const Tensor Tensor::addPadding(const std::vector<uint32_t>& axes, const std::vector<Padding>& paddings, const std::vector<uint32_t>& counts) const {
 	if (axes.size() != paddings.size() || axes.size() != counts.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided arguments have wrong dim. Axes dim={}, paddings dim={}, counts dim={}. All should be equal.",
+			axes.size(), paddings.size(), counts.size()));
 	}
 
 	if (axes.size() > this->_shape.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided axes have wrong dim. Axes dim={}, Tensor dim={}.",
+			axes.size(), this->_shape.size()));
 	}
 
 	std::vector<uint32_t> result_shape{ this->_shape };
@@ -677,7 +710,8 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (this->_shape.size() == 1 && other._shape.size() == 1) {
 		// vector inner product
 		if (this->_shape[0] != other._shape[0]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+				vector_to_string(this->_shape), vector_to_string(other._shape)));
 		}
 		Tensor result;
 
@@ -701,7 +735,8 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (this->_shape.size() == 2 && other._shape.size() == 2) {
 		// matrix multiplication
 		if (this->_shape[1] != other._shape[0]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+				vector_to_string(this->_shape), vector_to_string(other._shape)));
 		}
 		std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[1] };
 
@@ -731,7 +766,8 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	if (other._shape.size() == 1) {
 		// sum product over the last axis of this and other (vector)
 		if (this->_shape[this->_shape.size() - 1] != other._shape[0]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+				vector_to_string(this->_shape), vector_to_string(other._shape)));
 		}
 		std::vector<uint32_t> result_shape{ this->_shape };
 		result_shape.pop_back();
@@ -752,7 +788,8 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 	else {
 		// sum product over the last axis of this and the second-to-last axis of other
 		if (this->_shape[this->_shape.size()  - 1] != other._shape[other._shape.size() - 2]) {
-			printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+			throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+				vector_to_string(this->_shape), vector_to_string(other._shape)));
 		}
 
 		Tensor result;
@@ -768,11 +805,13 @@ const Tensor Tensor::dotProduct(const Tensor& other) const {
 
 const Tensor Tensor::dotProductTranspose(const Tensor& other) const {
 	if ((this->_shape.size() != 2) || (other._shape.size() != 2)) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	// matrix multiplication
 	if (this->_shape[1] != other._shape[1]) {
-		printf("EXCEPTION %d %d %d\n", __LINE__, this->_shape[1], other._shape[1]); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Provided operands has wrong shapes. First operand shape={}, second operand shape={}",
+			vector_to_string(this->_shape), vector_to_string(other._shape)));
 	}
 	std::vector<uint32_t> result_shape = { this->_shape[0], other._shape[0] };
 
@@ -819,8 +858,9 @@ const Tensor Tensor::applyFunction(float (*function)(float)) const {
 }
 
 const Tensor Tensor::flatten(uint32_t start_axis) const {
-	if (start_axis >= this->_shape.size() ) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	if (start_axis >= this->_shape.size()) {
+		throw std::invalid_argument(format_string("Provided axis exceeds tensor dim. axis={}, Tensor dim={}",
+			start_axis, this->_shape.size()));
 	}
 
 	uint32_t subsize{ 1 };
@@ -843,8 +883,9 @@ const Tensor Tensor::flatten(uint32_t start_axis) const {
 }
 
 const Tensor Tensor::sum(uint32_t axis) const {
-	if (axis >= this->_shape.size() ) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+	if (axis >= this->_shape.size()) {
+		throw std::invalid_argument(format_string("Provided axis exceeds tensor dim. Axis={}, Tensor dim={}",
+			axis, this->_shape.size()));
 	}
 
 	std::vector<uint32_t> result_shape;
@@ -921,7 +962,8 @@ float Tensor::mean() const {
 
 const Tensor Tensor::transpose() const {
 	if (this->_shape.size() != 2) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Only transpose of tensors with dim equal 2 is supported. Tensor dim={}",
+			this->_shape.size()));
 	}
 
 	std::vector<uint32_t> result_shape = { this->_shape[1], this->_shape[0] };
@@ -1005,7 +1047,8 @@ const Tensor Tensor::reshape(std::vector<uint32_t> new_shape) const {
 		new_size *= s;
 	}
 	if (new_size != this->_size) {
-		// exception
+		throw std::invalid_argument(format_string("Provided new shape changes size of tensor. New size={}, old size={}.",
+			new_size, this->_size));
 	}
 
 	Tensor result{ *this };
@@ -1049,7 +1092,8 @@ bool Tensor::validateShapeReversed(const Tensor& other) const {
 
 const Tensor& TensorSlice::operator=(const Tensor& other) {
 	if (_slice_ranges.size() != _tensor._shape.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Ranges exceed tensor shape. Ranges dim={}, tensor dim={}.",
+			_slice_ranges.size(), _tensor._shape.size()));
 	}
 	for (uint32_t i{ 0 }; i < _slice_ranges.size(); ++i) {
 		switch (_slice_ranges[i].size()) {
@@ -1057,19 +1101,25 @@ const Tensor& TensorSlice::operator=(const Tensor& other) {
 				break;
 			case 1:
 				if (_slice_ranges[i][0] >= _tensor._shape[i]) {
-					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
 				}
 				break;
 			case 2:
 				if (_slice_ranges[i][0] >= _slice_ranges[i][1]) {
-					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+					throw std::invalid_argument(format_string("Range at {} has wrong format. First number greater or equal to second. {} >= {}.",
+						i, _slice_ranges[i][0], _slice_ranges[i][1]));
+				}
+				if (_slice_ranges[i][0] > _tensor._shape[i]) {
+					throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][0]={}, tensor shape[]={}.",
+						i, i, _slice_ranges[i][0], _tensor._shape[i]));
 				}
 				if (_slice_ranges[i][1] > _tensor._shape[i]) {
-					printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+					throw std::invalid_argument(format_string("Range at {} exceeds tensor dimension. Ranges[{}][1]={}, tensor shape[]={}.",
+						i, i, _slice_ranges[i][1], _tensor._shape[i]));
 				}
 				break;
 			default:
-				printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+				throw std::invalid_argument(format_string("Range at {} has wrong format. There should be max 2 numbers but are {}.",
+					_slice_ranges[i].size()));
 				break;
 		}
 	}
@@ -1139,13 +1189,19 @@ const Tensor& TensorSlice::operator=(const Tensor& other) {
 
 float TensorCell::operator=(float value) {
 	if (_cell_index.size() != _tensor._shape.size()) {
-		printf("EXCEPTION %d\n", __LINE__); throw std::invalid_argument(""); // exception
+		throw std::invalid_argument(format_string("Indices dim is different than tensor dim. Indices dim={}, tensor dim={}.",
+			_cell_index.size(), _tensor._shape.size()));
 	}
 
 	uint32_t flat_idx{ 0 };
 	uint32_t subsize = _tensor._size;
 	for (uint32_t i{ 0 }; i < _tensor._shape.size(); ++i) {
 		subsize /= _tensor._shape[i];
+		uint32_t sub_index{ _cell_index[i] };
+		if (sub_index >= _tensor._shape[i]) {
+			throw std::invalid_argument(format_string("Index at {} exceeds tensor dimension. INdex[{}]={}, tensor shape[]={}.",
+				i, i, _cell_index[i], _tensor._shape[i]));
+		}
 		flat_idx += subsize * _cell_index[i];
 	}
 
