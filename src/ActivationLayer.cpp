@@ -58,7 +58,8 @@ void ActivationLayer::initActivationFun(ActivationFun activation_fun) {
 	default:
 		_activation_fun = nullptr;
 		_activation_fun_d = nullptr;
-		throw std::invalid_argument(format_string("Provided activation function in invalid. Provided valu: {}", activation_fun));
+		throw std::invalid_argument(format_string("%s %d : Provided activation function in invalid. Provided value: %d",
+			__FILE__, __LINE__, activation_fun));
 	}
 }
 

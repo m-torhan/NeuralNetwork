@@ -2,7 +2,8 @@
 
 NormalDistLayer::NormalDistLayer(std::vector<uint32_t> input_shape) {
     if (input_shape.size() != 1) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 1, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 1, but is %d.",
+            __FILE__, __LINE__, _input_shape.size()));
     }
     _input_shape = input_shape;
     input_shape[input_shape.size() - 1] = 2;
@@ -13,7 +14,8 @@ NormalDistLayer::NormalDistLayer(std::vector<uint32_t> input_shape) {
 NormalDistLayer::NormalDistLayer(Layer& prev_layer) {
     std::vector<uint32_t> prev_output_shape = prev_layer.getOutputShape();
     if (prev_output_shape.size() != 1) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 1, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 1, but is %d.",
+            __FILE__, __LINE__, _input_shape.size()));
     }
     _input_shape = prev_output_shape;
     prev_output_shape[prev_output_shape.size() - 1] = 1;

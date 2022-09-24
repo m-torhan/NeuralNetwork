@@ -6,6 +6,7 @@
 #include "src/DenseLayer.h"
 #include "src/ReshapeLayer.h"
 #include "src/FlattenLayer.h"
+#include "src/DropoutLayer.h"
 
 #include <iostream>
 #include <fstream>
@@ -19,8 +20,8 @@
 #include <string>
 #include <unistd.h>
 
-constexpr uint32_t train_data_len{ 600u };
-constexpr uint32_t test_data_len{ 100u };
+constexpr uint32_t train_data_len{ 60'000u };
+constexpr uint32_t test_data_len{ 10'000u };
 constexpr uint32_t image_size{ 28u };
 
 static int read_data(const char* file_name, Tensor& data, Tensor& labels);
@@ -67,52 +68,51 @@ int main(int argc , char** argv) {
 
     // dense model
 
-    // printf("Using dense model.\n");
+    printf("Using dense model.\n");
 
-    // auto layer_dense_1 = DenseLayer({ 28, 28, 1 }, 512);
-    // auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
-    // auto layer_dense_2 = DenseLayer(layer_relu_1, 512);
-    // auto layer_relu_2 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
-    // auto layer_dense_3 = DenseLayer(layer_relu_2, 256);
-    // auto layer_relu_3 = ActivationLayer(layer_dense_3, ActivationFun::LeakyReLU);
-    // auto layer_dense_4 = DenseLayer(layer_relu_3, 256);
-    // auto layer_relu_4 = ActivationLayer(layer_dense_4, ActivationFun::LeakyReLU);
-    // auto layer_dense_5 = DenseLayer(layer_relu_4, 10);
-    // auto layer_sigmoid = ActivationLayer(layer_dense_5, ActivationFun::Sigmoid);
+    auto flatten = FlattenLayer({ 28, 28, 1});
+    auto layer_dense_1 = DenseLayer(flatten, 256);
+    auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
+    auto dropout_1 = DropoutLayer(layer_relu_1, 0.3f);
+    auto layer_dense_2 = DenseLayer(dropout_1, 256);
+    auto layer_relu_4 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
+    auto dropout_2 = DropoutLayer(layer_relu_4, 0.3f);
+    auto layer_dense_5 = DenseLayer(dropout_2, 10);
+    auto layer_sigmoid = ActivationLayer(layer_dense_5, ActivationFun::Sigmoid);
 
-    // auto nn = NeuralNetwork(layer_dense_1, layer_sigmoid, CostFun::BinaryCrossentropy);
+    auto nn = NeuralNetwork(flatten, layer_sigmoid, CostFun::BinaryCrossentropy);
 
     // conv model
 
-    printf("Using conv model.\n");
+    // printf("Using conv model.\n");
 
-    // 28x28 -> 14x14
-    auto layer_conv2d_1 = Conv2DLayer({ 28, 28, 1 }, 32, 3);
-    auto layer_relu_1 = ActivationLayer(layer_conv2d_1, ActivationFun::LeakyReLU);
-    auto layer_pool2d_1 = Pool2DLayer(layer_relu_1, 2, PoolMode::Max);
+    // // 28x28 -> 14x14
+    // auto layer_conv2d_1 = Conv2DLayer({ 28, 28, 1 }, 32, 3);
+    // auto layer_relu_1 = ActivationLayer(layer_conv2d_1, ActivationFun::LeakyReLU);
+    // auto layer_pool2d_1 = Pool2DLayer(layer_relu_1, 2, PoolMode::Max);
 
-    // // 14x14 -> 7x7
-    // auto layer_conv2d_2 = Conv2DLayer(layer_pool2d_1, 16, 3);
-    // auto layer_relu_2 = ActivationLayer(layer_conv2d_2, ActivationFun::LeakyReLU);
-    // auto layer_pool2d_2 = Pool2DLayer(layer_relu_2, 2, PoolMode::Max);
+    // // // 14x14 -> 7x7
+    // // auto layer_conv2d_2 = Conv2DLayer(layer_pool2d_1, 16, 3);
+    // // auto layer_relu_2 = ActivationLayer(layer_conv2d_2, ActivationFun::LeakyReLU);
+    // // auto layer_pool2d_2 = Pool2DLayer(layer_relu_2, 2, PoolMode::Max);
     
-    // // 7x7 -> 7x7
-    // auto layer_conv2d_3 = Conv2DLayer(layer_pool2d_2, 32, 3);
-    // auto layer_relu_3 = ActivationLayer(layer_conv2d_3, ActivationFun::LeakyReLU);
+    // // // 7x7 -> 7x7
+    // // auto layer_conv2d_3 = Conv2DLayer(layer_pool2d_2, 32, 3);
+    // // auto layer_relu_3 = ActivationLayer(layer_conv2d_3, ActivationFun::LeakyReLU);
 
-    // flatten
-    auto flatten = FlattenLayer(layer_pool2d_1);
+    // // flatten
+    // auto flatten = FlattenLayer(layer_pool2d_1);
 
-    // dense
-    auto layer_dense_1 = DenseLayer(flatten, 100);
-    auto layer_relu_4 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
-    // auto layer_dense_2 = DenseLayer(layer_relu_4, 64);
-    // auto layer_relu_5 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
-    auto layer_dense_3 = DenseLayer(layer_relu_4, 10);
+    // // dense
+    // auto layer_dense_1 = DenseLayer(flatten, 100);
+    // auto layer_relu_4 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
+    // // auto layer_dense_2 = DenseLayer(layer_relu_4, 64);
+    // // auto layer_relu_5 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
+    // auto layer_dense_3 = DenseLayer(layer_relu_4, 10);
 
-    auto layer_sigmoid = ActivationLayer(layer_dense_3, ActivationFun::Sigmoid);
+    // auto layer_sigmoid = ActivationLayer(layer_dense_3, ActivationFun::Sigmoid);
 
-    auto nn = NeuralNetwork(layer_conv2d_1, layer_sigmoid, CostFun::BinaryCrossentropy);
+    // auto nn = NeuralNetwork(layer_conv2d_1, layer_sigmoid, CostFun::BinaryCrossentropy);
 
     nn.summary();
 
@@ -120,9 +120,9 @@ int main(int argc , char** argv) {
         train_data, train_labels,
         test_data, test_labels,
         32,
-        32,
+        8,
         0.01f,
-        0.8f);
+        0.0f);
 
     uint32_t valid_cnt{ 0 };
 

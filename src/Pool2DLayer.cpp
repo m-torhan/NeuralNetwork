@@ -6,14 +6,17 @@ Pool2DLayer::Pool2DLayer(std::vector<uint32_t> input_shape, int32_t pool_size, P
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 3, but is %d.",
+            __FILE__, __LINE__, _input_shape.size()));
 	}
 
     if ((_input_shape[0] % pool_size) != 0) {
-		throw std::invalid_argument(format_string("Invalid input shape. First dimension should be divisible by pool_size, but shape[0]={}, and pool_size={}", _input_shape[0], pool_size));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. First dimension should be divisible by pool_size, but shape[0]=%d, and pool_size=%d.",
+            __FILE__, __LINE__, _input_shape[0], pool_size));
     }
     if ((_input_shape[1] % pool_size) != 0) {
-		throw std::invalid_argument(format_string("Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]={}, and pool_size={}", _input_shape[1], pool_size));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]=%d, and pool_size=%d.",
+            __FILE__, __LINE__, _input_shape[1], pool_size));
     }
 
 	_output_shape = _input_shape;
@@ -40,14 +43,17 @@ Pool2DLayer::Pool2DLayer(Layer& prev_layer, int32_t pool_size, PoolMode pool_mod
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 3, but is %d.",
+            __FILE__, __LINE__, _input_shape.size()));
 	}
 
     if ((_input_shape[_input_shape.size() - 2] % pool_size) != 0) {
-		throw std::invalid_argument(format_string("Invalid input shape. First dimension should be divisible by pool_size, but shape[0]={}, and pool_size={}", _input_shape[0], pool_size));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. First dimension should be divisible by pool_size, but shape[0]=%d, and pool_size=%d",
+            __FILE__, __LINE__, _input_shape[0], pool_size));
     }
     if ((_input_shape[_input_shape.size() - 3] % pool_size) != 0) {
-		throw std::invalid_argument(format_string("Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]={}, and pool_size={}", _input_shape[1], pool_size));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Second dimension should be divisible by pool_size, but shape[1]=%d, and pool_size=%d",
+            __FILE__, __LINE__, _input_shape[1], pool_size));
     }
 
 	_output_shape = _input_shape;

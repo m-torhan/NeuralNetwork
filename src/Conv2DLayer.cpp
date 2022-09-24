@@ -6,7 +6,8 @@ Conv2DLayer::Conv2DLayer(std::vector<uint32_t> input_shape, uint32_t filters_cou
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 3, but is %d.",
+			__FILE__, __LINE__, _input_shape.size()));
 	}
 	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;
@@ -21,7 +22,8 @@ Conv2DLayer::Conv2DLayer(Layer& prev_layer, uint32_t filters_count, uint32_t fil
 		_input_shape.push_back(1);
 	}
 	else if (3 != _input_shape.size()) {
-		throw std::invalid_argument(format_string("Invalid input shape. Dim should be 3, but is {}.", _input_shape.size()));
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 3, but is %d.",
+			__FILE__, __LINE__, _input_shape.size()));
 	}
 	_output_shape = _input_shape;
     _output_shape[_output_shape.size() - 1] = filters_count;

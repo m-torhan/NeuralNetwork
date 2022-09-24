@@ -3,8 +3,8 @@
 #include "tests/unit_tests/UnitTestsUtils.h"
 
 TEST(DenseLayer_test, DenseLayerForwardPropagationOutputShapeTest) {
-    Tensor tensor = Tensor({ 2, 3, 4 });
-    DenseLayer layer = DenseLayer({ 3, 4 }, 4);
+    Tensor tensor = Tensor({ 2, 12 });
+    DenseLayer layer = DenseLayer({ 12 }, 4);
 
     Tensor result = layer.forwardPropagation(tensor);
 

@@ -28,7 +28,8 @@ NeuralNetwork::NeuralNetwork(Layer& input_layer, Layer& output_layer, CostFun co
 	default:
 		_cost_function = nullptr;
 		_cost_function_d = nullptr;
-		throw std::invalid_argument(format_string("Provided cost function in invalid. Provided valu: {}", cost_fun));
+		throw std::invalid_argument(format_string("%s %d : Provided cost function in invalid. Provided valu: %d",
+			__FILE__, __LINE__, cost_fun));
 	}
 }
 
@@ -41,7 +42,7 @@ const Tensor NeuralNetwork::predict(const Tensor& input, bool inference) {
 	Tensor output;
 
 	layer = _input_layer;
-	output = layer->forwardPropagation(input);
+	output = layer->forwardPropagation(input, inference);
 
 	while (layer != _output_layer) {
 		layer = layer->getNextLayer();

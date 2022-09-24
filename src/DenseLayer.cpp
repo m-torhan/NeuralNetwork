@@ -84,14 +84,7 @@ void DenseLayer::updateWeights(float learning_step, float momentum) {
 }
 
 const Tensor DenseLayer::forwardPropagation(const Tensor& x, bool inference) {
-	Tensor x_flatten;
-	if (x.getDim() > 2) {
-		x_flatten = x.flatten(1);
-	}
-	else {
-		x_flatten = x;
-	}
-	Tensor x_next = _weights.dotProductTranspose(x_flatten).transpose() + _biases;
+	Tensor x_next = _weights.dotProductTranspose(x).transpose() + _biases;
 	if (!inference) {
 		_cached_input = x;
 		_cached_output = x_next;
