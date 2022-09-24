@@ -182,8 +182,8 @@ const float Tensor::operator[](const std::vector<uint32_t>& index) const {
 		sub_size /= this->_shape[i];
 		uint32_t sub_index{ index[i] };
 		if (sub_index >= this->_shape[i]) {
-			throw std::invalid_argument(format_string("%s %d : Index at %d exceeds tensor dimension. INdex[%d]=%d, tensor shape[]=%d.",
-				__FILE__, __LINE__, i, i, index[i], this->_shape[i]));
+			throw std::invalid_argument(format_string("%s %d : Index at %d exceeds tensor dimension. INdex[%d]=%d, tensor shape=%s.",
+				__FILE__, __LINE__, i, i, index[i], vector_to_string(this->_shape)));
 		}
 		flat_index += sub_size * sub_index;
 	}
@@ -832,9 +832,9 @@ const Tensor Tensor::dotProductTranspose(const Tensor& other) const {
 		}
 	}
 	#else	// SSE
-	for (uint32_t i{ 0 }; i < result_shape[0]; ++i) {
-		SSE_tensor_dot_product_transpose(1, result_shape[1], this->_shape[1], this->_data.data(), other._data.data(), result._data.data() + i*result_shape[1]);
-	}
+
+	SSE_tensor_dot_product_transpose(result_shape[0], result_shape[1], this->_shape[1], this->_data.data(), other._data.data(), result._data.data());
+	
 	#endif	// SSE
 
 	return result;

@@ -71,10 +71,10 @@ int main(int argc , char** argv) {
     printf("Using dense model.\n");
 
     auto flatten = FlattenLayer({ 28, 28, 1});
-    auto layer_dense_1 = DenseLayer(flatten, 256);
+    auto layer_dense_1 = DenseLayer(flatten, 512);
     auto layer_relu_1 = ActivationLayer(layer_dense_1, ActivationFun::LeakyReLU);
     auto dropout_1 = DropoutLayer(layer_relu_1, 0.3f);
-    auto layer_dense_2 = DenseLayer(dropout_1, 256);
+    auto layer_dense_2 = DenseLayer(dropout_1, 512);
     auto layer_relu_4 = ActivationLayer(layer_dense_2, ActivationFun::LeakyReLU);
     auto dropout_2 = DropoutLayer(layer_relu_4, 0.3f);
     auto layer_dense_5 = DenseLayer(dropout_2, 10);
@@ -121,8 +121,8 @@ int main(int argc , char** argv) {
         test_data, test_labels,
         32,
         8,
-        0.01f,
-        0.0f);
+        0.05f,
+        0.8f);
 
     uint32_t valid_cnt{ 0 };
 

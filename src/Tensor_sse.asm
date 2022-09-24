@@ -1222,16 +1222,17 @@ _SSE_tensor_last_axis_sum:
 ;	r - result (v1 dot v2^T)
 _SSE_tensor_dot_product_transpose:
 	push	ebp
-	push	edi
 
 	mov		ebp, esp
+
+	pusha
 	
-	mov		ebx, [ebp+12]		; n		uint32
-	mov		ecx, [ebp+16]		; m 	uint32
-	;			 [ebp+20]		; p		uint32
-	mov		edx, [ebp+24]		; v1	float* (array)
-	mov		esi, [ebp+28]		; v2	float* (array)
-	mov		edi, [ebp+32]		; r		float* (array) 
+	mov		ebx, [ebp+8]		; n		uint32
+	mov		ecx, [ebp+12]		; m 	uint32
+	;			 [ebp+16]		; p		uint32
+	mov		edx, [ebp+20]		; v1	float* (array)
+	mov		esi, [ebp+24]		; v2	float* (array)
+	mov		edi, [ebp+28]		; r		float* (array) 
 
 .outer_loop:
 	cmp		ebx, 1
@@ -1246,32 +1247,32 @@ _SSE_tensor_dot_product_transpose:
 	dec		ecx
 	
 	mov		eax, ebx			; i (0 to n-1)
-	mul		dword [ebp+20]		; p*i
+	mul		dword [ebp+16]		; p*i
 	shl		eax, 2				; 4*p*i
 	mov		edx, eax
-	add		edx, [ebp+24]		; v1[p*i + 0] = v1[i,0]	float* (array)
+	add		edx, [ebp+20]		; v1[p*i + 0] = v1[i,0]	float* (array)
 
 	push 	edx
 
 	mov		eax, ecx			; j (0 to m-1)
-	mul		dword [ebp+20]		; p*j
+	mul		dword [ebp+16]		; p*j
 	shl		eax, 2				; 4*p*j
 	mov		esi, eax
-	add		esi, [ebp+28]		; v2[p*j + 0] = v2[j,0]	float* (array)
+	add		esi, [ebp+24]		; v2[p*j + 0] = v2[j,0]	float* (array)
 
 	mov		eax, ebx			; i (0 to n-1)
-	mul		dword [ebp+16]		; m*i
+	mul		dword [ebp+12]		; m*i
 	add		eax, ecx			; m*i + j
 	shl		eax, 2				; 4*(m*i + j)
 	mov		edi, eax
-	add		edi, [ebp+32]		; r[m*i + j] = r[i,j]	float* (array) 
+	add		edi, [ebp+28]		; r[m*i + j] = r[i,j]	float* (array) 
 
 	pop		edx
 
 	push	ebx
 	push	ecx
 
-	mov		ecx, [ebp+20]		; p (0 to k-1)
+	mov		ecx, [ebp+16]		; p (0 to k-1)
 
 	xorps 	xmm0, xmm0
 
@@ -1313,20 +1314,22 @@ _SSE_tensor_dot_product_transpose:
 
 	movss   [edi], xmm0			; r[i,j]
 
+
 	pop		ecx
 	pop		ebx
 
 	jmp		.inner_loop
 
 .inner_end:
-	mov		ecx, [ebp+16]
+	mov		ecx, [ebp+12]
 	jmp		.outer_loop
 
 .outer_end:
 
+	popa
+
 	mov     esp, ebp
 
-	pop 	edi
 	pop		ebp
 
 	ret
