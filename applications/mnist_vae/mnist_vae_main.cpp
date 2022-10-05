@@ -6,6 +6,7 @@
 #include "src/DenseLayer.h"
 #include "src/ReshapeLayer.h"
 #include "src/NormalDistLayer.h"
+#include "src/FlattenLayer.h"
 
 #include <iostream>
 #include <fstream>
@@ -64,9 +65,9 @@ int main(int argc , char** argv) {
     }
     std::cout << "Reading data done" << std::endl;
 
-    for (uint32_t i{ 0 }; i < 10; ++i) {
-        show_digit(const_cast<const Tensor&>(train_data)[Tensor::Range({{ i }})]);
-    }
+    // for (uint32_t i{ 0 }; i < 10; ++i) {
+    //     show_digit(const_cast<const Tensor&>(train_data)[Tensor::Range({{ i }})]);
+    // }
 
     // create neural network
 
@@ -74,45 +75,50 @@ int main(int argc , char** argv) {
 
     printf("Using dense model.\n");
 
-    constexpr uint32_t latent_dim = 2;
+    constexpr uint32_t latent_dim{ 2 };
+    constexpr uint32_t neurons_count{ 16 };
 
     // encoder
-    auto enc_layer_dense_1 = DenseLayer({ 28, 28, 1 }, 1024);
+    auto enc_flatten = FlattenLayer({ 28, 28, 1 });
+    auto enc_layer_dense_1 = DenseLayer(enc_flatten, neurons_count * 16);
     // auto enc_layer_relu_1 = ActivationLayer(enc_layer_dense_1, ActivationFun::LeakyReLU);
     // auto enc_layer_dense_2 = DenseLayer(enc_layer_relu_1, 1024);
     auto enc_layer_relu_2 = ActivationLayer(enc_layer_dense_1, ActivationFun::LeakyReLU);
-    auto enc_layer_dense_3 = DenseLayer(enc_layer_relu_2, 512);
+    auto enc_layer_dense_3 = DenseLayer(enc_layer_relu_2, neurons_count * 8);
     auto enc_layer_relu_3 = ActivationLayer(enc_layer_dense_3, ActivationFun::LeakyReLU);
-    auto enc_layer_dense_4 = DenseLayer(enc_layer_relu_3, 256);
+    auto enc_layer_dense_4 = DenseLayer(enc_layer_relu_3, neurons_count * 4);
     auto enc_layer_relu_4 = ActivationLayer(enc_layer_dense_4, ActivationFun::LeakyReLU);
-    auto enc_layer_dense_5 = DenseLayer(enc_layer_relu_4, 128);
+    auto enc_layer_dense_5 = DenseLayer(enc_layer_relu_4, neurons_count * 2);
     auto enc_layer_relu_5 = ActivationLayer(enc_layer_dense_5, ActivationFun::LeakyReLU);
-    auto enc_layer_dense_6 = DenseLayer(enc_layer_relu_5, latent_dim * 2);
-    auto enc_layer_tanh = ActivationLayer(enc_layer_dense_6, ActivationFun::Tanh);
+    auto enc_layer_dense_6 = DenseLayer(enc_layer_relu_5, neurons_count);
+    auto enc_layer_relu_6 = ActivationLayer(enc_layer_dense_6, ActivationFun::LeakyReLU);
+    auto enc_layer_dense_7 = DenseLayer(enc_layer_relu_6, latent_dim * 2);
 
-    auto enc_layer_reshape_1 = ReshapeLayer(enc_layer_tanh, { latent_dim, 2 });
+    auto enc_layer_reshape_1 = ReshapeLayer(enc_layer_dense_7, { latent_dim, 2 });
     auto enc_norm_dist_layer = NormalDistLayer(enc_layer_reshape_1);
     auto enc_layer_reshape_2 = ReshapeLayer(enc_norm_dist_layer, { latent_dim });
 
     //decoder
-    auto dec_layer_dense_1 = DenseLayer(enc_layer_reshape_2, 128);
+    auto dec_layer_dense_1 = DenseLayer(enc_layer_reshape_2, neurons_count);
     auto dec_layer_relu_1 = ActivationLayer(dec_layer_dense_1, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_2 = DenseLayer(dec_layer_relu_1, 256);
+    auto dec_layer_dense_2 = DenseLayer(dec_layer_relu_1, neurons_count * 2);
     auto dec_layer_relu_2 = ActivationLayer(dec_layer_dense_2, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_3 = DenseLayer(dec_layer_relu_2, 512);
+    auto dec_layer_dense_3 = DenseLayer(dec_layer_relu_2, neurons_count * 4);
     auto dec_layer_relu_3 = ActivationLayer(dec_layer_dense_3, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_4 = DenseLayer(dec_layer_relu_3, 1024);
+    auto dec_layer_dense_4 = DenseLayer(dec_layer_relu_3, neurons_count * 8);
     auto dec_layer_relu_4 = ActivationLayer(dec_layer_dense_4, ActivationFun::LeakyReLU);
+    auto dec_layer_dense_5 = DenseLayer(dec_layer_relu_4, neurons_count * 16);
+    auto dec_layer_relu_5 = ActivationLayer(dec_layer_dense_5, ActivationFun::LeakyReLU);
     // auto dec_layer_dense_5 = DenseLayer(dec_layer_relu_4, 1024);
     // auto dec_layer_relu_5 = ActivationLayer(dec_layer_dense_5, ActivationFun::LeakyReLU);
-    auto dec_layer_dense_6 = DenseLayer(dec_layer_relu_4, 784);
+    auto dec_layer_dense_6 = DenseLayer(dec_layer_relu_5, 784);
 
     auto dec_layer_sigmoid = ActivationLayer(dec_layer_dense_6, ActivationFun::Sigmoid);
     auto dec_layer_reshape = ReshapeLayer(dec_layer_sigmoid, { 28, 28, 1});
 
-    auto nn = NeuralNetwork(enc_layer_dense_1, dec_layer_reshape, CostFun::MSE);
-    auto enc = NeuralNetwork(enc_layer_dense_1, enc_layer_reshape_2, CostFun::MSE);
-    auto gen = NeuralNetwork(dec_layer_dense_1, dec_layer_reshape, CostFun::MSE);
+    auto vae = NeuralNetwork(enc_flatten, dec_layer_reshape, CostFun::BinaryCrossentropy);
+    auto enc = NeuralNetwork(enc_flatten, enc_layer_reshape_2, CostFun::BinaryCrossentropy);
+    auto gen = NeuralNetwork(dec_layer_dense_1, dec_layer_reshape, CostFun::BinaryCrossentropy);
 
     // conv model
 
@@ -139,16 +145,16 @@ int main(int argc , char** argv) {
 
     // auto layer_sigmoid = ActivationLayer(layer_dense_2, ActivationFun::Sigmoid);
 
-    // auto nn = NeuralNetwork(layer_conv2d_1, layer_sigmoid, CostFun::BinaryCrossentropy);
+    // auto vae = NeuralNetwork(layer_conv2d_1, layer_sigmoid, CostFun::BinaryCrossentropy);
 
-    nn.summary();
+    vae.summary();
 
-    nn.fit(
+    vae.fit(
         train_data, train_data,
         test_data, test_data,
-        256,
-        8,
-        0.005f,
+        64,
+        32,
+        0.001f,
         0.8f);
 
     Tensor random_tensor = Tensor::RandomNormal({ 10, latent_dim });
@@ -156,7 +162,10 @@ int main(int argc , char** argv) {
     const Tensor output = gen.predict(random_tensor);
 
     for (uint32_t i{ 0 }; i < 10; ++i) {
-        show_digit(output[Tensor::Range({{ i }})]);
+        Tensor img = output[Tensor::Range({{ i }})];
+        img -= img.min();
+        img /= img.max();
+        show_digit(img);
     }
 
     // encoding digits from test set

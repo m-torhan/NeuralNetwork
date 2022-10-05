@@ -1,7 +1,9 @@
 # NeuralNetwork
 c++/asm implementation of neural network.
 
-Example use of `NeuralNetwork` class can be found in `applications/mnist/mnist_main.cpp` (digit recognition [link](./applications/mnist/)).
+Example uses of `NeuralNetwork` class can be found in:
+ -  [applications/mnist](./applications/mnist/) digit recognition,
+ -  [applications/mnist_vae](./applications/mnist_vae/) digit generation.
 
 At this moment there are implemented layers of type:
  - dense,

@@ -1,8 +1,8 @@
 #include "NormalDistLayer.h"
 
 NormalDistLayer::NormalDistLayer(std::vector<uint32_t> input_shape) {
-    if (input_shape.size() != 1) {
-		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 1, but is %d.",
+    if (input_shape.size() != 2) {
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 2, but is %d.",
             __FILE__, __LINE__, _input_shape.size()));
     }
     _input_shape = input_shape;
@@ -13,9 +13,9 @@ NormalDistLayer::NormalDistLayer(std::vector<uint32_t> input_shape) {
 
 NormalDistLayer::NormalDistLayer(Layer& prev_layer) {
     std::vector<uint32_t> prev_output_shape = prev_layer.getOutputShape();
-    if (prev_output_shape.size() != 1) {
-		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 1, but is %d.",
-            __FILE__, __LINE__, _input_shape.size()));
+    if (prev_output_shape.size() != 2) {
+		throw std::invalid_argument(format_string("%s %d : Invalid input shape. Dim should be 2, but is %d.",
+            __FILE__, __LINE__, prev_output_shape.size()));
     }
     _input_shape = prev_output_shape;
     prev_output_shape[prev_output_shape.size() - 1] = 1;
@@ -78,8 +78,10 @@ const Tensor NormalDistLayer::backwardPropagation(const Tensor& dx) {
     const Tensor input_var = const_cast<const Tensor&>(_cached_input)[{var_slice}];
     const Tensor input_mu = const_cast<const Tensor&>(_cached_input)[{mu_slice}];
 
-    dx_prev[mu_slice] = dx - input_mu;
-    dx_prev[var_slice] = input_var*dx + 0.5f*(1 - input_var.applyFunction(expf));
+    constexpr float KL_coef = .0001f;
+
+    dx_prev[mu_slice] = dx - KL_coef*input_mu;
+    dx_prev[var_slice] = input_var*dx + KL_coef*0.5f*(1 - input_var.applyFunction(expf));
 
     return dx_prev;
 }
@@ -95,7 +97,7 @@ void NormalDistLayer::summary() const {
 	for (uint32_t i { 0u }; i < _output_shape.size(); ++i) {
 		printf(", %d", _output_shape[i]);
 	}
-	printf(")  total params: %d\n", getParamsCount());
+	printf(")\n");
 }
 
 uint32_t NormalDistLayer::getParamsCount() const {

@@ -94,9 +94,6 @@ FitHistory NeuralNetwork::fit(const Tensor& train_x, const Tensor& train_y, cons
 
 			while (layer != _input_layer) {
 				layer = layer->getPrevLayer();
-				std::vector<uint32_t> dx_new_shape = layer->getOutputShape();
-				dx_new_shape.insert(dx_new_shape.begin(), dx.getShape()[0]);
-				dx = dx.reshape(dx_new_shape);
 				dx = layer->backwardPropagation(dx);
 			}
 
@@ -166,12 +163,12 @@ void NeuralNetwork::summary() const {
 }
 
 float NeuralNetwork::binary_crossentropy(const Tensor& y_hat, const Tensor& y) {
-	Tensor result = y * (y_hat + 1e-9f).applyFunction(logf) + (-y + 1.0f) * (-y_hat + 1.0f + 1e-9f).applyFunction(logf);
+	Tensor result = y * (y_hat + 1e-9f).applyFunction(logf) + (1.0f - y) * (1.0f - y_hat + 1e-9f).applyFunction(logf);
 	return result.sum() * (-1.0f / y.getSize());
 }
 
 const Tensor NeuralNetwork::binary_crossentropy_d(const Tensor& y_hat, const Tensor& y) {
-	Tensor result = (y / (y_hat + 1e-9f)) - ((-y + 1.0f) / (-y_hat + 1.0f + 1e-9f));
+	Tensor result = (y / (y_hat + 1e-9f)) - ((1.0f - y) / (1.0f - y_hat + 1e-9f));
 	return -result;
 }
 
@@ -191,7 +188,7 @@ float NeuralNetwork::mse(const Tensor& y_hat, const Tensor& y) {
 }
 
 const Tensor NeuralNetwork::mse_d(const Tensor& y_hat, const Tensor& y) {
-	return -2*(y - y_hat);
+	return -2*(y - y_hat)/y.getSize();
 }
 
 void NeuralNetwork::updateLayersWeights(float learning_step, float momentum) {

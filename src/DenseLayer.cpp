@@ -36,7 +36,7 @@ void DenseLayer::initWeights(std::vector<uint32_t> input_shape, uint32_t neurons
 
 	for (uint32_t i{ 0 }; i < _neurons_count; ++i) {
 		for (uint32_t j{ 0 }; j < input_size; ++j) {
-			_weights[{ i, j }] = randUniform(-1.0f, 1.0f)*sqrtf(6.0f/input_size);
+			_weights[{ i, j }] = randNormalDistribution()/input_size;
 		}
 	}
 

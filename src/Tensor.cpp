@@ -40,9 +40,6 @@ const Tensor& Tensor::operator=(const Tensor&& other) {
 	return *this;
 }
 
-Tensor::~Tensor() {
-}
-
 Tensor Tensor::RandomNormal(const std::vector<uint32_t>& shape) {
 	Tensor ret(shape);
 
@@ -954,6 +951,18 @@ float Tensor::max() const {
 
 	for (auto value : _data) {
 		if (value > result) {
+			result = value;
+		}
+	}
+
+	return result;
+}
+
+float Tensor::min() const {
+	float result = _data[0];
+
+	for (auto value : _data) {
+		if (value < result) {
 			result = value;
 		}
 	}
