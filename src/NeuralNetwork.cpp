@@ -215,13 +215,13 @@ void NeuralNetwork::initLayersCachedGradient() {
 	}
 }
 
-void NeuralNetwork::print_progress(float percent) {
+void NeuralNetwork::print_progress(float progress) {
 	uint32_t i{ 0 };
 	bool arrow = true;
 
 	printf("[");
 	for (i = 0; i < 32; ++i) {
-		if (i < 32 * percent) {
+		if (i < 32 * progress) {
 			printf("=");
 		}
 		else if (arrow) {
