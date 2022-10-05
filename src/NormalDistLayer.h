@@ -9,7 +9,17 @@
 
 class NormalDistLayer : public Layer {
 public:
+	/**
+	 * @brief Construct a new Normal Distribution Layer.
+	 * 
+	 * @param input_shape Shape of input Tensor.
+	 */
 	NormalDistLayer(std::vector<uint32_t> input_shape);
+	/**
+	 * @brief Construct a new Normal Distribution Layer.
+	 * 
+	 * @param prev_layer Previous layer.
+	 */
 	NormalDistLayer(Layer& prev_layer);
 
 	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true);
@@ -20,5 +30,8 @@ public:
 	virtual uint32_t getParamsCount() const;
 
 private:
+	/**
+	 * Random tensor used in most recent forward propagation.
+	 */
     Tensor _cached_random_tensor;
 };

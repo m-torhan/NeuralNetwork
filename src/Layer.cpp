@@ -1,8 +1,5 @@
 #include "Layer.h"
 
-Layer::~Layer() {
-}
-
 uint32_t Layer::getInputDim() const {
 	return _input_shape.size();
 }

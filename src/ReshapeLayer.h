@@ -8,7 +8,19 @@
 
 class ReshapeLayer : public Layer {
 public:
+	/**
+	 * @brief Construct a new Reshape Layer.
+	 * 
+	 * @param input_shape Shape of input Tensor.
+	 * @param output_shape Shape of output Tensor.
+	 */
 	ReshapeLayer(std::vector<uint32_t> input_shape, std::vector<uint32_t> output_shape);
+	/**
+	 * @brief Construct a new Reshape Layer.
+	 * 
+	 * @param prev_layer Previous layer.
+	 * @param output_shape Shape of output Tensor.
+	 */
 	ReshapeLayer(Layer& prev_layer, std::vector<uint32_t> output_shape);
 
 	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true);

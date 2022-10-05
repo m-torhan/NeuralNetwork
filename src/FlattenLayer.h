@@ -8,7 +8,17 @@
 
 class FlattenLayer : public Layer {
 public:
+	/**
+	 * @brief Construct a new Flatten Layer.
+	 * 
+	 * @param input_shape Shape of input Tensor.
+	 */
 	FlattenLayer(std::vector<uint32_t> input_shape);
+	/**
+	 * @brief Construct a new Flatten Layer.
+	 * 
+	 * @param prev_layer Previous layer.
+	 */
 	FlattenLayer(Layer& prev_layer);
 
 	virtual const Tensor forwardPropagation(const Tensor& x, bool inference=true);
